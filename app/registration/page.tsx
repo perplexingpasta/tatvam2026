@@ -1,163 +1,180 @@
 "use client";
 
 import React, { useState } from "react";
-
-type Member = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  yearOfStudy: string;
-  collegeIdNumber: string;
-  delegateTier: string;
-  collegeIdImage: File | null;
-  collegeIdImagePreview: string | null;
-};
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 const TIERS = [
   {
     id: "tier1",
     name: process.env.NEXT_PUBLIC_TIER_1_NAME || "Gold",
-    price: parseInt(process.env.NEXT_PUBLIC_TIER_1_PRICE || "99", 10),
+    price: parseInt(process.env.NEXT_PUBLIC_TIER_1_PRICE || "100", 10),
     description: "Basic access to all non-premium events.",
   },
   {
     id: "tier2",
     name: process.env.NEXT_PUBLIC_TIER_2_NAME || "Platinum",
-    price: parseInt(process.env.NEXT_PUBLIC_TIER_2_PRICE || "`249`", 10),
+    price: parseInt(process.env.NEXT_PUBLIC_TIER_2_PRICE || "200", 10),
     description: "Includes premium events and lunch.",
   },
   {
     id: "tier3",
     name: process.env.NEXT_PUBLIC_TIER_3_NAME || "Diamond",
-    price: parseInt(process.env.NEXT_PUBLIC_TIER_3_PRICE || "499", 10),
+    price: parseInt(process.env.NEXT_PUBLIC_TIER_3_PRICE || "300", 10),
     description: "All access pass + merchandise + lunch + priority seating.",
   },
 ];
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
+
+const memberSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone must be at least 10 digits"),
+  yearOfStudy: z.string().min(1, "Year of study is required"),
+  collegeIdNumber: z.string().min(1, "College ID is required"),
+  delegateTier: z.enum(["tier1", "tier2", "tier3"]),
+  collegeIdImage: z.any()
+    .refine((file) => typeof window !== "undefined" && file instanceof File, "College ID image is required")
+    .refine((file) => file?.size <= MAX_FILE_SIZE, "Max file size is 10MB.")
+    .refine(
+      (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
+      "Only .jpg, .jpeg, .png formats are supported."
+    ),
+});
+
+const registrationSchema = z.object({
+  teamName: z.string().optional(),
+  members: z.array(memberSchema).min(1).max(25),
+  utrNumber: z.string().optional(),
+  paymentScreenshot: z.any().optional(),
+}).superRefine((data, ctx) => {
+  if (data.members.length > 1 && (!data.teamName || data.teamName.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["teamName"],
+      message: "Team name is required when registering multiple members",
+    });
+  }
+});
+
+type RegistrationFormValues = z.infer<typeof registrationSchema>;
+
 export default function RegistrationPage() {
   const [step, setStep] = useState(1);
-  const [members, setMembers] = useState<Member[]>([
-    {
-      id: "initial-1",
-      name: "",
-      email: "",
-      phone: "",
-      yearOfStudy: "",
-      collegeIdNumber: "",
-      delegateTier: "tier1",
-      collegeIdImage: null,
-      collegeIdImagePreview: null,
-    },
-  ]);
-  const [teamName, setTeamName] = useState("");
-  const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
-  const [paymentScreenshotPreview, setPaymentScreenshotPreview] = useState<string | null>(null);
-  const [utrNumber, setUtrNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [generatedDelegateIds, setGeneratedDelegateIds] = useState<string[]>([]);
   const [generatedTeamId, setGeneratedTeamId] = useState<string | null>(null);
 
-  const totalCost = members.reduce((sum, member) => {
+  const [imagePreviews, setImagePreviews] = useState<Record<string, string>>({});
+  const [paymentPreview, setPaymentPreview] = useState<string | null>(null);
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    trigger,
+    formState: { errors },
+  } = useForm<RegistrationFormValues>({
+    resolver: zodResolver(registrationSchema),
+    defaultValues: {
+      teamName: "",
+      members: [
+        {
+          name: "",
+          email: "",
+          phone: "",
+          yearOfStudy: "",
+          collegeIdNumber: "",
+          delegateTier: "tier1",
+          collegeIdImage: undefined,
+        },
+      ],
+      utrNumber: "",
+    },
+    mode: "onChange",
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    name: "members",
+    control,
+  });
+
+  const watchMembers = watch("members");
+  
+  const totalCost = watchMembers.reduce((sum, member) => {
     const tier = TIERS.find((t) => t.id === member.delegateTier);
     return sum + (tier?.price || 0);
   }, 0);
 
-  const handleMemberChange = (index: number, field: keyof Member, value: string | File | null) => {
-    const newMembers = [...members];
-    newMembers[index] = { ...newMembers[index], [field]: value };
-    setMembers(newMembers);
-  };
-
-  const handleImageChange = (index: number, file: File | null) => {
-    if (!file) return;
-
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File size must be under 10MB");
-      return;
-    }
-    if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
-      alert("Only JPG, JPEG, and PNG are allowed");
-      return;
-    }
-
-    const preview = URL.createObjectURL(file);
-    const newMembers = [...members];
-    newMembers[index].collegeIdImage = file;
-    newMembers[index].collegeIdImagePreview = preview;
-    setMembers(newMembers);
-  };
-
-  const addMember = () => {
-    if (members.length >= 25) {
+  const handleAddMember = () => {
+    if (fields.length >= 25) {
       alert("Maximum 25 members allowed");
       return;
     }
-    setMembers([
-      ...members,
-      {
-        id: Math.random().toString(),
-        name: "",
-        email: "",
-        phone: "",
-        yearOfStudy: "",
-        collegeIdNumber: "",
-        delegateTier: "tier1",
-        collegeIdImage: null,
-        collegeIdImagePreview: null,
-      },
-    ]);
+    append({
+      name: "",
+      email: "",
+      phone: "",
+      yearOfStudy: "",
+      collegeIdNumber: "",
+      delegateTier: "tier1",
+      collegeIdImage: undefined,
+    });
   };
 
-  const removeMember = (index: number) => {
-    if (members.length <= 1) return;
-    const newMembers = [...members];
-    newMembers.splice(index, 1);
-    setMembers(newMembers);
-  };
-
-  const validateStep1 = () => {
-    for (let i = 0; i < members.length; i++) {
-      const m = members[i];
-      if (!m.name || !m.email || !m.phone || !m.yearOfStudy || !m.collegeIdNumber || !m.delegateTier || !m.collegeIdImage) {
-        setError(`Please fill all fields and upload college ID for member ${i + 1}`);
-        return false;
-      }
-    }
-    if (members.length > 1 && !teamName) {
-      setError("Team name is required when registering multiple members");
-      return false;
-    }
-    setError(null);
-    return true;
-  };
-
-  const handleNext = () => {
-    if (validateStep1()) {
+  const handleNext = async () => {
+    const isStep1Valid = await trigger(["members", "teamName"]);
+    if (isStep1Valid) {
       setStep(2);
     }
   };
 
-  const handlePaymentScreenshotChange = (file: File | null) => {
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File size must be under 10MB");
-      return;
+  const handlePaymentScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        alert("File size must be under 10MB");
+        return;
+      }
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        alert("Only JPG, JPEG, and PNG are allowed");
+        return;
+      }
+      setValue("paymentScreenshot", file, { shouldValidate: true });
+      setPaymentPreview(URL.createObjectURL(file));
     }
-    if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
-      alert("Only JPG, JPEG, and PNG are allowed");
-      return;
-    }
-    setPaymentScreenshot(file);
-    setPaymentScreenshotPreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!paymentScreenshot || !utrNumber) {
-      setError("Please provide payment screenshot and UTR number");
+  const handleCollegeIdChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        alert("File size must be under 10MB");
+        return;
+      }
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        alert("Only JPG, JPEG, and PNG are allowed");
+        return;
+      }
+      setValue(`members.${index}.collegeIdImage`, file, { shouldValidate: true });
+      setImagePreviews(prev => ({ ...prev, [index]: URL.createObjectURL(file) }));
+    }
+  };
+
+  const onSubmit = async (data: RegistrationFormValues) => {
+    if (!data.paymentScreenshot) {
+      setError("Please provide a payment screenshot");
+      return;
+    }
+    if (!data.utrNumber || !/^\d{1,22}$/.test(data.utrNumber)) {
+      setError("Please provide a valid UTR number (up to 22 digits)");
       return;
     }
 
@@ -166,13 +183,13 @@ export default function RegistrationPage() {
 
     try {
       const formData = new FormData();
-      if (members.length > 1) {
-        formData.append("teamName", teamName);
+      if (data.members.length > 1 && data.teamName) {
+        formData.append("teamName", data.teamName);
       }
-      formData.append("paymentScreenshot", paymentScreenshot);
-      formData.append("utrNumber", utrNumber);
+      formData.append("paymentScreenshot", data.paymentScreenshot);
+      formData.append("utrNumber", data.utrNumber);
 
-      members.forEach((m, index) => {
+      data.members.forEach((m, index) => {
         formData.append(`member_${index}_name`, m.name);
         formData.append(`member_${index}_email`, m.email);
         formData.append(`member_${index}_phone`, m.phone);
@@ -189,13 +206,13 @@ export default function RegistrationPage() {
         body: formData,
       });
 
-      const data = await res.json();
+      const resData = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || "Registration failed");
+        throw new Error(resData.message || "Registration failed");
       }
 
-      setGeneratedDelegateIds(data.delegateIds || []);
-      setGeneratedTeamId(data.teamId || null);
+      setGeneratedDelegateIds(resData.delegateIds || []);
+      setGeneratedTeamId(resData.teamId || null);
       setSuccess(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An unknown error occurred");
@@ -225,7 +242,7 @@ export default function RegistrationPage() {
                 {generatedDelegateIds.map((id, idx) => (
                   <div key={id} className="bg-white p-4 rounded-lg border border-gray-200 flex justify-between items-center shadow-sm">
                     <span className="text-sm font-medium text-gray-600">
-                      {members[idx]?.name || `Member ${idx + 1}`}
+                      {watchMembers[idx]?.name || `Member ${idx + 1}`}
                     </span>
                     <span className="font-bold text-gray-900">{id}</span>
                   </div>
@@ -261,27 +278,27 @@ export default function RegistrationPage() {
 
           {step === 1 && (
             <div className="space-y-12">
-              {members.length > 1 && (
+              {fields.length > 1 && (
                 <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
                   <label className="block text-sm font-bold text-blue-900 mb-2">
                     Team Name (Required for multiple members)
                   </label>
                   <input
                     type="text"
-                    value={teamName}
-                    onChange={(e) => setTeamName(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white"
+                    {...register("teamName")}
+                    className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.teamName ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="Enter your team name"
-                    required
                   />
+                  {errors.teamName && <p className="text-red-500 text-sm mt-1">{errors.teamName.message}</p>}
                 </div>
               )}
 
-              {members.map((member, index) => (
-                <div key={member.id} className="bg-gray-50 border border-gray-200 rounded-xl p-6 relative">
+              {fields.map((field, index) => (
+                <div key={field.id} className="bg-gray-50 border border-gray-200 rounded-xl p-6 relative">
                   {index > 0 && (
                     <button
-                      onClick={() => removeMember(index)}
+                      type="button"
+                      onClick={() => remove(index)}
                       className="absolute top-4 right-4 text-red-500 hover:text-red-700 font-medium text-sm"
                     >
                       Remove
@@ -296,64 +313,59 @@ export default function RegistrationPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                       <input
                         type="text"
-                        value={member.name}
-                        onChange={(e) => handleMemberChange(index, "name", e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white"
-                        required
+                        {...register(`members.${index}.name`)}
+                        className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.members?.[index]?.name ? 'border-red-500' : 'border-gray-300'}`}
                       />
+                      {errors.members?.[index]?.name && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.name?.message}</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                       <input
                         type="email"
-                        value={member.email}
-                        onChange={(e) => handleMemberChange(index, "email", e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white"
-                        required
+                        {...register(`members.${index}.email`)}
+                        className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.members?.[index]?.email ? 'border-red-500' : 'border-gray-300'}`}
                       />
+                      {errors.members?.[index]?.email && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.email?.message}</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                       <input
                         type="tel"
-                        value={member.phone}
-                        onChange={(e) => handleMemberChange(index, "phone", e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white"
-                        required
+                        {...register(`members.${index}.phone`)}
+                        className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.members?.[index]?.phone ? 'border-red-500' : 'border-gray-300'}`}
                       />
+                      {errors.members?.[index]?.phone && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.phone?.message}</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Year of Study</label>
                       <input
                         type="text"
-                        value={member.yearOfStudy}
-                        onChange={(e) => handleMemberChange(index, "yearOfStudy", e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white"
-                        required
+                        {...register(`members.${index}.yearOfStudy`)}
+                        className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.members?.[index]?.yearOfStudy ? 'border-red-500' : 'border-gray-300'}`}
                       />
+                      {errors.members?.[index]?.yearOfStudy && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.yearOfStudy?.message}</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">College ID Number</label>
                       <input
                         type="text"
-                        value={member.collegeIdNumber}
-                        onChange={(e) => handleMemberChange(index, "collegeIdNumber", e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white"
-                        required
+                        {...register(`members.${index}.collegeIdNumber`)}
+                        className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.members?.[index]?.collegeIdNumber ? 'border-red-500' : 'border-gray-300'}`}
                       />
+                      {errors.members?.[index]?.collegeIdNumber && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.collegeIdNumber?.message}</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">College ID Image</label>
                       <input
                         type="file"
                         accept="image/jpeg, image/png, image/jpg"
-                        onChange={(e) => handleImageChange(index, e.target.files?.[0] || null)}
+                        onChange={(e) => handleCollegeIdChange(index, e)}
                         className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                        required={!member.collegeIdImage}
                       />
-                      {member.collegeIdImagePreview && (
+                      {errors.members?.[index]?.collegeIdImage && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.collegeIdImage?.message as string}</p>}
+                      {imagePreviews[index] && (
                         <div className="mt-2">
-                          <img src={member.collegeIdImagePreview} alt="ID Preview" className="h-20 w-auto object-contain border rounded" />
+                          <img src={imagePreviews[index]} alt="ID Preview" className="h-20 w-auto object-contain border rounded" />
                         </div>
                       )}
                     </div>
@@ -365,9 +377,11 @@ export default function RegistrationPage() {
                       {TIERS.map((tier) => (
                         <div
                           key={tier.id}
-                          onClick={() => handleMemberChange(index, "delegateTier", tier.id)}
+                          onClick={() => {
+                            setValue(`members.${index}.delegateTier`, tier.id as "tier1"|"tier2"|"tier3", { shouldValidate: true });
+                          }}
                           className={`cursor-pointer border-2 rounded-xl p-4 transition-all ${
-                            member.delegateTier === tier.id
+                            watchMembers[index]?.delegateTier === tier.id
                               ? "border-blue-600 bg-blue-50 shadow-md"
                               : "border-gray-200 hover:border-blue-300 bg-white"
                           }`}
@@ -385,10 +399,10 @@ export default function RegistrationPage() {
               ))}
 
               <div className="flex justify-center mt-8">
-                {members.length < 25 && (
+                {fields.length < 25 && (
                   <button
                     type="button"
-                    onClick={addMember}
+                    onClick={handleAddMember}
                     className="px-6 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 font-semibold hover:border-blue-500 hover:text-blue-600 transition-colors flex items-center gap-2"
                   >
                     <span>+ Add Member</span>
@@ -398,10 +412,11 @@ export default function RegistrationPage() {
 
               <div className="mt-12 bg-gray-900 rounded-xl p-6 flex flex-col sm:flex-row justify-between items-center text-white">
                 <div>
-                  <p className="text-gray-400 text-sm">Total Members: {members.length}</p>
+                  <p className="text-gray-400 text-sm">Total Members: {fields.length}</p>
                   <p className="text-2xl font-bold">Total Cost: ₹{totalCost}</p>
                 </div>
                 <button
+                  type="button"
                   onClick={handleNext}
                   className="mt-4 sm:mt-0 px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-colors"
                 >
@@ -412,7 +427,7 @@ export default function RegistrationPage() {
           )}
 
           {step === 2 && (
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 text-center">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Payment Details</h3>
                 <p className="text-gray-600 mb-6">Scan the QR code below and pay the exact total amount.</p>
@@ -437,27 +452,28 @@ export default function RegistrationPage() {
                     <input
                       type="file"
                       accept="image/jpeg, image/png, image/jpg"
-                      onChange={(e) => handlePaymentScreenshotChange(e.target.files?.[0] || null)}
+                      onChange={handlePaymentScreenshotChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white"
-                      required
                     />
-                    {paymentScreenshotPreview && (
+                    {paymentPreview && (
                       <div className="mt-4 flex justify-center">
-                        <img src={paymentScreenshotPreview} alt="Screenshot Preview" className="h-40 w-auto object-contain border rounded-lg shadow-sm" />
+                        <img src={paymentPreview} alt="Screenshot Preview" className="h-40 w-auto object-contain border rounded-lg shadow-sm" />
                       </div>
                     )}
+                    {error && !paymentPreview && <p className="text-red-500 text-sm mt-1">{error}</p>}
                   </div>
 
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">UTR / Transaction Number</label>
                     <input
                       type="text"
-                      value={utrNumber}
-                      onChange={(e) => setUtrNumber(e.target.value)}
+                      {...register("utrNumber")}
+                      maxLength={22}
                       placeholder="e.g. 123456789012"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white"
-                      required
+                      className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.utrNumber ? 'border-red-500' : 'border-gray-300'}`}
                     />
+                    {errors.utrNumber && <p className="text-red-500 text-sm mt-1">{errors.utrNumber.message}</p>}
+                    <p className="text-gray-400 text-xs mt-1">Maximum 22 digits</p>
                   </div>
                 </div>
               </div>
