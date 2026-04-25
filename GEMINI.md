@@ -23,8 +23,8 @@ This is a web application built with **Next.js** (App Router), utilizing React, 
 
 ## Phase Status
 - Phase 0: ✅ Complete
-- Phase 1: 🔄 In progress
-- Phase 2: ⏳ Not started
+- Phase 1: ✅ Complete
+- Phase 2: 🔄 In progress
 - Phase 3: ⏳ Not started
 - Phase 4: ⏳ Not started
 - Phase 5: ⏳ Not started

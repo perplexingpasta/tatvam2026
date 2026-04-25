@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
@@ -77,7 +77,6 @@ export default function RegistrationPage() {
     register,
     control,
     handleSubmit,
-    watch,
     setValue,
     trigger,
     formState: { errors },
@@ -106,7 +105,7 @@ export default function RegistrationPage() {
     control,
   });
 
-  const watchMembers = watch("members");
+  const watchMembers = useWatch({ control, name: "members" }) || [];
   
   const totalCost = watchMembers.reduce((sum, member) => {
     const tier = TIERS.find((t) => t.id === member.delegateTier);
