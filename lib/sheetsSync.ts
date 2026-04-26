@@ -37,6 +37,20 @@ const formatDate = (dateValue: any) => {
   return `${timeStr}, ${dateStr}`;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getTierName = (tier: any) => {
+  switch (tier) {
+    case "tier1":
+      return process.env.NEXT_PUBLIC_TIER_1_NAME || "Gold";
+    case "tier2":
+      return process.env.NEXT_PUBLIC_TIER_2_NAME || "Platinum";
+    case "tier3":
+      return process.env.NEXT_PUBLIC_TIER_3_NAME || "Diamond";
+    default:
+      return tier;
+  }
+};
+
 export const syncToSheets = async (
   type: SyncType,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,7 +76,7 @@ export const syncToSheets = async (
         d.yearOfStudy,
         d.collegeIdNumber,
         d.collegeIdImageOriginalUrl || d.collegeIdImageUrl || "",
-        d.delegateTier,
+        getTierName(d.delegateTier),
         d.tierPrice || "",
         d.teamId || "",
         d.paymentStatus || "",
