@@ -33,9 +33,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!/^\d{12,22}$/.test(utrNumber)) {
+    if (!/^[A-Za-z0-9]{12,22}$/.test(utrNumber)) {
       return NextResponse.json(
-        { success: false, message: "A valid UTR number (12-22 digits) is required" },
+        { success: false, message: "A valid UTR number (12-22 alphanumeric characters) is required" },
         { status: 400 }
       );
     }

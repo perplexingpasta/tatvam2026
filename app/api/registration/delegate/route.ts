@@ -60,9 +60,9 @@ export async function POST(req: NextRequest) {
     const paymentScreenshot = formData.get("paymentScreenshot") as File | null;
     const utrNumber = formData.get("utrNumber") as string | null;
 
-    if (!paymentScreenshot || !utrNumber || !/^\d{12,22}$/.test(utrNumber)) {
+    if (!paymentScreenshot || !utrNumber || !/^[A-Za-z0-9]{12,22}$/.test(utrNumber)) {
       return NextResponse.json(
-        { success: false, message: "A valid UTR number (12-22 digits) and payment screenshot are required" },
+        { success: false, message: "A valid UTR number (12-22 alphanumeric characters) and payment screenshot are required" },
         { status: 400 },
       );
     }

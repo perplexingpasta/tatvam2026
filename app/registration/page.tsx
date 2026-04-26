@@ -48,7 +48,7 @@ const memberSchema = z.object({
 const registrationSchema = z.object({
   teamName: z.string().optional(),
   members: z.array(memberSchema).min(1).max(25),
-  utrNumber: z.string().regex(/^\d{12,22}$/, "UTR Number must be 12-22 digits").optional().or(z.literal("")),
+  utrNumber: z.string().regex(/^[A-Za-z0-9]{12,22}$/, "UTR Number must be 12-22 alphanumeric characters").optional().or(z.literal("")),
   paymentScreenshot: z.any().optional(),
 }).superRefine((data, ctx) => {
   if (data.members.length > 1 && (!data.teamName || data.teamName.trim() === "")) {
@@ -210,8 +210,8 @@ export default function RegistrationPage() {
       setError("Please provide a payment screenshot");
       return;
     }
-    if (!data.utrNumber || !/^\d{12,22}$/.test(data.utrNumber)) {
-      setError("Please provide a valid UTR number (12-22 digits)");
+    if (!data.utrNumber || !/^[A-Za-z0-9]{12,22}$/.test(data.utrNumber)) {
+      setError("Please provide a valid UTR number (12-22 alphanumeric characters)");
       return;
     }
 

@@ -1,5 +1,4 @@
 college name instead of year of study
-utr allow lettrs
 no teams tab. all in delegates tab (via claude)
 
 reply_to: "yourpersonal@gmail.com"
@@ -30,6 +29,7 @@ when inputting team members in event reg, first one is team lead and the fronten
 make sheets sync automatic ✅
 updated registration email template to use custom delegate kit names ✅
 duplicate email, phone number and college id number validation while registering as a delegate ✅
+utr allow letters ✅
 
 
 need to ask

@@ -457,16 +457,16 @@ export default function CartPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                        UTR Number (12-22 digits)
+                        UTR Number (12-22 alphanumeric characters)
                       </label>
                       <input
                         type="text"
                         required
                         value={utrNumber}
                         onChange={(e) => setUtrNumber(e.target.value)}
-                        placeholder="e.g. 123456789012"
+                        placeholder="e.g. ABC123456789"
                         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white dark:bg-zinc-900"
-                        pattern="\d{12,22}"
+                        pattern="[A-Za-z0-9]{12,22}"
                       />
                     </div>
                     <div>
