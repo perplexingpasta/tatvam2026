@@ -1,3 +1,4 @@
+make sheets sync automatic
 when inputting team members in event reg, first one is team lead and the frontend shows that
 college name instead of year of study
 

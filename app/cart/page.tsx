@@ -363,7 +363,7 @@ export default function CartPage() {
                                     [event.eventId]: { ...prev[event.eventId], inputIds: newInputs }
                                   };
                                 })}
-                                placeholder={`Member ${index + 1} ID`}
+                                placeholder={index === 0 ? "Member 1 ID (Lead)" : `Member ${index + 1} ID`}
                                 className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white dark:bg-zinc-900"
                               />
                               {state.inputIds.length > state.minTeamSize && (
@@ -415,7 +415,7 @@ export default function CartPage() {
                       <ul className="space-y-2">
                         {state.participants.map((p, i) => (
                           <li key={i} className="text-sm text-zinc-800 dark:text-zinc-200">
-                            <span className="font-medium">{p?.name}</span> ({p?.id}) - {p?.yearOfStudy} Year
+                            <span className="font-medium">{p?.name}</span> {i === 0 && "(Lead)"} ({p?.id}) - {p?.yearOfStudy} Year
                           </li>
                         ))}
                       </ul>
