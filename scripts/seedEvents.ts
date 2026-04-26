@@ -1,4 +1,7 @@
-import * as admin from 'firebase-admin';
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+
+import * as admin from "firebase-admin";
 
 // Initialize Firebase Admin SDK
 // This requires the FIREBASE_* env variables to be set in the environment where this runs
@@ -8,11 +11,11 @@ if (!admin.apps.length) {
       credential: admin.credential.cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
       }),
     });
   } catch (error) {
-    console.error('Firebase admin initialization error', error);
+    console.error("Firebase admin initialization error", error);
   }
 }
 
@@ -27,18 +30,23 @@ const sampleEvents = [
     minTeamSize: 2,
     maxTeamSize: 4,
     fee: 1000,
-    schedule: admin.firestore.Timestamp.fromDate(new Date("2024-05-15T09:00:00Z")),
+    schedule: admin.firestore.Timestamp.fromDate(
+      new Date("2024-05-15T09:00:00Z"),
+    ),
     venue: "Main Auditorium",
   },
   {
     eventId: "E_DESIGN_01",
     name: "UI/UX Design Challenge",
-    description: "Design a user-friendly interface for a given problem statement.",
+    description:
+      "Design a user-friendly interface for a given problem statement.",
     type: "solo",
     minTeamSize: null,
     maxTeamSize: null,
     fee: 300,
-    schedule: admin.firestore.Timestamp.fromDate(new Date("2024-05-16T10:00:00Z")),
+    schedule: admin.firestore.Timestamp.fromDate(
+      new Date("2024-05-16T10:00:00Z"),
+    ),
     venue: "Design Lab 1",
   },
   {
@@ -49,7 +57,9 @@ const sampleEvents = [
     minTeamSize: 5,
     maxTeamSize: 5,
     fee: 1500,
-    schedule: admin.firestore.Timestamp.fromDate(new Date("2024-05-17T09:00:00Z")),
+    schedule: admin.firestore.Timestamp.fromDate(
+      new Date("2024-05-17T09:00:00Z"),
+    ),
     venue: "Gaming Arena",
   },
 ];

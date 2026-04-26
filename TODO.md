@@ -10,7 +10,8 @@ easter egg
 
 phone number 10 digits only
 form should be blank after register another
-replace img w next Image
+replace img w nextjs Image
+use nextjs Link tags
 
 delegate ID displayed on submission screen ✅
 set up email template ✅
