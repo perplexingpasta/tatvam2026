@@ -28,6 +28,15 @@ export async function POST() {
     for (const doc of snapshot.docs) {
       const data = doc.data();
 
+      if (data.type === "team") {
+        await doc.ref.update({
+          status: "dead_letter",
+          lastError: "team sync type deprecated — data now written to Delegates sheet",
+          updatedAt: Timestamp.now()
+        });
+        continue;
+      }
+
       // Skip if already synced or permanently failed
       // if (data.status === "synced" || data.status === "dead_letter") {
       //   continue;

@@ -1,6 +1,5 @@
+jssmc vs non-jss
 okay let's keep the netlify cron job. how do i enable it though? what steps do i need to take to ensure it works as expected?
-
-no teams tab. all in delegates tab (via claude)
 
 reply_to: "yourpersonal@gmail.com"
 make sports page
@@ -10,6 +9,10 @@ more emails (delegate confirmation, event confirmation, reminders)
 form should be blank after register another
 
 use nextjs Link tags
+fonts woff2
+images webp w compression
+favicon
+dynamic loading
 easter egg
 make a README for the repo
 cloudinary too less?
@@ -33,6 +36,7 @@ duplicate email, phone number and college id number validation while registering
 utr allow letters ✅
 college name instead of year of study ✅
 replace img w nextjs Image ✅
+no teams tab. all in delegates tab ✅
 
 
 need to ask

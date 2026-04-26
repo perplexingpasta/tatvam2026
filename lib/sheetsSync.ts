@@ -4,7 +4,7 @@ import { Timestamp } from "firebase-admin/firestore";
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
 
-export type SyncType = "delegate" | "team" | "eventRegistration";
+export type SyncType = "delegate" | "eventRegistration";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const formatDate = (dateValue: any) => {
@@ -100,7 +100,8 @@ export const syncToSheets = async (
         d.collegeIdImageOriginalUrl || d.collegeIdImageUrl || "",
         getTierName(d.delegateTier),
         d.tierPrice || "",
-        d.teamId || "",
+        payload.teamId || "",
+        payload.teamName || "",
         d.paymentStatus || "",
         d.utrNumber || "",
         d.paymentScreenshotUrl || "",
@@ -109,30 +110,10 @@ export const syncToSheets = async (
 
       await sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
-        range: "Delegates!A:N",
+        range: "Delegates!A:O",
         valueInputOption: "USER_ENTERED",
         requestBody: { values: delegateValues },
       });
-
-      if (payload.teamId && payload.teamName) {
-        const teamValues = [
-          [
-            payload.teamId,
-            payload.teamName,
-            delegates[0]?.delegateId || "",
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            delegates.map((d: any) => d.delegateId).join(","),
-            formatDate(delegates[0]?.createdAt),
-          ],
-        ];
-
-        await sheets.spreadsheets.values.append({
-          spreadsheetId: SPREADSHEET_ID,
-          range: "Teams!A:E",
-          valueInputOption: "USER_ENTERED",
-          requestBody: { values: teamValues },
-        });
-      }
     } else if (type === "eventRegistration") {
       const values = [
         [
@@ -149,24 +130,6 @@ export const syncToSheets = async (
       await sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
         range: "EventRegistrations!A:G",
-        valueInputOption: "USER_ENTERED",
-        requestBody: { values },
-      });
-    } else if (type === "team") {
-      // Handle explicit 'team' type if used later
-      const values = [
-        [
-          payload.teamId,
-          payload.teamName,
-          payload.leadDelegateId,
-          (payload.memberDelegateIds || []).join(","),
-          formatDate(payload.createdAt),
-        ],
-      ];
-
-      await sheets.spreadsheets.values.append({
-        spreadsheetId: SPREADSHEET_ID,
-        range: "Teams!A:E",
         valueInputOption: "USER_ENTERED",
         requestBody: { values },
       });
@@ -190,8 +153,24 @@ export const syncToSheets = async (
       });
     }
 
-    // Update sheetsSync status on the source document
-    if (referenceId) {
+    // Update sheetsSync status on the source document(s)
+    if (type === "delegate" && payload.delegates) {
+      // payload.delegates is an array, we need to update all of them
+      const delegates = payload.delegates || [payload];
+      for (const d of delegates) {
+        if (d.delegateId) {
+          try {
+            await adminDb.collection("delegates").doc(d.delegateId).update({
+              "sheetsSync.status": "synced",
+              "sheetsSync.lastAttempt": Timestamp.now(),
+              "sheetsSync.lastError": null,
+            });
+          } catch (updateError) {
+            console.warn(`Could not update sheetsSync status on delegates/${d.delegateId}:`, updateError);
+          }
+        }
+      }
+    } else if (referenceId) {
       const collection =
         type === "eventRegistration" ? "eventRegistrations" : "delegates";
       try {
@@ -263,8 +242,24 @@ export const syncToSheets = async (
 
     // return { success: false, error: errorMessage };
 
-    // Update sheetsSync status on the source document to reflect failure
-    if (referenceId) {
+    // Update sheetsSync status on the source document(s) to reflect failure
+    if (type === "delegate" && payload.delegates) {
+      const delegates = payload.delegates || [payload];
+      for (const d of delegates) {
+        if (d.delegateId) {
+          try {
+            await adminDb.collection("delegates").doc(d.delegateId).update({
+              "sheetsSync.status": newRetryCount > 10 ? "dead_letter" : "failed",
+              "sheetsSync.retryCount": newRetryCount,
+              "sheetsSync.lastAttempt": Timestamp.now(),
+              "sheetsSync.lastError": errorMessage,
+            });
+          } catch (updateError) {
+            console.warn(`Could not update sheetsSync status on delegates/${d.delegateId}:`, updateError);
+          }
+        }
+      }
+    } else if (referenceId) {
       const collection =
         type === "eventRegistration" ? "eventRegistrations" : "delegates";
       try {

@@ -286,18 +286,7 @@ export async function POST(req: NextRequest) {
     await batch.commit();
 
     // Fire and forget - never await this
-    delegatesData.forEach((memberData, index) => {
-      attemptSyncWithFallback("delegate", { delegates: [memberData], teamId, teamName }, delegateIds[index]);
-    });
-    if (teamId) {
-      attemptSyncWithFallback("team", {
-        teamId,
-        teamName,
-        leadDelegateId: delegateIds[0],
-        memberDelegateIds: delegateIds,
-        createdAt: new Date().toISOString()
-      }, teamId);
-    }
+    attemptSyncWithFallback("delegate", { delegates: delegatesData, teamId, teamName }, teamId || delegateIds[0]);
 
     // 8. Send Emails
     const festName = process.env.NEXT_PUBLIC_FEST_NAME || "Our Fest";
