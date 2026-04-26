@@ -24,11 +24,11 @@ const formatDate = (dateValue: any) => {
     year: "numeric",
   });
 
-  const tFormatter = new Intl.DateTimeFormat("en-GB", {
+  const tFormatter = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Kolkata",
     hour: "2-digit",
     minute: "2-digit",
-    hourCycle: "h23",
+    hour12: true,
   });
 
   const dateStr = dFormatter.format(date).replace(/\//g, "-");

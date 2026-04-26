@@ -330,7 +330,12 @@ export default function RegistrationPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                       <input
                         type="tel"
-                        {...register(`members.${index}.phone`)}
+                        maxLength={10}
+                        {...register(`members.${index}.phone`, {
+                          onChange: (e) => {
+                            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                          }
+                        })}
                         className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.members?.[index]?.phone ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {errors.members?.[index]?.phone && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.phone?.message}</p>}
