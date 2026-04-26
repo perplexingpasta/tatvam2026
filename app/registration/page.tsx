@@ -65,6 +65,7 @@ type RegistrationFormValues = z.infer<typeof registrationSchema>;
 export default function RegistrationPage() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [generatedDelegateIds, setGeneratedDelegateIds] = useState<string[]>([]);
@@ -79,6 +80,7 @@ export default function RegistrationPage() {
     handleSubmit,
     setValue,
     trigger,
+    setError: setFormError,
     formState: { errors },
   } = useForm<RegistrationFormValues>({
     resolver: zodResolver(registrationSchema),
@@ -130,8 +132,44 @@ export default function RegistrationPage() {
 
   const handleNext = async () => {
     const isStep1Valid = await trigger(["members", "teamName"]);
-    if (isStep1Valid) {
+    if (!isStep1Valid) return;
+
+    setIsValidating(true);
+    setError(null);
+
+    try {
+      const emails = watchMembers.map(m => m.email).filter(Boolean).join(",");
+      const phones = watchMembers.map(m => m.phone).filter(Boolean).join(",");
+      const collegeIds = watchMembers.map(m => m.collegeIdNumber).filter(Boolean).join(",");
+
+      const res = await fetch(`/api/registration/validate?emails=${encodeURIComponent(emails)}&phones=${encodeURIComponent(phones)}&collegeIds=${encodeURIComponent(collegeIds)}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Validation failed");
+      }
+
+      if (data.conflicts && data.conflicts.length > 0) {
+        data.conflicts.forEach((conflict: { field: string; value: string }) => {
+          watchMembers.forEach((m, index) => {
+            if (m[conflict.field as keyof typeof m] === conflict.value) {
+              const fieldName = conflict.field === "collegeIdNumber" ? "College ID Number" : conflict.field.charAt(0).toUpperCase() + conflict.field.slice(1);
+              setFormError(`members.${index}.${conflict.field as "email" | "phone" | "collegeIdNumber"}`, {
+                type: "manual",
+                message: `This ${fieldName} is already registered`,
+              });
+            }
+          });
+        });
+        setError("Some members are already registered. Please check the errors above.");
+        return;
+      }
+
       setStep(2);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Validation failed. Please try again.");
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -422,9 +460,20 @@ export default function RegistrationPage() {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="mt-4 sm:mt-0 px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-colors"
+                  disabled={isValidating}
+                  className="mt-4 sm:mt-0 px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[200px]"
                 >
-                  Proceed to Payment →
+                  {isValidating ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Checking...
+                    </span>
+                  ) : (
+                    "Proceed to Payment →"
+                  )}
                 </button>
               </div>
             </div>
