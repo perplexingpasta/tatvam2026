@@ -46,7 +46,7 @@ The project requires the following environment variables (also see `.env.local.e
 - `name`: string
 - `email`: string (Unique constraint)
 - `phone`: string (Unique constraint)
-- `yearOfStudy`: string
+- `collegeName`: string
 - `collegeIdNumber`: string (Unique constraint)
 - `collegeIdImageUrl`: string (Cloudinary CDN URL with `f_auto,q_auto,w_800` transforms)
 - `delegateTier`: "tier1" | "tier2" | "tier3"
@@ -113,7 +113,7 @@ The project requires the following environment variables (also see `.env.local.e
 ## API Route Contracts
 
 ### 1. `POST /api/registration/delegate`
-- **Request Body Shape:** FormData containing delegate fields (name, email, phone, yearOfStudy, collegeIdNumber, delegateTier, utrNumber, teamName (optional), collegeIdImage file, paymentScreenshot file).
+- **Request Body Shape:** FormData containing delegate fields (name, email, phone, collegeName, collegeIdNumber, delegateTier, utrNumber, teamName (optional), collegeIdImage file, paymentScreenshot file).
 - **Response Shape (Success):** `{ success: true, delegateIds: string[], teamId?: string, message: string }`
 - **Error Codes:** 400 (Bad Request / Validation), 409 (Conflict - email/phone/collegeId already exists), 500 (Internal Server Error)
 
@@ -130,7 +130,7 @@ The project requires the following environment variables (also see `.env.local.e
 - **Purpose:** Looks up a delegate by their unique delegate ID during event registration on the cart page. Used to verify participant identity before event payment.
 - **Request:** Query parameter `?id=VIK-66688-FV3U9`
 - **Response Shape (Success):** 
-  `{ success: true, delegate: { name: string, yearOfStudy: string, college: string, delegateTier: string, teamId: string | null } }`
+  `{ success: true, delegate: { name: string, collegeName: string, college: string, delegateTier: string, teamId: string | null } }`
 - **IMPORTANT:** Never return sensitive fields in this response — 
   phone, email, collegeIdNumber, collegeIdImageUrl, and paymentScreenshotUrl must be explicitly excluded from the response.
 - **Error Codes:** 
@@ -143,7 +143,7 @@ The project requires the following environment variables (also see `.env.local.e
 ## Google Sheets Column Layout
 
 ### Delegates Sheet
-Columns: Delegate ID, Name, Email, Phone, Year of Study, College ID Number, Delegate Tier, Tier Price, Team ID, Payment Status, UTR Number, College ID Image URL, Payment Screenshot URL, Created At
+Columns: Delegate ID, Name, Email, Phone, College Name, College ID Number, Delegate Tier, Tier Price, Team ID, Payment Status, UTR Number, College ID Image URL, Payment Screenshot URL, Created At
 
 ### Event Registrations Sheet
 Columns: Registration ID, Event Items (Summarized), Total Amount, Payment Status, UTR Number, Payment Screenshot URL, Submitted At

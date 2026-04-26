@@ -33,7 +33,7 @@ const memberSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone must be at least 10 digits"),
-  yearOfStudy: z.string().min(1, "Year of study is required"),
+  collegeName: z.string().min(1, "College name is required"),
   collegeIdNumber: z.string().min(1, "College ID is required"),
   delegateTier: z.enum(["tier1", "tier2", "tier3"]),
   collegeIdImage: z.any()
@@ -91,7 +91,7 @@ export default function RegistrationPage() {
           name: "",
           email: "",
           phone: "",
-          yearOfStudy: "",
+          collegeName: "",
           collegeIdNumber: "",
           delegateTier: "tier1",
           collegeIdImage: undefined,
@@ -123,7 +123,7 @@ export default function RegistrationPage() {
       name: "",
       email: "",
       phone: "",
-      yearOfStudy: "",
+      collegeName: "",
       collegeIdNumber: "",
       delegateTier: "tier1",
       collegeIdImage: undefined,
@@ -230,7 +230,7 @@ export default function RegistrationPage() {
         formData.append(`member_${index}_name`, m.name);
         formData.append(`member_${index}_email`, m.email);
         formData.append(`member_${index}_phone`, m.phone);
-        formData.append(`member_${index}_yearOfStudy`, m.yearOfStudy);
+        formData.append(`member_${index}_collegeName`, m.collegeName);
         formData.append(`member_${index}_collegeIdNumber`, m.collegeIdNumber);
         formData.append(`member_${index}_delegateTier`, m.delegateTier);
         if (m.collegeIdImage) {
@@ -379,13 +379,13 @@ export default function RegistrationPage() {
                       {errors.members?.[index]?.phone && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.phone?.message}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Year of Study</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">College Name</label>
                       <input
                         type="text"
-                        {...register(`members.${index}.yearOfStudy`)}
-                        className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.members?.[index]?.yearOfStudy ? 'border-red-500' : 'border-gray-300'}`}
+                        {...register(`members.${index}.collegeName`)}
+                        className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.members?.[index]?.collegeName ? 'border-red-500' : 'border-gray-300'}`}
                       />
-                      {errors.members?.[index]?.yearOfStudy && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.yearOfStudy?.message}</p>}
+                      {errors.members?.[index]?.collegeName && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.collegeName?.message}</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">College ID Number</label>

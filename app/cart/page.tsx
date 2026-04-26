@@ -7,7 +7,7 @@ import { useState } from "react";
 interface ParticipantDetails {
   id: string;
   name: string;
-  yearOfStudy: string;
+  collegeName: string;
   delegateTier: string;
   teamId: string | null;
 }
@@ -415,7 +415,7 @@ export default function CartPage() {
                       <ul className="space-y-2">
                         {state.participants.map((p, i) => (
                           <li key={i} className="text-sm text-zinc-800 dark:text-zinc-200">
-                            <span className="font-medium">{p?.name}</span> {i === 0 && "(Lead)"} ({p?.id}) - {p?.yearOfStudy} Year
+                            <span className="font-medium">{p?.name}</span> {i === 0 && "(Lead)"} ({p?.id}) - {p?.collegeName}
                           </li>
                         ))}
                       </ul>

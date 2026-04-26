@@ -95,7 +95,7 @@ export const syncToSheets = async (
         d.name,
         d.email,
         d.phone,
-        d.yearOfStudy,
+        d.collegeName,
         d.collegeIdNumber,
         d.collegeIdImageOriginalUrl || d.collegeIdImageUrl || "",
         getTierName(d.delegateTier),

@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       name: string;
       email: string;
       phone: string;
-      yearOfStudy: string;
+      collegeName: string;
       collegeIdNumber: string;
       delegateTier: string;
       collegeIdImage: File;
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
         name: formData.get(`member_${i}_name`) as string,
         email: formData.get(`member_${i}_email`) as string,
         phone: formData.get(`member_${i}_phone`) as string,
-        yearOfStudy: formData.get(`member_${i}_yearOfStudy`) as string,
+        collegeName: formData.get(`member_${i}_collegeName`) as string,
         collegeIdNumber: formData.get(`member_${i}_collegeIdNumber`) as string,
         delegateTier: formData.get(`member_${i}_delegateTier`) as string,
         collegeIdImage: formData.get(`member_${i}_collegeIdImage`) as File,
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       name: z.string().min(1),
       email: z.string().email(),
       phone: z.string().min(10),
-      yearOfStudy: z.string(),
+      collegeName: z.string(),
       collegeIdNumber: z.string().min(1),
       delegateTier: delegateTierSchema,
     });
@@ -242,7 +242,7 @@ export async function POST(req: NextRequest) {
         name: member.name,
         email: member.email,
         phone: member.phone,
-        yearOfStudy: member.yearOfStudy,
+        collegeName: member.collegeName,
         collegeIdNumber: member.collegeIdNumber,
         collegeIdImageUrl: member.collegeIdImageUrl, // Transformed for delegates collection
         delegateTier: member.delegateTier,

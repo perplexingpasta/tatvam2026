@@ -1,19 +1,19 @@
-college name instead of year of study
+form should be blank after register another
+replace img w nextjs Image
 no teams tab. all in delegates tab (via claude)
 
 reply_to: "yourpersonal@gmail.com"
-cloudinary too less?
 make sports page
 test suite
 toast notifs
 more emails (delegate confirmation, event confirmation, reminders)
 
-form should be blank after register another
-replace img w nextjs Image
 use nextjs Link tags
 easter egg
 make a README for the repo
+cloudinary too less?
 
+DONE
 delegate ID displayed on submission screen ✅
 set up email template ✅
 get domain ✅
@@ -30,6 +30,7 @@ make sheets sync automatic ✅
 updated registration email template to use custom delegate kit names ✅
 duplicate email, phone number and college id number validation while registering as a delegate ✅
 utr allow letters ✅
+college name instead of year of study ✅
 
 
 need to ask

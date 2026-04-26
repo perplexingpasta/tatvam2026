@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
       success: true,
       delegate: {
         name: data.name,
-        yearOfStudy: data.yearOfStudy,
+        collegeName: data.collegeName,
         college: "", // Omitted per instructions, collegeIdNumber is sensitive
         delegateTier: data.delegateTier,
         teamId: data.teamId,

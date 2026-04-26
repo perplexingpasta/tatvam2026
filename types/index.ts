@@ -16,7 +16,7 @@ export const delegateSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
-  yearOfStudy: z.string(),
+  collegeName: z.string(),
   collegeIdNumber: z.string().min(1, "College ID Number is required"),
   collegeIdImageUrl: z.string().url(),
   delegateTier: delegateTierSchema,
