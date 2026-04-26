@@ -44,3 +44,8 @@ need to ask
 - delegate kit names
 - schedule
 - all event names, their prices and desc
+
+
+
+i would like to implement one major change in the code. the thing is students from my college (JSS Medical College) don't have to pay anything for delegate registration while non-JSS students do have to pay money to purchase delegate registration. So I want you to implement a radio checkbox in the delegate registration form after 
+Note that event registration is the same for both JSS and non-JSS students, that is both have to pay the same amount.

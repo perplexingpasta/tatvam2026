@@ -99,7 +99,7 @@ export const syncToSheets = async (
         d.collegeIdNumber,
         d.collegeIdImageOriginalUrl || d.collegeIdImageUrl || "",
         getTierName(d.delegateTier),
-        d.tierPrice || "",
+        (d.tierPrice !== undefined && d.tierPrice !== null) ? d.tierPrice : "",
         payload.teamId || "",
         payload.teamName || "",
         d.paymentStatus || "",

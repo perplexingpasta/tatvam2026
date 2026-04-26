@@ -215,11 +215,11 @@ export async function POST(req: NextRequest) {
 
     const getTierPrice = (tier: string) => {
       if (tier === "tier1")
-        return parseInt(process.env.DELEGATE_TIER1_PRICE || "0");
+        return parseInt(process.env.NEXT_PUBLIC_TIER_1_PRICE || "0");
       if (tier === "tier2")
-        return parseInt(process.env.DELEGATE_TIER2_PRICE || "0");
+        return parseInt(process.env.NEXT_PUBLIC_TIER_2_PRICE || "0");
       if (tier === "tier3")
-        return parseInt(process.env.DELEGATE_TIER3_PRICE || "0");
+        return parseInt(process.env.NEXT_PUBLIC_TIER_3_PRICE || "0");
       return 0;
     };
 
