@@ -1,5 +1,3 @@
-format time of creation in sheets
-
 reply_to: "yourpersonal@gmail.com"
 cloudinary too less?
 make sports page
@@ -19,6 +17,7 @@ get domain ✅
 connect domain ✅
 form field validation and type check ✅
 minimum UTR should be 12 ✅
+format time of creation in sheets ✅
 
 need to ask
 - delegate prices

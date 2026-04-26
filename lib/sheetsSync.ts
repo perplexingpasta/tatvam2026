@@ -8,11 +8,33 @@ export type SyncType = "delegate" | "team" | "eventRegistration";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const formatDate = (dateValue: any) => {
-  if (!dateValue) return new Date().toISOString();
-  if (typeof dateValue.toDate === "function") {
-    return dateValue.toDate().toISOString();
+  let date: Date;
+  if (!dateValue) {
+    date = new Date();
+  } else if (typeof dateValue.toDate === "function") {
+    date = dateValue.toDate();
+  } else {
+    date = new Date(dateValue);
   }
-  return new Date(dateValue).toISOString();
+
+  const dFormatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+  const tFormatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
+
+  const dateStr = dFormatter.format(date).replace(/\//g, "-");
+  const timeStr = tFormatter.format(date);
+
+  return `${timeStr}, ${dateStr}`;
 };
 
 export const syncToSheets = async (
