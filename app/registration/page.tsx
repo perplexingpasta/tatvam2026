@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -407,7 +408,7 @@ export default function RegistrationPage() {
                       {errors.members?.[index]?.collegeIdImage && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.collegeIdImage?.message as string}</p>}
                       {imagePreviews[index] && (
                         <div className="mt-2">
-                          <img src={imagePreviews[index]} alt="ID Preview" className="h-20 w-auto object-contain border rounded" />
+                          <Image src={imagePreviews[index]} alt="ID Preview" width={150} height={100} unoptimized className="h-20 w-auto object-contain border rounded" />
                         </div>
                       )}
                     </div>
@@ -491,10 +492,12 @@ export default function RegistrationPage() {
 
                 <div className="flex justify-center mb-8">
                   <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <img 
+                    <Image 
                       src={process.env.NEXT_PUBLIC_PAYMENT_QR_IMAGE_PATH || "/qr-code.webp"} 
                       alt="Payment QR Code" 
-                      className="w-48 h-48 object-contain"
+                      width={192}
+                      height={192}
+                      className="object-contain"
                     />
                   </div>
                 </div>
@@ -510,7 +513,7 @@ export default function RegistrationPage() {
                     />
                     {paymentPreview && (
                       <div className="mt-4 flex justify-center">
-                        <img src={paymentPreview} alt="Screenshot Preview" className="h-40 w-auto object-contain border rounded-lg shadow-sm" />
+                        <Image src={paymentPreview} alt="Screenshot Preview" width={400} height={300} unoptimized className="h-40 w-auto object-contain border rounded-lg shadow-sm" />
                       </div>
                     )}
                     {error && !paymentPreview && <p className="text-red-500 text-sm mt-1">{error}</p>}

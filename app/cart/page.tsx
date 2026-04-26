@@ -2,6 +2,7 @@
 
 import { useCart } from "@/components/CartProvider";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 
 interface ParticipantDetails {
@@ -441,10 +442,12 @@ export default function CartPage() {
                   <p className="text-sm text-zinc-600 mb-4">Please scan the QR code below to pay the grand total, then upload the screenshot and enter the UTR number.</p>
                   
                   <div className="mb-6 flex justify-center">
-                    <img 
+                    <Image 
                       src={process.env.NEXT_PUBLIC_PAYMENT_QR_IMAGE_PATH || "/qr-code.webp"} 
                       alt="Payment QR" 
-                      className="w-48 h-48 border rounded-lg shadow-sm"
+                      width={192}
+                      height={192}
+                      className="border rounded-lg shadow-sm object-contain"
                     />
                   </div>
 
