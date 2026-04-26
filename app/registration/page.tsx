@@ -48,7 +48,7 @@ const memberSchema = z.object({
 const registrationSchema = z.object({
   teamName: z.string().optional(),
   members: z.array(memberSchema).min(1).max(25),
-  utrNumber: z.string().optional(),
+  utrNumber: z.string().regex(/^\d{12,22}$/, "UTR Number must be 12-22 digits").optional().or(z.literal("")),
   paymentScreenshot: z.any().optional(),
 }).superRefine((data, ctx) => {
   if (data.members.length > 1 && (!data.teamName || data.teamName.trim() === "")) {
@@ -172,8 +172,8 @@ export default function RegistrationPage() {
       setError("Please provide a payment screenshot");
       return;
     }
-    if (!data.utrNumber || !/^\d{1,22}$/.test(data.utrNumber)) {
-      setError("Please provide a valid UTR number (up to 22 digits)");
+    if (!data.utrNumber || !/^\d{12,22}$/.test(data.utrNumber)) {
+      setError("Please provide a valid UTR number (12-22 digits)");
       return;
     }
 
@@ -472,7 +472,7 @@ export default function RegistrationPage() {
                       className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.utrNumber ? 'border-red-500' : 'border-gray-300'}`}
                     />
                     {errors.utrNumber && <p className="text-red-500 text-sm mt-1">{errors.utrNumber.message}</p>}
-                    <p className="text-gray-400 text-xs mt-1">Maximum 22 digits</p>
+                    <p className="text-gray-400 text-xs mt-1">12-22 digits</p>
                   </div>
                 </div>
               </div>

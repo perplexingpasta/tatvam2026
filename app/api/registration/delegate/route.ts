@@ -59,9 +59,9 @@ export async function POST(req: NextRequest) {
     const paymentScreenshot = formData.get("paymentScreenshot") as File | null;
     const utrNumber = formData.get("utrNumber") as string | null;
 
-    if (!paymentScreenshot || !utrNumber) {
+    if (!paymentScreenshot || !utrNumber || !/^\d{12,22}$/.test(utrNumber)) {
       return NextResponse.json(
-        { success: false, message: "Payment details are required" },
+        { success: false, message: "A valid UTR number (12-22 digits) and payment screenshot are required" },
         { status: 400 },
       );
     }
@@ -288,6 +288,7 @@ export async function POST(req: NextRequest) {
       referenceId: teamId ? teamId : delegateIds[0], // Can be teamId or single delegateId to process together
       payload: { delegates: delegatesData, teamId, teamName },
       retryCount: 0,
+      status: "pending",
       nextRetryAt: now,
       lastError: "",
       createdAt: now,

@@ -23,7 +23,7 @@ export const delegateSchema = z.object({
   tierPrice: z.number(),
   teamId: z.string().nullable(),
   paymentScreenshotUrl: z.string().url(),
-  utrNumber: z.string().min(1, "UTR Number is required"),
+  utrNumber: z.string().regex(/^\d{12,22}$/, "UTR Number must be between 12 and 22 digits"),
   paymentStatus: paymentStatusSchema,
   registeredEventIds: z.array(z.string()),
   createdAt: z.date(), // Timestamp in Firestore
@@ -60,7 +60,7 @@ export const eventRegistrationSchema = z.object({
   cartItems: z.array(cartItemSchema),
   totalAmount: z.number(),
   paymentScreenshotUrl: z.string().url(),
-  utrNumber: z.string(),
+  utrNumber: z.string().regex(/^\d{12,22}$/, "UTR Number must be between 12 and 22 digits"),
   paymentStatus: paymentStatusSchema,
   submittedAt: z.date(),
   sheetsSync: sheetsSyncSchema,
