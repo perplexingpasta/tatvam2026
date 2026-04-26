@@ -1,5 +1,4 @@
-make sheets sync automatic
-when inputting team members in event reg, first one is team lead and the frontend shows that
+duplicate email validation while entering
 college name instead of year of study
 
 reply_to: "yourpersonal@gmail.com"
@@ -26,6 +25,9 @@ phone number 10 digits only (only numbers) ✅
 formatted time is now AM or PM ✅
 connected w github ✅
 delegate tier name fix (plat and not tier 2) ✅
+when inputting team members in event reg, first one is team lead and the frontend shows that ✅
+make sheets sync automatic ✅
+updated registration email template to use custom delegate kit names ✅
 
 
 need to ask

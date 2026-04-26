@@ -51,6 +51,28 @@ const getTierName = (tier: any) => {
   }
 };
 
+export const attemptSyncWithFallback = async (
+  type: SyncType,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: any,
+  referenceId: string,
+): Promise<void> => {
+  try {
+    const result = await syncToSheets(type, payload, referenceId);
+    
+    if (result.success) {
+      console.log(`[sheetsSync] Immediate sync succeeded for ${referenceId}`);
+      // The update of the source document to "synced" happens inside syncToSheets
+    } else {
+      console.warn(`[sheetsSync] Immediate sync failed, enqueued for retry. referenceId:`, referenceId);
+      // The creation of the retry queue document and updating the source to "failed"/"pending" 
+      // is already gracefully handled inside the catch block of syncToSheets when a sync fails.
+    }
+  } catch (error) {
+    console.error(`[sheetsSync] Unexpected error in attemptSyncWithFallback for ${referenceId}:`, error);
+  }
+};
+
 export const syncToSheets = async (
   type: SyncType,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

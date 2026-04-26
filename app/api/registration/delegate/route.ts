@@ -5,6 +5,7 @@ import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 import { resend } from "@/lib/resend";
 import { FieldValue } from "firebase-admin/firestore";
 import { generateRegistrationEmailHtml } from "@/components/RegistrationEmailTemplate";
+import { attemptSyncWithFallback } from "@/lib/sheetsSync";
 
 const delegateTierSchema = z.enum(["tier1", "tier2", "tier3"]);
 
@@ -281,21 +282,22 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 6. Enqueue to sheetsRetryQueue
-    const queueRef = adminDb.collection("sheetsRetryQueue").doc();
-    batch.set(queueRef, {
-      type: "delegate",
-      referenceId: teamId ? teamId : delegateIds[0], // Can be teamId or single delegateId to process together
-      payload: { delegates: delegatesData, teamId, teamName },
-      retryCount: 0,
-      status: "pending",
-      nextRetryAt: now,
-      lastError: "",
-      createdAt: now,
-    });
-
     // 7. Commit Batch
     await batch.commit();
+
+    // Fire and forget - never await this
+    delegatesData.forEach((memberData, index) => {
+      attemptSyncWithFallback("delegate", { delegates: [memberData], teamId, teamName }, delegateIds[index]);
+    });
+    if (teamId) {
+      attemptSyncWithFallback("team", {
+        teamId,
+        teamName,
+        leadDelegateId: delegateIds[0],
+        memberDelegateIds: delegateIds,
+        createdAt: new Date().toISOString()
+      }, teamId);
+    }
 
     // 8. Send Emails
     const festName = process.env.NEXT_PUBLIC_FEST_NAME || "Our Fest";

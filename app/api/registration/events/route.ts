@@ -5,6 +5,7 @@ import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 import { resend } from "@/lib/resend";
 import { FieldValue } from "firebase-admin/firestore";
 import { generateEventRegistrationEmailHtml } from "@/components/EventRegistrationEmailTemplate";
+import { attemptSyncWithFallback } from "@/lib/sheetsSync";
 
 const eventTypeSchema = z.enum(["solo", "group"]);
 
@@ -176,27 +177,18 @@ export async function POST(req: NextRequest) {
       eventNames.push(item.eventName);
     });
 
-    const queueRef = adminDb.collection("sheetsRetryQueue").doc();
-    batch.set(queueRef, {
-      type: "eventRegistration",
-      referenceId: registrationRef.id,
-      payload: {
-        registrationId: registrationRef.id,
-        participantDelegateIds: Array.from(allParticipantIds),
-        eventNames: eventNames,
-        totalAmount,
-        utrNumber,
-        paymentStatus: "pending_verification",
-        submittedAt: new Date().toISOString()
-      },
-      retryCount: 0,
-      status: "pending",
-      nextRetryAt: now,
-      lastError: "",
-      createdAt: now,
-    });
-
     await batch.commit();
+
+    // Fire and forget — never await this
+    attemptSyncWithFallback("eventRegistration", {
+      registrationId: registrationRef.id,
+      participantDelegateIds: Array.from(allParticipantIds),
+      eventNames: eventNames,
+      totalAmount,
+      utrNumber,
+      paymentStatus: "pending_verification",
+      submittedAt: new Date().toISOString()
+    }, registrationRef.id);
 
     // 6. Send a single confirmation email to the lead delegate (first ID entered in the cart)
     const leadDelegateId = cartItems[0].participantDelegateIds[0];

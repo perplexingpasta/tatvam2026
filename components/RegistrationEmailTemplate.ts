@@ -13,6 +13,21 @@ export function generateRegistrationEmailHtml({
   tier,
   teamId,
 }: RegistrationEmailProps): string {
+  const getTierName = (t: string) => {
+    switch (t) {
+      case "tier1":
+        return process.env.NEXT_PUBLIC_TIER_1_NAME || "Gold";
+      case "tier2":
+        return process.env.NEXT_PUBLIC_TIER_2_NAME || "Platinum";
+      case "tier3":
+        return process.env.NEXT_PUBLIC_TIER_3_NAME || "Diamond";
+      default:
+        return t;
+    }
+  };
+
+  const tierName = getTierName(tier);
+
   return `
     <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px;">
       <h2 style="color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">Registration Confirmed! 🎉</h2>
@@ -22,7 +37,7 @@ export function generateRegistrationEmailHtml({
       <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
         <ul style="list-style-type: none; padding: 0; margin: 0;">
           <li style="margin-bottom: 10px; font-size: 15px;"><strong>Delegate ID:</strong> <span style="color: #0369a1; font-weight: bold;">${delegateId}</span></li>
-          <li style="margin-bottom: 10px; font-size: 15px;"><strong>Tier:</strong> ${tier}</li>
+          <li style="margin-bottom: 10px; font-size: 15px;"><strong>Tier:</strong> ${tierName}</li>
           ${teamId ? `<li style="font-size: 15px;"><strong>Team ID:</strong> <span style="color: #0369a1; font-weight: bold;">${teamId}</span></li>` : ""}
         </ul>
       </div>
