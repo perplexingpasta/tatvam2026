@@ -15,6 +15,8 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
 
+    const isJSSMC = formData.get("isJSSMC") === "true";
+
     interface MemberInput {
       name: string;
       email: string;
@@ -29,13 +31,28 @@ export async function POST(req: NextRequest) {
     const members: MemberInput[] = [];
     let i = 0;
     while (formData.has(`member_${i}_name`)) {
+      let collegeName = formData.get(`member_${i}_collegeName`) as string;
+      let delegateTier = formData.get(`member_${i}_delegateTier`) as string;
+      
+      if (isJSSMC) {
+        collegeName = "JSS Medical College";
+        delegateTier = "tier3";
+      } else {
+        if (collegeName.trim().toLowerCase() === "jss medical college") {
+          return NextResponse.json(
+            { success: false, message: "JSSMC students must use the JSSMC registration form" },
+            { status: 400 },
+          );
+        }
+      }
+
       members.push({
         name: formData.get(`member_${i}_name`) as string,
         email: formData.get(`member_${i}_email`) as string,
         phone: formData.get(`member_${i}_phone`) as string,
-        collegeName: formData.get(`member_${i}_collegeName`) as string,
+        collegeName,
         collegeIdNumber: formData.get(`member_${i}_collegeIdNumber`) as string,
-        delegateTier: formData.get(`member_${i}_delegateTier`) as string,
+        delegateTier,
         collegeIdImage: formData.get(`member_${i}_collegeIdImage`) as File,
       });
       i++;
@@ -60,13 +77,19 @@ export async function POST(req: NextRequest) {
     }
 
     const paymentScreenshot = formData.get("paymentScreenshot") as File | null;
-    const utrNumber = formData.get("utrNumber") as string | null;
+    let utrNumber = formData.get("utrNumber") as string | null || "";
+    let paymentStatus = "pending_verification";
 
-    if (!paymentScreenshot || !utrNumber || !/^[A-Za-z0-9]{12,22}$/.test(utrNumber)) {
-      return NextResponse.json(
-        { success: false, message: "A valid UTR number (12-22 alphanumeric characters) and payment screenshot are required" },
-        { status: 400 },
-      );
+    if (isJSSMC) {
+      paymentStatus = "verified";
+      utrNumber = "";
+    } else {
+      if (!paymentScreenshot || !utrNumber || !/^[A-Za-z0-9]{12,22}$/.test(utrNumber)) {
+        return NextResponse.json(
+          { success: false, message: "A valid UTR number (12-22 alphanumeric characters) and payment screenshot are required" },
+          { status: 400 },
+        );
+      }
     }
 
     // 2. Validate with Zod
@@ -114,14 +137,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (
-      paymentScreenshot.size > 10 * 1024 * 1024 ||
-      !["image/jpeg", "image/png", "image/jpg"].includes(paymentScreenshot.type)
-    ) {
-      return NextResponse.json(
-        { success: false, message: "Invalid payment screenshot" },
-        { status: 400 },
-      );
+    if (!isJSSMC && paymentScreenshot) {
+      if (
+        paymentScreenshot.size > 10 * 1024 * 1024 ||
+        !["image/jpeg", "image/png", "image/jpg"].includes(paymentScreenshot.type)
+      ) {
+        return NextResponse.json(
+          { success: false, message: "Invalid payment screenshot" },
+          { status: 400 },
+        );
+      }
     }
 
     // 3. Re-validate uniqueness in Firestore Transaction
@@ -179,13 +204,15 @@ export async function POST(req: NextRequest) {
 
     let paymentScreenshotUrl = "";
     try {
-      const paymentBuffer = Buffer.from(await paymentScreenshot.arrayBuffer());
-      const paymentUpload = await uploadToCloudinary(
-        paymentBuffer,
-        paymentScreenshot.type,
-        "payments",
-      );
-      paymentScreenshotUrl = paymentUpload.originalUrl; // Original URL for payment
+      if (!isJSSMC && paymentScreenshot) {
+        const paymentBuffer = Buffer.from(await paymentScreenshot.arrayBuffer());
+        const paymentUpload = await uploadToCloudinary(
+          paymentBuffer,
+          paymentScreenshot.type,
+          "payments",
+        );
+        paymentScreenshotUrl = paymentUpload.originalUrl; // Original URL for payment
+      }
 
       for (const member of members) {
         const buffer = Buffer.from(await member.collegeIdImage.arrayBuffer());
@@ -245,6 +272,7 @@ export async function POST(req: NextRequest) {
         email: member.email,
         phone: member.phone,
         collegeName: member.collegeName,
+        isJSSMC: isJSSMC,
         collegeIdNumber: member.collegeIdNumber,
         collegeIdImageUrl: member.collegeIdImageUrl, // Transformed for delegates collection
         delegateTier: member.delegateTier,
@@ -252,7 +280,7 @@ export async function POST(req: NextRequest) {
         teamId: teamId,
         paymentScreenshotUrl: paymentScreenshotUrl,
         utrNumber: utrNumber,
-        paymentStatus: "pending_verification",
+        paymentStatus: paymentStatus,
         registeredEventIds: [],
         createdAt: now,
         sheetsSync: {
@@ -307,6 +335,7 @@ export async function POST(req: NextRequest) {
             delegateId: delId,
             tier: member.delegateTier,
             teamId,
+            isJSSMC: isJSSMC,
           }),
         });
 

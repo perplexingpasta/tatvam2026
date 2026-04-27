@@ -1,4 +1,3 @@
-// app/registration/page.tsx: 
 "use client";
 
 import React, { useState } from "react";
@@ -35,9 +34,9 @@ const memberSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone must be at least 10 digits"),
-  collegeName: z.string().min(1, "College name is required"),
+  collegeName: z.string().optional(),
   collegeIdNumber: z.string().min(1, "College ID is required"),
-  delegateTier: z.enum(["tier1", "tier2", "tier3"]),
+  delegateTier: z.enum(["tier1", "tier2", "tier3"]).optional(),
   collegeIdImage: z.any()
     .refine((file) => typeof window !== "undefined" && file instanceof File, "College ID image is required")
     .refine((file) => file?.size <= MAX_FILE_SIZE, "Max file size is 10MB.")
@@ -50,7 +49,7 @@ const memberSchema = z.object({
 const registrationSchema = z.object({
   teamName: z.string().optional(),
   members: z.array(memberSchema).min(1).max(25),
-  utrNumber: z.string().regex(/^[A-Za-z0-9]{12,22}$/, "UTR Number must be 12-22 alphanumeric characters").optional().or(z.literal("")),
+  utrNumber: z.string().optional().or(z.literal("")),
   paymentScreenshot: z.any().optional(),
 }).superRefine((data, ctx) => {
   if (data.members.length > 1 && (!data.teamName || data.teamName.trim() === "")) {
@@ -64,7 +63,10 @@ const registrationSchema = z.object({
 
 type RegistrationFormValues = z.infer<typeof registrationSchema>;
 
+type RegistrationMode = "selection" | "jssmc" | "external";
+
 export default function RegistrationPage() {
+  const [mode, setMode] = useState<RegistrationMode>("selection");
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
@@ -83,6 +85,8 @@ export default function RegistrationPage() {
     setValue,
     trigger,
     setError: setFormError,
+    reset,
+    getValues,
     formState: { errors },
   } = useForm<RegistrationFormValues>({
     resolver: zodResolver(registrationSchema),
@@ -112,9 +116,39 @@ export default function RegistrationPage() {
   const watchMembers = useWatch({ control, name: "members" }) || [];
   
   const totalCost = watchMembers.reduce((sum, member) => {
-    const tier = TIERS.find((t) => t.id === member.delegateTier);
-    return sum + (tier?.price || 0);
+    const tierId = mode === "jssmc" ? "tier3" : member.delegateTier;
+    const tier = TIERS.find((t) => t.id === tierId);
+    return sum + (mode === "jssmc" ? 0 : (tier?.price || 0));
   }, 0);
+
+  const handleSelectMode = (newMode: "jssmc" | "external") => {
+    setMode(newMode);
+    setStep(1);
+    setError(null);
+    reset({
+      teamName: "",
+      members: [
+        {
+          name: "",
+          email: "",
+          phone: "",
+          collegeName: newMode === "jssmc" ? "JSS Medical College" : "",
+          collegeIdNumber: "",
+          delegateTier: newMode === "jssmc" ? "tier3" : "tier1",
+          collegeIdImage: undefined,
+        },
+      ],
+      utrNumber: "",
+    });
+    setImagePreviews({});
+    setPaymentPreview(null);
+  };
+
+  const handleBackToSelection = () => {
+    if (confirm("Are you sure you want to go back? Your form data will be lost.")) {
+      setMode("selection");
+    }
+  };
 
   const handleAddMember = () => {
     if (fields.length >= 25) {
@@ -125,16 +159,82 @@ export default function RegistrationPage() {
       name: "",
       email: "",
       phone: "",
-      collegeName: "",
+      collegeName: mode === "jssmc" ? "JSS Medical College" : "",
       collegeIdNumber: "",
-      delegateTier: "tier1",
+      delegateTier: mode === "jssmc" ? "tier3" : "tier1",
       collegeIdImage: undefined,
     });
+  };
+
+  const submitRegistration = async (membersData: any[], paymentData?: { paymentScreenshot: any, utrNumber: string }) => {
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      const currentTeamName = getValues("teamName");
+      if (membersData.length > 1 && currentTeamName) {
+        formData.append("teamName", currentTeamName);
+      }
+      
+      formData.append("isJSSMC", mode === "jssmc" ? "true" : "false");
+
+      if (mode === "external") {
+        if (!paymentData?.paymentScreenshot) throw new Error("Payment screenshot missing");
+        if (!paymentData?.utrNumber) throw new Error("UTR number missing");
+        formData.append("paymentScreenshot", paymentData.paymentScreenshot);
+        formData.append("utrNumber", paymentData.utrNumber);
+      }
+
+      membersData.forEach((m: any, index: number) => {
+        formData.append(`member_${index}_name`, m.name);
+        formData.append(`member_${index}_email`, m.email);
+        formData.append(`member_${index}_phone`, m.phone);
+        formData.append(`member_${index}_collegeName`, mode === "jssmc" ? "JSS Medical College" : m.collegeName);
+        formData.append(`member_${index}_collegeIdNumber`, m.collegeIdNumber);
+        formData.append(`member_${index}_delegateTier`, mode === "jssmc" ? "tier3" : m.delegateTier);
+        if (m.collegeIdImage) {
+          formData.append(`member_${index}_collegeIdImage`, m.collegeIdImage);
+        }
+      });
+
+      const res = await fetch("/api/registration/delegate", {
+        method: "POST",
+        body: formData,
+      });
+
+      const resData = await res.json();
+      if (!res.ok) {
+        throw new Error(resData.message || "Registration failed");
+      }
+
+      setGeneratedDelegateIds(resData.delegateIds || []);
+      setGeneratedTeamId(resData.teamId || null);
+      setSuccess(true);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleNext = async () => {
     const isStep1Valid = await trigger(["members", "teamName"]);
     if (!isStep1Valid) return;
+
+    if (mode === "external") {
+      let hasCollegeNameError = false;
+      watchMembers.forEach((m, idx) => {
+        if (!m.collegeName || m.collegeName.trim() === "") {
+          setFormError(`members.${idx}.collegeName`, { type: "manual", message: "College name is required" });
+          hasCollegeNameError = true;
+        } else if (m.collegeName.trim().toLowerCase() === "jss medical college") {
+          setFormError(`members.${idx}.collegeName`, { type: "manual", message: "JSSMC students must use the JSSMC registration form" });
+          hasCollegeNameError = true;
+        }
+      });
+      if (hasCollegeNameError) return;
+    }
 
     setIsValidating(true);
     setError(null);
@@ -167,7 +267,11 @@ export default function RegistrationPage() {
         return;
       }
 
-      setStep(2);
+      if (mode === "jssmc") {
+        await submitRegistration(watchMembers);
+      } else {
+        setStep(2);
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Validation failed. Please try again.");
     } finally {
@@ -208,55 +312,16 @@ export default function RegistrationPage() {
   };
 
   const onSubmit = async (data: RegistrationFormValues) => {
-    if (!data.paymentScreenshot) {
-      setError("Please provide a payment screenshot");
-      return;
-    }
-    if (!data.utrNumber || !/^[A-Za-z0-9]{12,22}$/.test(data.utrNumber)) {
-      setError("Please provide a valid UTR number (12-22 alphanumeric characters)");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      const formData = new FormData();
-      if (data.members.length > 1 && data.teamName) {
-        formData.append("teamName", data.teamName);
+    if (mode === "external") {
+      if (!data.paymentScreenshot) {
+        setError("Please provide a payment screenshot");
+        return;
       }
-      formData.append("paymentScreenshot", data.paymentScreenshot);
-      formData.append("utrNumber", data.utrNumber);
-
-      data.members.forEach((m, index) => {
-        formData.append(`member_${index}_name`, m.name);
-        formData.append(`member_${index}_email`, m.email);
-        formData.append(`member_${index}_phone`, m.phone);
-        formData.append(`member_${index}_collegeName`, m.collegeName);
-        formData.append(`member_${index}_collegeIdNumber`, m.collegeIdNumber);
-        formData.append(`member_${index}_delegateTier`, m.delegateTier);
-        if (m.collegeIdImage) {
-          formData.append(`member_${index}_collegeIdImage`, m.collegeIdImage);
-        }
-      });
-
-      const res = await fetch("/api/registration/delegate", {
-        method: "POST",
-        body: formData,
-      });
-
-      const resData = await res.json();
-      if (!res.ok) {
-        throw new Error(resData.message || "Registration failed");
+      if (!data.utrNumber || !/^[A-Za-z0-9]{12,22}$/.test(data.utrNumber)) {
+        setError("Please provide a valid UTR number (12-22 alphanumeric characters)");
+        return;
       }
-
-      setGeneratedDelegateIds(resData.delegateIds || []);
-      setGeneratedTeamId(resData.teamId || null);
-      setSuccess(true);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
-    } finally {
-      setIsSubmitting(false);
+      await submitRegistration(data.members, { paymentScreenshot: data.paymentScreenshot, utrNumber: data.utrNumber });
     }
   };
 
@@ -291,7 +356,10 @@ export default function RegistrationPage() {
           </div>
 
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              setSuccess(false);
+              setMode("selection");
+            }}
             className="px-8 py-3 bg-blue-600 text-white font-bold rounded-md hover:bg-blue-700 transition-colors"
           >
             Register Another
@@ -301,13 +369,61 @@ export default function RegistrationPage() {
     );
   }
 
+  if (mode === "selection") {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 text-black" suppressHydrationWarning>
+        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden p-8">
+          <h1 className="text-3xl font-extrabold text-gray-900 text-center mb-8">
+            Select Delegate Type
+          </h1>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="border border-gray-200 rounded-xl p-6 text-center hover:shadow-lg transition flex flex-col justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">JSS Medical College Student</h2>
+                <p className="text-gray-600 mb-6">Free registration &mdash; exclusive to JSSMC students</p>
+              </div>
+              <button 
+                onClick={() => handleSelectMode("jssmc")}
+                className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg transition-colors"
+              >
+                Register as JSSMC Student
+              </button>
+            </div>
+            
+            <div className="border border-gray-200 rounded-xl p-6 text-center hover:shadow-lg transition flex flex-col justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Other College Student</h2>
+                <p className="text-gray-600 mb-6">Delegate kit purchase required</p>
+              </div>
+              <button 
+                onClick={() => handleSelectMode("external")}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors"
+              >
+                Register as External Student
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 text-black" suppressHydrationWarning>
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
         <div className="px-6 py-8 sm:p-10">
-          <h1 className="text-3xl font-extrabold text-gray-900 text-center mb-8">
-            Delegate Registration
-          </h1>
+          <div className="flex justify-between items-center mb-8 border-b pb-4">
+            <button 
+              onClick={handleBackToSelection}
+              className="text-gray-500 hover:text-gray-800 font-medium"
+            >
+              &larr; Back
+            </button>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 text-center flex-1">
+              {mode === "jssmc" ? "JSSMC Registration" : "Delegate Registration"}
+            </h1>
+            <div className="w-12"></div>
+          </div>
 
           {error && (
             <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-md">
@@ -382,12 +498,20 @@ export default function RegistrationPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">College Name</label>
-                      <input
-                        type="text"
-                        {...register(`members.${index}.collegeName`)}
-                        className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.members?.[index]?.collegeName ? 'border-red-500' : 'border-gray-300'}`}
-                      />
-                      {errors.members?.[index]?.collegeName && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.collegeName?.message}</p>}
+                      {mode === "jssmc" ? (
+                        <div className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700 font-medium">
+                          JSS Medical College
+                        </div>
+                      ) : (
+                        <>
+                          <input
+                            type="text"
+                            {...register(`members.${index}.collegeName`)}
+                            className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.members?.[index]?.collegeName ? 'border-red-500' : 'border-gray-300'}`}
+                          />
+                          {errors.members?.[index]?.collegeName && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.collegeName?.message}</p>}
+                        </>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">College ID Number</label>
@@ -417,27 +541,33 @@ export default function RegistrationPage() {
 
                   <div className="mt-6">
                     <h4 className="text-lg font-semibold text-gray-900 mb-4">Select Delegate Tier</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {TIERS.map((tier) => (
-                        <div
-                          key={tier.id}
-                          onClick={() => {
-                            setValue(`members.${index}.delegateTier`, tier.id as "tier1"|"tier2"|"tier3", { shouldValidate: true });
-                          }}
-                          className={`cursor-pointer border-2 rounded-xl p-4 transition-all ${
-                            watchMembers[index]?.delegateTier === tier.id
-                              ? "border-blue-600 bg-blue-50 shadow-md"
-                              : "border-gray-200 hover:border-blue-300 bg-white"
-                          }`}
-                        >
-                          <div className="flex justify-between items-start mb-2">
-                            <span className="font-bold text-gray-900">{tier.name}</span>
-                            <span className="font-bold text-blue-600">₹{tier.price}</span>
+                    {mode === "jssmc" ? (
+                      <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                        <p className="text-green-800 font-bold">Tier: {process.env.NEXT_PUBLIC_TIER_3_NAME || "Diamond"} (complimentary)</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {TIERS.map((tier) => (
+                          <div
+                            key={tier.id}
+                            onClick={() => {
+                              setValue(`members.${index}.delegateTier`, tier.id as "tier1"|"tier2"|"tier3", { shouldValidate: true });
+                            }}
+                            className={`cursor-pointer border-2 rounded-xl p-4 transition-all ${
+                              watchMembers[index]?.delegateTier === tier.id
+                                ? "border-blue-600 bg-blue-50 shadow-md"
+                                : "border-gray-200 hover:border-blue-300 bg-white"
+                            }`}
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="font-bold text-gray-900">{tier.name}</span>
+                              <span className="font-bold text-blue-600">₹{tier.price}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">{tier.description}</p>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">{tier.description}</p>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -462,26 +592,26 @@ export default function RegistrationPage() {
                 <button
                   type="button"
                   onClick={handleNext}
-                  disabled={isValidating}
-                  className="mt-4 sm:mt-0 px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[200px]"
+                  disabled={isValidating || isSubmitting}
+                  className={`mt-4 sm:mt-0 px-8 py-3 ${mode === "jssmc" ? "bg-green-600 hover:bg-green-500" : "bg-blue-600 hover:bg-blue-500"} rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[200px]`}
                 >
-                  {isValidating ? (
+                  {isValidating || isSubmitting ? (
                     <span className="flex items-center gap-2">
                       <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Checking...
+                      {isSubmitting ? "Submitting..." : "Checking..."}
                     </span>
                   ) : (
-                    "Proceed to Payment →"
+                    mode === "jssmc" ? "Complete Registration" : "Proceed to Payment →"
                   )}
                 </button>
               </div>
             </div>
           )}
 
-          {step === 2 && (
+          {step === 2 && mode === "external" && (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 text-center">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Payment Details</h3>

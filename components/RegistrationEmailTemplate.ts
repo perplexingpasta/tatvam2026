@@ -5,6 +5,7 @@ export interface RegistrationEmailProps {
   delegateId: string;
   tier: string;
   teamId?: string | null;
+  isJSSMC?: boolean;
 }
 
 export function generateRegistrationEmailHtml({
@@ -13,6 +14,7 @@ export function generateRegistrationEmailHtml({
   delegateId,
   tier,
   teamId,
+  isJSSMC,
 }: RegistrationEmailProps): string {
   const getTierName = (t: string) => {
     switch (t) {
@@ -37,6 +39,7 @@ export function generateRegistrationEmailHtml({
       
       <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
         <ul style="list-style-type: none; padding: 0; margin: 0;">
+          ${isJSSMC ? `<li style="margin-bottom: 10px; font-size: 15px; color: #166534; font-weight: bold;">Complimentary Registration &mdash; JSS Medical College</li>` : ""}
           <li style="margin-bottom: 10px; font-size: 15px;"><strong>Delegate ID:</strong> <span style="color: #0369a1; font-weight: bold;">${delegateId}</span></li>
           <li style="margin-bottom: 10px; font-size: 15px;"><strong>Tier:</strong> ${tierName}</li>
           ${teamId ? `<li style="font-size: 15px;"><strong>Team ID:</strong> <span style="color: #0369a1; font-weight: bold;">${teamId}</span></li>` : ""}

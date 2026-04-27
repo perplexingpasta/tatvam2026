@@ -1,5 +1,3 @@
-jssmc vs non-jss
-
 reply_to: "yourpersonal@gmail.com"
 make sports page
 test suite
@@ -15,6 +13,7 @@ dynamic loading
 easter egg
 make a README for the repo
 cloudinary too less?
+what changes do i need to make when deploying it on my custom domain in production 
 
 DONE
 delegate ID displayed on submission screen ✅
@@ -35,7 +34,8 @@ duplicate email, phone number and college id number validation while registering
 utr allow letters ✅
 college name instead of year of study ✅
 replace img w nextjs Image ✅
-no teams tab. all in delegates tab ✅
+no teams tab in sheets. all entries in delegates tab ✅
+jssmc vs non-jss ✅
 
 
 need to ask

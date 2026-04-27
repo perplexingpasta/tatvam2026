@@ -144,7 +144,7 @@ The project requires the following environment variables (also see `.env.local.e
 ## Google Sheets Column Layout
 
 ### Delegates Sheet
-Columns: Delegate ID, Name, Email, Phone, College Name, College ID Number, College ID Image URL, Delegate Tier, Tier Price, Team ID, Team Name, Payment Status, UTR Number, Payment Screenshot URL, Created At
+Columns: Delegate ID, Name, Email, Phone, College Name, College ID Number, College ID Image URL, Delegate Tier, Tier Price, Team ID, Team Name, Is JSSMC, Payment Status, UTR Number, Payment Screenshot URL, Created At
 
 ### Event Registrations Sheet
-Columns: Registration ID, Event Items (Summarized), Total Amount, Payment Status, UTR Number, Payment Screenshot URL, Submitted At
+Columns: Registration ID, Event Items (Summarized), Total Amount, Payment Status, UTR Number, Payment Screenshot URL, Submitted AtSubmitted At

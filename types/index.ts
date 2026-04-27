@@ -18,6 +18,7 @@ export const delegateSchema = z.object({
   email: z.string().email("Invalid email"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
   collegeName: z.string(),
+  isJSSMC: z.boolean(),
   collegeIdNumber: z.string().min(1, "College ID Number is required"),
   collegeIdImageUrl: z.string().url(),
   delegateTier: delegateTierSchema,

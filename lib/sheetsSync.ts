@@ -109,6 +109,7 @@ export const syncToSheets = async (
         d.tierPrice !== undefined && d.tierPrice !== null ? d.tierPrice : "",
         payload.teamId || "",
         payload.teamName || "",
+        d.isJSSMC === true ? "TRUE" : "FALSE",
         d.paymentStatus || "",
         d.utrNumber || "",
         d.paymentScreenshotUrl || "",
@@ -117,7 +118,7 @@ export const syncToSheets = async (
 
       await sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
-        range: "Delegates!A:O",
+        range: "Delegates!A:P",
         valueInputOption: "USER_ENTERED",
         requestBody: { values: delegateValues },
       });
