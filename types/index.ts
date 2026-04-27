@@ -1,3 +1,4 @@
+// types/index.ts
 import { z } from "zod";
 
 export const delegateTierSchema = z.enum(["tier1", "tier2", "tier3"]);

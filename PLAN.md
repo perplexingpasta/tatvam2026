@@ -1,3 +1,4 @@
+<!-- PLAN.md -->
 # Registration System Plan
 
 ## Environment Variables

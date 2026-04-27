@@ -1,3 +1,4 @@
+// lib/sheetsSync.ts
 import { getSheetsClient } from "./sheets";
 import { adminDb } from "./firebaseAdmin";
 import { Timestamp } from "firebase-admin/firestore";
@@ -59,17 +60,23 @@ export const attemptSyncWithFallback = async (
 ): Promise<void> => {
   try {
     const result = await syncToSheets(type, payload, referenceId);
-    
+
     if (result.success) {
       console.log(`[sheetsSync] Immediate sync succeeded for ${referenceId}`);
       // The update of the source document to "synced" happens inside syncToSheets
     } else {
-      console.warn(`[sheetsSync] Immediate sync failed, enqueued for retry. referenceId:`, referenceId);
-      // The creation of the retry queue document and updating the source to "failed"/"pending" 
+      console.warn(
+        `[sheetsSync] Immediate sync failed, enqueued for retry. referenceId:`,
+        referenceId,
+      );
+      // The creation of the retry queue document and updating the source to "failed"/"pending"
       // is already gracefully handled inside the catch block of syncToSheets when a sync fails.
     }
   } catch (error) {
-    console.error(`[sheetsSync] Unexpected error in attemptSyncWithFallback for ${referenceId}:`, error);
+    console.error(
+      `[sheetsSync] Unexpected error in attemptSyncWithFallback for ${referenceId}:`,
+      error,
+    );
   }
 };
 
@@ -99,7 +106,7 @@ export const syncToSheets = async (
         d.collegeIdNumber,
         d.collegeIdImageOriginalUrl || d.collegeIdImageUrl || "",
         getTierName(d.delegateTier),
-        (d.tierPrice !== undefined && d.tierPrice !== null) ? d.tierPrice : "",
+        d.tierPrice !== undefined && d.tierPrice !== null ? d.tierPrice : "",
         payload.teamId || "",
         payload.teamName || "",
         d.paymentStatus || "",
@@ -166,7 +173,10 @@ export const syncToSheets = async (
               "sheetsSync.lastError": null,
             });
           } catch (updateError) {
-            console.warn(`Could not update sheetsSync status on delegates/${d.delegateId}:`, updateError);
+            console.warn(
+              `Could not update sheetsSync status on delegates/${d.delegateId}:`,
+              updateError,
+            );
           }
         }
       }
@@ -189,12 +199,9 @@ export const syncToSheets = async (
     }
 
     return { success: true };
-} catch (error: unknown) {
+  } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(
-      `[sheetsSync] FULL ERROR for ${type} ${referenceId}:`,
-      error,
-    );
+    console.error(`[sheetsSync] FULL ERROR for ${type} ${referenceId}:`, error);
     console.error(`[sheetsSync] Error message:`, errorMessage);
 
     const newRetryCount = currentRetryCount + 1;
@@ -230,7 +237,7 @@ export const syncToSheets = async (
         .doc(retryDocId)
         .update({
           ...docData,
-          nextRetryAt: Timestamp.fromDate(nextRetryAt)
+          nextRetryAt: Timestamp.fromDate(nextRetryAt),
         });
     } else {
       await adminDb.collection("sheetsRetryQueue").add({
@@ -248,14 +255,21 @@ export const syncToSheets = async (
       for (const d of delegates) {
         if (d.delegateId) {
           try {
-            await adminDb.collection("delegates").doc(d.delegateId).update({
-              "sheetsSync.status": newRetryCount > 10 ? "dead_letter" : "failed",
-              "sheetsSync.retryCount": newRetryCount,
-              "sheetsSync.lastAttempt": Timestamp.now(),
-              "sheetsSync.lastError": errorMessage,
-            });
+            await adminDb
+              .collection("delegates")
+              .doc(d.delegateId)
+              .update({
+                "sheetsSync.status":
+                  newRetryCount > 10 ? "dead_letter" : "failed",
+                "sheetsSync.retryCount": newRetryCount,
+                "sheetsSync.lastAttempt": Timestamp.now(),
+                "sheetsSync.lastError": errorMessage,
+              });
           } catch (updateError) {
-            console.warn(`Could not update sheetsSync status on delegates/${d.delegateId}:`, updateError);
+            console.warn(
+              `Could not update sheetsSync status on delegates/${d.delegateId}:`,
+              updateError,
+            );
           }
         }
       }

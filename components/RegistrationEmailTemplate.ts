@@ -1,3 +1,4 @@
+// components/RegistrationEmailTemplate.ts
 export interface RegistrationEmailProps {
   name: string;
   festName: string;
