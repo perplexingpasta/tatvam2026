@@ -1,8 +1,21 @@
+is it a better idea to integrate shopify or any other third-party service instead of creating a store from scratch?
+
 in this web app, i wish to create another page displaying event merch. i will upload images and users can select each item that they wish and it will be added to their cart. since each item is custom made, users have to input attributes such as their name, jersey number, batch year, etc. as for the payment, they have to scan a different QR code, and then upload the screenshot and write down the UTR number for the same. These details of custom instructions and purchase will all be saved in a new google sheet (different from the tatvam 2026 - registrations one). i don't want you to implement anything, i just wanna discuss how you'd suggest we go about implementing this. also feel free to ask questions or make suggestions to enhance this idea of mine
 note:
     anyone can purchase merch without registering as a delegate
+    dynamically manage the merch catalogue so nothing is hard-coded
+    different merch items have different custom attributes
     a buyer cannot order multiple quantities of the same item. For example, 2 jerseys with different names and numbers? each individual can only order one
+    buyer identity: name, contact, email, college ID number
+    order confirmation email
+    Merch cart persistence using localstorage
+    Add an orderStatus field
+    If you have limited stock per size, add a stock map to each merch item
+    Merch-only page visibility
 
+
+
+registration-status page
 
 team name or any error should pop up as toast
 numbers 10 digits shown in subtext. if less or excees toast

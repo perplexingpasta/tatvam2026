@@ -166,7 +166,7 @@ export default function RegistrationPage() {
     });
   };
 
-  const submitRegistration = async (membersData: any[], paymentData?: { paymentScreenshot: any, utrNumber: string }) => {
+  const submitRegistration = async (membersData: RegistrationFormValues["members"], paymentData?: { paymentScreenshot: File, utrNumber: string }) => {
     setIsSubmitting(true);
     setError(null);
 
@@ -186,13 +186,13 @@ export default function RegistrationPage() {
         formData.append("utrNumber", paymentData.utrNumber);
       }
 
-      membersData.forEach((m: any, index: number) => {
+      membersData.forEach((m: RegistrationFormValues["members"][0], index: number) => {
         formData.append(`member_${index}_name`, m.name);
         formData.append(`member_${index}_email`, m.email);
         formData.append(`member_${index}_phone`, m.phone);
-        formData.append(`member_${index}_collegeName`, mode === "jssmc" ? "JSS Medical College" : m.collegeName);
+        formData.append(`member_${index}_collegeName`, mode === "jssmc" ? "JSS Medical College" : (m.collegeName || ""));
         formData.append(`member_${index}_collegeIdNumber`, m.collegeIdNumber);
-        formData.append(`member_${index}_delegateTier`, mode === "jssmc" ? "tier3" : m.delegateTier);
+        formData.append(`member_${index}_delegateTier`, mode === "jssmc" ? "tier3" : (m.delegateTier || ""));
         if (m.collegeIdImage) {
           formData.append(`member_${index}_collegeIdImage`, m.collegeIdImage);
         }
