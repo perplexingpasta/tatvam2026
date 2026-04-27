@@ -20,7 +20,17 @@ const cartItemSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const contentType = req.headers.get("content-type") || "";
+    if (!contentType.includes("multipart/form-data")) {
+      return NextResponse.json(
+        { success: false, message: "Unsupported Media Type: expected multipart/form-data" },
+        { status: 415 }
+      );
+    }
+
     const formData = await req.formData();
+    const MAX_FILE_SIZE = parseInt(process.env.NEXT_PUBLIC_MAX_FILE_SIZE_MB || "10", 10) * 1024 * 1024;
+
 
     const cartItemsStr = formData.get("cartItems") as string;
     const utrNumber = formData.get("utrNumber") as string;
@@ -83,41 +93,56 @@ export async function POST(req: NextRequest) {
     // We will collect delegate details to send email
     const emailDataMap = new Map<string, { name: string; email: string }>();
 
-    try {
-      await adminDb.runTransaction(async (transaction) => {
-        for (const item of cartItems) {
-          for (const delegateId of item.participantDelegateIds) {
-            const delegateRef = adminDb.collection("delegates").doc(delegateId);
-            const delegateDoc = await transaction.get(delegateRef);
+    let attempt = 0;
+    while (attempt < 3) {
+      try {
+        await adminDb.runTransaction(async (transaction) => {
+          // Clear arrays in case of retry
+          delegateRefsToUpdate.length = 0;
+          emailDataMap.clear();
 
-            if (!delegateDoc.exists) {
-              throw new Error(`Conflict: Delegate ${delegateId} not found`);
-            }
+          for (const item of cartItems) {
+            for (const delegateId of item.participantDelegateIds) {
+              const delegateRef = adminDb.collection("delegates").doc(delegateId);
+              const delegateDoc = await transaction.get(delegateRef);
 
-            const data = delegateDoc.data();
-            const registeredEventIds = data?.registeredEventIds || [];
+              if (!delegateDoc.exists) {
+                throw new Error(`Conflict: Delegate ${delegateId} not found`);
+              }
 
-            if (registeredEventIds.includes(item.eventId)) {
-              throw new Error(`Conflict: Delegate ${delegateId} is already registered for ${item.eventName}`);
-            }
+              const data = delegateDoc.data();
+              const registeredEventIds = data?.registeredEventIds || [];
 
-            delegateRefsToUpdate.push({ ref: delegateRef, eventId: item.eventId });
-            
-            // Store email/name for email notification
-            if (!emailDataMap.has(delegateId)) {
-               emailDataMap.set(delegateId, { name: data?.name || "", email: data?.email || "" });
+              if (registeredEventIds.includes(item.eventId)) {
+                throw new Error(`Conflict: Delegate ${delegateId} is already registered for ${item.eventName}`);
+              }
+
+              delegateRefsToUpdate.push({ ref: delegateRef, eventId: item.eventId });
+              
+              // Store email/name for email notification
+              if (!emailDataMap.has(delegateId)) {
+                 emailDataMap.set(delegateId, { name: data?.name || "", email: data?.email || "" });
+              }
             }
           }
+        });
+        break; // success, exit loop
+      } catch (error: unknown) {
+        if (error instanceof Error && error.message.startsWith("Conflict:")) {
+          return NextResponse.json(
+            { success: false, message: error.message },
+            { status: 409 }
+          );
         }
-      });
-    } catch (error: unknown) {
-      if (error instanceof Error && error.message.startsWith("Conflict:")) {
-        return NextResponse.json(
-          { success: false, message: error.message },
-          { status: 409 }
-        );
+        attempt++;
+        if (attempt >= 3) {
+          return NextResponse.json(
+            { success: false, message: "Registration failed due to concurrent request. Please try again." },
+            { status: 409 }
+          );
+        }
+        await new Promise(resolve => setTimeout(resolve, 100 * attempt));
       }
-      throw error;
     }
 
     // 2. Upload payment screenshot

@@ -23,6 +23,7 @@ interface CartItemState {
   participants: (ParticipantDetails | null)[];
   inputIds: string[];
   isVerified: boolean;
+  isVerifying: boolean;
   error: string | null;
 }
 
@@ -53,6 +54,7 @@ export default function CartPage() {
         participants: Array(count).fill(null),
         inputIds: Array(count).fill(""),
         isVerified: false,
+        isVerifying: false,
         error: null
       };
     });
@@ -226,11 +228,26 @@ export default function CartPage() {
 
     formData.append("cartItems", JSON.stringify(cartItemsPayload));
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
     try {
-      const res = await fetch("/api/registration/events", {
-        method: "POST",
-        body: formData,
-      });
+      let res;
+      try {
+        res = await fetch("/api/registration/events", {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        });
+      } catch (fetchError: unknown) {
+        if (fetchError instanceof Error && fetchError.name === "AbortError") {
+          throw new Error("Upload is taking too long. Please check your connection and try again.");
+        }
+        throw fetchError;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
       const data = await res.json();
 
       if (res.ok && data.success) {
@@ -339,10 +356,17 @@ export default function CartPage() {
                             />
                             <button
                               onClick={() => handleSoloVerify(event.eventId)}
-                              disabled={!state.inputIds[0]}
-                              className="px-6 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg font-medium disabled:opacity-50"
+                              disabled={!state.inputIds[0] || state.isVerifying}
+                              className="px-6 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg font-medium disabled:opacity-50 flex items-center justify-center min-w-[100px]"
                             >
-                              Verify
+                              {state.isVerifying ? (
+                                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                              ) : (
+                                "Verify"
+                              )}
                             </button>
                           </div>
                         </div>
@@ -447,6 +471,7 @@ export default function CartPage() {
                       alt="Payment QR" 
                       width={192}
                       height={192}
+                      priority={false}
                       className="border rounded-lg shadow-sm object-contain"
                     />
                   </div>

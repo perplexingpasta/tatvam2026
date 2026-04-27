@@ -13,7 +13,17 @@ const delegateTierSchema = z.enum(["tier1", "tier2", "tier3"]);
 
 export async function POST(req: NextRequest) {
   try {
+    const contentType = req.headers.get("content-type") || "";
+    if (!contentType.includes("multipart/form-data")) {
+      return NextResponse.json(
+        { success: false, message: "Unsupported Media Type: expected multipart/form-data" },
+        { status: 415 }
+      );
+    }
+
     const formData = await req.formData();
+    const MAX_FILE_SIZE = parseInt(process.env.NEXT_PUBLIC_MAX_FILE_SIZE_MB || "10", 10) * 1024 * 1024;
+
 
     const isJSSMC = formData.get("isJSSMC") === "true";
 
@@ -150,47 +160,58 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Re-validate uniqueness in Firestore Transaction
-    try {
-      await adminDb.runTransaction(async (transaction) => {
-        for (const member of members) {
-          const emailQuery = await transaction.get(
-            adminDb
-              .collection("delegates")
-              .where("email", "==", member.email)
-              .limit(1),
-          );
-          if (!emailQuery.empty)
-            throw new Error(`Conflict: Email ${member.email} already exists`);
-
-          const phoneQuery = await transaction.get(
-            adminDb
-              .collection("delegates")
-              .where("phone", "==", member.phone)
-              .limit(1),
-          );
-          if (!phoneQuery.empty)
-            throw new Error(`Conflict: Phone ${member.phone} already exists`);
-
-          const idQuery = await transaction.get(
-            adminDb
-              .collection("delegates")
-              .where("collegeIdNumber", "==", member.collegeIdNumber)
-              .limit(1),
-          );
-          if (!idQuery.empty)
-            throw new Error(
-              `Conflict: College ID ${member.collegeIdNumber} already exists`,
+    let attempt = 0;
+    while (attempt < 3) {
+      try {
+        await adminDb.runTransaction(async (transaction) => {
+          for (const member of members) {
+            const emailQuery = await transaction.get(
+              adminDb
+                .collection("delegates")
+                .where("email", "==", member.email)
+                .limit(1),
             );
+            if (!emailQuery.empty)
+              throw new Error(`Conflict: Email ${member.email} already exists`);
+
+            const phoneQuery = await transaction.get(
+              adminDb
+                .collection("delegates")
+                .where("phone", "==", member.phone)
+                .limit(1),
+            );
+            if (!phoneQuery.empty)
+              throw new Error(`Conflict: Phone ${member.phone} already exists`);
+
+            const idQuery = await transaction.get(
+              adminDb
+                .collection("delegates")
+                .where("collegeIdNumber", "==", member.collegeIdNumber)
+                .limit(1),
+            );
+            if (!idQuery.empty)
+              throw new Error(
+                `Conflict: College ID ${member.collegeIdNumber} already exists`,
+              );
+          }
+        });
+        break; // success, exit loop
+      } catch (error: unknown) {
+        if (error instanceof Error && error.message.startsWith("Conflict:")) {
+          return NextResponse.json(
+            { success: false, message: error.message },
+            { status: 409 },
+          );
         }
-      });
-    } catch (error: unknown) {
-      if (error instanceof Error && error.message.startsWith("Conflict:")) {
-        return NextResponse.json(
-          { success: false, message: error.message },
-          { status: 409 },
-        );
+        attempt++;
+        if (attempt >= 3) {
+          return NextResponse.json(
+            { success: false, message: "Registration failed due to concurrent request. Please try again." },
+            { status: 409 },
+          );
+        }
+        await new Promise(resolve => setTimeout(resolve, 100 * attempt));
       }
-      throw error; // Re-throw if it's not a conflict error
     }
 
     // 4. Upload files to Cloudinary

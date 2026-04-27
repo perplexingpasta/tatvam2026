@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
 
 // Simple in-memory rate limiter
+// Note: This resets on server restart and is not suitable for multi-instance deployments.
+// (Netlify serverless functions are single-instance per invocation so this is acceptable).
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute

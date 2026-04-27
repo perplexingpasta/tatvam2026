@@ -1,5 +1,11 @@
-reply_to: "yourpersonal@gmail.com"
 make sports page
+
+send names along with delegate ID for sheets data for event registrations
+team name or any error should pop up as toast
+numbers 10 digits shown in subtext. if less or excees toast
+for solo events, it should not say lead
+
+reply_to: "yourpersonal@gmail.com"
 test suite
 toast notifs
 more emails (delegate confirmation, event confirmation, reminders)

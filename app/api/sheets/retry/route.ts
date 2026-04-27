@@ -1,10 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
 import { syncToSheets, SyncType } from "@/lib/sheetsSync";
 import { Timestamp } from "firebase-admin/firestore";
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   try {
+    const contentType = req.headers.get("content-type") || "";
+    if (contentType && !contentType.includes("application/json")) {
+      return NextResponse.json(
+        { success: false, message: "Unsupported Media Type: expected application/json or empty body" },
+        { status: 415 }
+      );
+    }
+
     const now = Timestamp.now();
 
     // const snapshot = await adminDb.collection("sheetsRetryQueue").get();

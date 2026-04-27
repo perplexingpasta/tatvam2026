@@ -105,7 +105,7 @@ export default function RegistrationPage() {
       ],
       utrNumber: "",
     },
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -198,10 +198,24 @@ export default function RegistrationPage() {
         }
       });
 
-      const res = await fetch("/api/registration/delegate", {
-        method: "POST",
-        body: formData,
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      let res;
+      try {
+        res = await fetch("/api/registration/delegate", {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        });
+      } catch (fetchError: unknown) {
+        if (fetchError instanceof Error && fetchError.name === "AbortError") {
+          throw new Error("Upload is taking too long. Please check your connection and try again.");
+        }
+        throw fetchError;
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       const resData = await res.json();
       if (!res.ok) {
@@ -329,8 +343,14 @@ export default function RegistrationPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <div className="max-w-2xl w-full bg-white p-8 rounded-xl shadow-lg text-center">
-          <h2 className="text-3xl font-bold text-green-600 mb-4">Registration Successful!</h2>
-          <p className="text-gray-600 mb-6">Your registration has been submitted and is pending verification. Please save or screenshot this page for your records.</p>
+          <h2 className="text-3xl font-bold text-green-600 mb-4">Registration Complete!</h2>
+          <p className="text-gray-600 mb-6">
+            {mode === "jssmc" 
+              ? "Your registration has been submitted successfully." 
+              : "Your registration has been submitted and your payment is pending verification."}
+            <br />
+            <strong className="text-red-600">Save your delegate ID &mdash; you will need it to register for events.</strong>
+          </p>
           
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8 text-left">
             {generatedTeamId && (
@@ -353,6 +373,12 @@ export default function RegistrationPage() {
                 ))}
               </div>
             </div>
+            
+            {mode === "jssmc" && (
+              <div className="mt-6 pt-4 border-t border-gray-200 text-sm text-green-700 font-medium">
+                Note: As a JSSMC student, your registration is complimentary and no payment was required.
+              </div>
+            )}
           </div>
 
           <button
@@ -628,6 +654,7 @@ export default function RegistrationPage() {
                       alt="Payment QR Code" 
                       width={192}
                       height={192}
+                      priority={false}
                       className="object-contain"
                     />
                   </div>

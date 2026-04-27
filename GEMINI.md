@@ -26,8 +26,8 @@ This is a web application built with **Next.js** (App Router), utilizing React, 
 - Phase 1: ✅ Complete
 - Phase 2: ✅ Complete
 - Phase 3: ✅ Complete
-- Phase 4: 🔄 In progress
-- Phase 5: ⏳ Not started
+- Phase 4: ✅ Complete
+- Phase 5: ✅ Complete
 
 **Main Technologies:**
 - Next.js (16.2.4)
