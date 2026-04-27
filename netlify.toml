@@ -7,4 +7,4 @@
 
 [build.environment]
 SECRETS_SCAN_OMIT_KEYS = "FIREBASE_PROJECT_ID,NEXT_PUBLIC_SITE_URL"
-SECRETS_SCAN_OMIT_PATHS = "GEMINI.md,.netlify/.next/server/chunks/s"
+SECRETS_SCAN_OMIT_PATHS = ".firebaserc,SETUP_GUIDE.md,GEMINI.md,PLAN.md,README.md,.netlify/.next/server/chunks/s,.lib/cloudinary.ts"
