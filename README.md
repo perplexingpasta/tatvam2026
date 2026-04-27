@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# College Cultural Fest Registration System
 
-## Getting Started
+A robust, full-stack registration platform for college cultural fests, built with **Next.js (App Router)**, **TypeScript**, and **Firebase**.
 
-First, run the development server:
+## 🚀 Features
+
+- **Delegate Registration**: Support for individual and team registrations with tiered pricing.
+- **Event Registration**: Cart-based system for solo and group event signups.
+- **Secure Lookups**: Rate-limited delegate ID verification for event participants.
+- **Image Management**: Automated upload and optimization of ID cards and payment screenshots via **Cloudinary**.
+- **Email Notifications**: Transactional emails for registration confirmation using **Resend**.
+- **Data Integrity**: **Google Sheets** secondary mirror for easy administrative access and offline reporting.
+- **Reliability**: Fault-tolerant retry queue for asynchronous background tasks (like Google Sheets syncing).
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [TailwindCSS v4](https://tailwindcss.com/)
+- **Database**: [Firebase Firestore](https://firebase.google.com/docs/firestore)
+- **Server-side Logic**: [Firebase Admin SDK](https://firebase.google.com/docs/admin)
+- **Storage & CDN**: [Cloudinary](https://cloudinary.com/)
+- **Email**: [Resend](https://resend.com/)
+- **Sheets Sync**: [Google Sheets API](https://developers.google.com/sheets/api)
+- **Validation**: [Zod](https://zod.dev/) & [React Hook Form](https://react-hook-form.com/)
+- **Hosting**: [Netlify](https://www.netlify.com/)
+
+## 📂 Project Structure
+
+- `app/`: Next.js App Router pages and API routes.
+- `components/`: Reusable React components and email templates.
+- `lib/`: Core logic for Firebase, Cloudinary, Resend, and Google Sheets.
+- `types/`: Shared TypeScript interfaces and schemas.
+- `scripts/`: Utility scripts (e.g., database seeding).
+- `netlify/`: Background functions for task processing.
+
+## ⚙️ Setup & Installation
+
+### 1. Environment Variables
+
+Create a `.env.local` file in the root directory and populate it with the following keys (refer to `PLAN.md` for details):
+
+```env
+# Firebase Client
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+# Firebase Admin
+FIREBASE_CLIENT_EMAIL=...
+FIREBASE_PRIVATE_KEY="..."
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+# Resend
+RESEND_API_KEY=...
+# Google Sheets
+GOOGLE_SERVICE_ACCOUNT_EMAIL=...
+GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY="..."
+GOOGLE_SHEETS_SPREADSHEET_ID=...
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 4. Seed Database (Optional)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To populate initial event data:
+```bash
+npx ts-node scripts/seedEvents.ts
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🏗️ Architecture Note
 
-## Learn More
+- **Source of Truth**: Firestore is the primary database.
+- **File Uploads**: All images are processed via Next.js API routes using the Admin SDK and uploaded directly to Cloudinary.
+- **Google Sheets**: Acts as a secondary mirror. Syncing is handled asynchronously via a `sheetsRetryQueue` to ensure data consistency even during API downtime.
+- **Cart State**: Managed client-side via React Context; no persistence until payment submission.
 
-To learn more about Next.js, take a look at the following resources:
+## 📄 License
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is private and intended for specific fest use.
