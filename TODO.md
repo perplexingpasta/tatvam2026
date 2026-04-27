@@ -1,6 +1,5 @@
-make sports page
+read @PLAN.md before we continue. as you can see that currently we are sending delegateId in the event registrations data for the google sheets along with a bunch of other fields. that's great but can you make it so that along with the delegateID, the delegateName also goes with that in bracket    
 
-send names along with delegate ID for sheets data for event registrations
 team name or any error should pop up as toast
 numbers 10 digits shown in subtext. if less or excees toast
 for solo events, it should not say lead
