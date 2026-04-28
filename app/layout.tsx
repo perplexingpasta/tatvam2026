@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/CartProvider";
+import { MerchCartProvider } from "@/components/MerchCartProvider";
 import { Header } from "@/components/Header";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -34,8 +35,10 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <CartProvider>
-          <Header />
-          <main className="flex-1 flex flex-col">{children}</main>
+          <MerchCartProvider>
+            <Header />
+            <main className="flex-1 flex flex-col">{children}</main>
+          </MerchCartProvider>
         </CartProvider>
         <Analytics />
         <SpeedInsights />
