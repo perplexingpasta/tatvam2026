@@ -13,7 +13,7 @@ This is a web application built with **Next.js** (App Router), utilizing React, 
 - Google Sheets: secondary mirror only, never source of truth
 - Image compression: Cloudinary URL transforms (f_auto,q_auto,w_800)
 - Do NOT use sharp, Firebase Storage, or any Firebase Extensions
-- Hosting: Netlify with @netlify/plugin-nextjs
+- Hosting: Vercel
 
 ## Architecture Reference
 - See PLAN.md for all Firestore schemas, API contracts, and env variable names
