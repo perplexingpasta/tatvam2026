@@ -168,7 +168,7 @@ export function MerchItemCard({ item }: { item: MerchItem }) {
                         placeholder={attr.placeholder}
                         value={attributes[attr.id] || ""}
                         onChange={(e) => handleAttributeChange(attr.id, e.target.value)}
-                        className={`w-full p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
+                        className={`w-full p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 ${
                           errors[attr.id] ? "border-red-500" : "border-gray-300"
                         }`}
                       />

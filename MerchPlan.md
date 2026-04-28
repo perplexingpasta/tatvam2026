@@ -124,5 +124,5 @@ Example: /public/merch/jersey-1.jpg, /public/merch/jersey-2.jpg
 - Phase 0: ✅ Complete
 - Phase 1: ✅ Complete
 - Phase 2: ✅ Complete
-- Phase 3: ⏳ Not started
-- Phase 4: ⏳ Not started
+- Phase 3: ✅ Complete
+- Phase 4: 🔄 In progress
