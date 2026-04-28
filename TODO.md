@@ -82,7 +82,9 @@ college name instead of year of study ✅
 replace img w nextjs Image ✅
 no teams tab in sheets. all entries in delegates tab ✅
 jssmc vs non-jss ✅
-
+switched to vercel hosting ✅
+added vercel analytics, speed insights ✅
+move team name to the end after last member ✅
 
 need to ask
 - delegate prices
