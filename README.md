@@ -23,7 +23,7 @@ A robust, full-stack registration platform for college cultural fests, built wit
 - **Email**: [Resend](https://resend.com/)
 - **Sheets Sync**: [Google Sheets API](https://developers.google.com/sheets/api)
 - **Validation**: [Zod](https://zod.dev/) & [React Hook Form](https://react-hook-form.com/)
-- **Hosting**: [Netlify](https://www.netlify.com/)
+- **Hosting**: [Vercel](https://www.vercel.com/)
 
 ## 📂 Project Structure
 
@@ -32,7 +32,7 @@ A robust, full-stack registration platform for college cultural fests, built wit
 - `lib/`: Core logic for Firebase, Cloudinary, Resend, and Google Sheets.
 - `types/`: Shared TypeScript interfaces and schemas.
 - `scripts/`: Utility scripts (e.g., database seeding).
-- `netlify/`: Background functions for task processing.
+- `vercel/`: Background functions for task processing.
 
 ## ⚙️ Setup & Installation
 
