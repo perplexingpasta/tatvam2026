@@ -89,13 +89,22 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 4. Generate Order ID (Format: MERCH-XXXXX)
+    // 4. Generate Order ID (Format: MERCH-AAA-BBB-XXXXX)
+    const aaa = buyerName.replace(/[^A-Za-z]/g, "").substring(0, 3).toUpperCase() || "XXX";
+    
+    const uniqueItems = new Set(validUnits.map(u => u.itemId));
+    let bbb = "MIX";
+    if (uniqueItems.size === 1) {
+      const firstItemName = validUnits[0].itemName;
+      bbb = firstItemName.replace(/[^A-Za-z]/g, "").substring(0, 3).toUpperCase() || "XXX";
+    }
+
     let orderId = "";
     let isUnique = false;
     let attempts = 0;
     while (!isUnique && attempts < 5) {
       const randomPart = crypto.randomBytes(4).toString("hex").toUpperCase().slice(0, 5);
-      orderId = `MERCH-${randomPart}`;
+      orderId = `MERCH-${aaa}-${bbb}-${randomPart}`;
       const doc = await adminDb.collection("merchOrders").doc(orderId).get();
       if (!doc.exists) isUnique = true;
       attempts++;

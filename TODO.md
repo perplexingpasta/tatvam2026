@@ -1,10 +1,3 @@
-merch store
-    all phases
-    verification after each phase
-    no cron job in phase 3
-
-merch-7b3fc instead RIS-HOO-9182J
-
 large team error (should support 16)
 test both team registration
 test even registration
@@ -63,6 +56,7 @@ switched to vercel hosting ✅
 added vercel analytics, speed insights ✅
 move team name to the end after last member ✅
 make a README for the repo ✅
+merch-7b3fc instead RIS-HOO-9182J ✅
 
 need to ask
 - delegate prices

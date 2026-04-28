@@ -25,7 +25,7 @@ Defined entirely in /lib/merchCatalogue.ts as a static TypeScript  config file. 
 ## Firestore Schema
 
 ### merchOrders/{orderId}
-- orderId: string (format: MERCH-XXXXX, 5 random uppercase alphanumeric)
+- orderId: string (format: MERCH-AAA-BBB-XXXXX, where AAA is first 3 letters of buyer name, BBB is first 3 letters of item name or MIX, and XXXXX is 5 random alphanumeric characters)
 - buyerName: string
 - buyerEmail: string
 - buyerPhone: string
