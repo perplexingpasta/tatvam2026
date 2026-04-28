@@ -37,8 +37,8 @@ Do not modify any registration system files when working on merch.
 
 ## Merch Phase Status
 - Merch Phase 0: ✅ Complete
-- Merch Phase 1: 🔄 In progress
-- Merch Phase 2: ⏳ Not started
+- Merch Phase 1: ✅ Complete
+- Merch Phase 2: 🔄 In progress
 - Merch Phase 3: ⏳ Not started
 - Merch Phase 4: ⏳ Not started
 
