@@ -21,6 +21,12 @@ This is a web application built with **Next.js** (App Router), utilizing React, 
 - Cart state is session-only (React context, no persistence)
 - Google Sheets sync is always async and fault-tolerant via sheetsRetryQueue
 
+## Merch Store
+A separate merch store exists at /merch and /merch/cart.
+It is completely independent from the registration system.
+See MerchPlan.md for all schemas, routes, and column layouts.
+Do not modify any registration system files when working on merch.
+
 ## Phase Status
 - Phase 0: ✅ Complete
 - Phase 1: ✅ Complete
