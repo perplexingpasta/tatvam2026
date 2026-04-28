@@ -459,21 +459,6 @@ export default function RegistrationPage() {
 
           {step === 1 && (
             <div className="space-y-12">
-              {fields.length > 1 && (
-                <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
-                  <label className="block text-sm font-bold text-blue-900 mb-2">
-                    Team Name (Required for multiple members)
-                  </label>
-                  <input
-                    type="text"
-                    {...register("teamName")}
-                    className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.teamName ? 'border-red-500' : 'border-gray-300'}`}
-                    placeholder="Enter your team name"
-                  />
-                  {errors.teamName && <p className="text-red-500 text-sm mt-1">{errors.teamName.message}</p>}
-                </div>
-              )}
-
               {fields.map((field, index) => (
                 <div key={field.id} className="bg-gray-50 border border-gray-200 rounded-xl p-6 relative">
                   {index > 0 && (
@@ -597,6 +582,21 @@ export default function RegistrationPage() {
                   </div>
                 </div>
               ))}
+
+              {fields.length > 1 && (
+                <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
+                  <label className="block text-sm font-bold text-blue-900 mb-2">
+                    Team Name (Required for multiple members)
+                  </label>
+                  <input
+                    type="text"
+                    {...register("teamName")}
+                    className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white ${errors.teamName ? 'border-red-500' : 'border-gray-300'}`}
+                    placeholder="Enter your team name"
+                  />
+                  {errors.teamName && <p className="text-red-500 text-sm mt-1">{errors.teamName.message}</p>}
+                </div>
+              )}
 
               <div className="flex justify-center mt-8">
                 {fields.length < 25 && (

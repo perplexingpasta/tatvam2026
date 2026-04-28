@@ -8,7 +8,6 @@ i probably will only have 3-4 merch items such as hoodies, jerseys, and varsity 
 test both team registration
 test even registration
 
-move team name to the end after last member
 
 as far as the merch store is concerned, is it a better idea to integrate shopify or any other third-party store instead of creating a store from scratch? as i mentioned i probably will only have 3-4 merch items such as hoodies, jerseys, and varsity jackets. each will have 3-5 personalized attributes which will need input from the user. i want to display the item, let the user fill in his info, pay only via qr code followed by uploading the screenshot to the website and everything gets saved in a google sheet so that later on my team can verify his payment status, call him to confirm his personalised details and fulfil the order.
 Make a new Firestore collection: merchItems for the catalogue and a new Firestore collection: merchOrders for purchases
