@@ -1,3 +1,904 @@
+Read @PLAN.md fully before writing any code.
+
+We are rebuilding the /events page and its underlying data with real event data for the fest. This involves:
+1. A new events catalogue with complete event data
+2. An updated seed script to populate Firestore
+3. A rebuilt /events page with categories, search, tags, collapsible sections, and event modals
+4. Updated CartProvider to handle the new event data shape
+
+This does NOT affect:
+- /cart page (event registration payment flow)
+- /api/registration/events route
+- Any delegate registration files
+- Any merch files
+- Any Sheets sync files
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONSTRAINTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Do not modify /cart/page.tsx
+- Do not modify /api/registration/events/route.ts
+- Do not modify any delegate registration files
+- Do not modify any merch files
+- Do not modify any Sheets sync files
+- Do not add any new npm packages
+- The /events page must remain a React Server Component at the top level — client interactivity is in child components only
+- Search and filtering must be client-side only — no additional Firestore queries after initial page load
+- All 33 events must be seeded with eventId === slug
+- Report completion of each Part explicitly before moving to the next
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART-BY-PART IMPLEMENTATION PLAN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+You MUST complete each part fully, verify it works, and explicitly state "PART N COMPLETE — ALL CHECKS PASSED" before asking me for instructions for the next part.
+There are 7 parts in total.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 1/7 — EVENT DATA TYPES & SCHEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Update the event schema in types/index.ts to replace the existing eventSchema with this expanded version:
+
+```typescript
+export type EventCategory =
+  | "music"
+  | "dance"
+  | "assorted"
+  | "quiz"
+  | "drama"
+  | "art"
+  | "literary";
+
+export type PricingType = "per_person" | "flat_total" | "free";
+
+export type EventTag =
+  | "solo"
+  | "group"
+  | "online"
+  | "large-team"      // teams of 6+
+  | "small-team"      // teams of 2-5
+  | "free"
+  | "under-100"       // fee < ₹100 per person or total
+  | "under-300"       // fee < ₹300
+  | "flagship"        // major events (battle of bands, group 
+                      // dance, street play, fashion main)
+  | "gaming"
+  | "performing-arts"
+  | "visual-arts"
+  | "literary"
+  | "music"
+  | "dance";
+
+export const eventSchema = z.object({
+  eventId: z.string(),
+  indianName: z.string(),        // e.g. "Swar Leela"
+  englishName: z.string(),       // e.g. "Solo Eastern Singing"
+  slug: z.string(),              // url-safe, e.g. "swar-leela"
+  category: z.enum([
+    "music", "dance", "assorted", "quiz", 
+    "drama", "art", "literary"
+  ]),
+  description: z.string(),       // full description, can be 
+                                 // empty string for now
+  shortDescription: z.string(), // shown on card, 1-2 sentences
+  type: z.enum(["solo", "group"]),
+  pricingType: z.enum(["per_person", "flat_total", "free"]),
+  fee: z.number(),               // 0 if free. Per person if 
+                                 // per_person, total if flat_total
+  minTeamSize: z.number().nullable(),
+  maxTeamSize: z.number().nullable(),
+  isOnline: z.boolean(),
+  isAvailable: z.boolean(),      // false = registration closed
+  tags: z.array(z.string()),
+  imageUrls: z.array(z.string()), // empty array for now
+  venue: z.string().nullable(),
+  eventDate: z.string().nullable(),  // ISO date string or null
+  eventTime: z.string().nullable(),  // e.g. "10:00 AM" or null
+  schedule: z.string().nullable(),   // combined display string
+                                     // e.g. "Day 1, 10:00 AM"
+  rules: z.array(z.string()),        // empty array for now
+  contactName: z.string().nullable(),
+  contactPhone: z.string().nullable(),
+});
+
+export type Event = z.infer<typeof eventSchema>;
+```
+
+When you're done with this part implementation, report to me and await instructions for the next part. Verify & test part implementation after you're finished.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 2 — EVENTS CATALOGUE & SEED SCRIPT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create /lib/eventsCatalogue.ts with ALL events defined below. This is the source of truth for the seed script.
+
+PRICING RULES:
+- pricingType: "per_person" → fee field = price per person
+- pricingType: "flat_total" → fee field = total price for 
+  the whole team regardless of size
+- pricingType: "free" → fee field = 0
+
+TAG RULES — assign tags automatically based on event data:
+- Always add "solo" or "group" based on type
+- Add "online" if isOnline is true
+- Add "free" if pricingType is "free"
+- Add "under-100" if fee < 100 (for per_person) or 
+  fee < 100 (for flat_total)
+- Add "under-300" if fee < 300 per person or total
+- Add "large-team" if maxTeamSize >= 6
+- Add "small-team" if maxTeamSize <= 5 and type is "group"
+- Add "flagship" for: ahaang, group dance, street play, 
+  fashion main event, CODM, BGMI
+- Add "gaming" for: fifa, bgmi, codm
+- Add "performing-arts" for all music and dance events
+- Add "visual-arts" for all art events
+- Add "literary" for all literary events
+- Add "music" for all music events
+- Add "dance" for all dance events
+
+SLUG FORMAT: lowercase, spaces replaced with hyphens, special characters removed. Indian name takes priority for slug if it's distinctive.
+Examples: "swar-leela", "jugalbandi", "natyanjali", "face-off", "reflections", "sapientia", "escape-room"
+
+ALL EVENTS:
+
+─── MUSIC ────────────────────────────────────
+
+1. indianName: "Swar Leela"
+   englishName: "Solo Eastern Singing"
+   slug: "swar-leela"
+   category: "music"
+   type: "solo"
+   pricingType: "per_person"
+   fee: 75
+   minTeamSize: null, maxTeamSize: null
+   isOnline: false
+
+2. indianName: "Solo Western Singing"
+   englishName: "Solo Western Singing"
+   slug: "solo-western-singing"
+   category: "music"
+   type: "solo"
+   pricingType: "per_person"
+   fee: 75
+   minTeamSize: null, maxTeamSize: null
+   isOnline: false
+
+3. indianName: "Jugalbandi"
+   englishName: "Duet Vocals"
+   slug: "jugalbandi"
+   category: "music"
+   type: "group"
+   pricingType: "flat_total"
+   fee: 150
+   minTeamSize: 2, maxTeamSize: 2
+   isOnline: false
+
+4. indianName: "Ahaang"
+   englishName: "Battle of Bands"
+   slug: "ahaang"
+   category: "music"
+   type: "group"
+   pricingType: "flat_total"
+   fee: 1199
+   minTeamSize: 3, maxTeamSize: 12
+   isOnline: false
+   tags: include "flagship"
+
+5. indianName: "Tarang"
+   englishName: "Instrumental Solo"
+   slug: "tarang"
+   category: "music"
+   type: "solo"
+   pricingType: "free"
+   fee: 0
+   minTeamSize: null, maxTeamSize: null
+   isOnline: true
+
+─── DANCE ────────────────────────────────────
+
+6. indianName: "Natyanjali"
+   englishName: "Solo Classical Dance"
+   slug: "natyanjali"
+   category: "dance"
+   type: "solo"
+   pricingType: "per_person"
+   fee: 75
+   minTeamSize: null, maxTeamSize: null
+   isOnline: false
+
+7. indianName: "Solo Non-Classical Dance"
+   englishName: "Solo Non-Classical Dance"
+   slug: "solo-non-classical-dance"
+   category: "dance"
+   type: "solo"
+   pricingType: "per_person"
+   fee: 75
+   minTeamSize: null, maxTeamSize: null
+   isOnline: false
+
+8. indianName: "Face Off"
+   englishName: "Face Off"
+   slug: "face-off"
+   category: "dance"
+   type: "solo"
+   pricingType: "per_person"
+   fee: 75
+   minTeamSize: null, maxTeamSize: null
+   isOnline: false
+
+9. indianName: "Reflections"
+   englishName: "Reflections"
+   slug: "reflections"
+   category: "dance"
+   type: "group"
+   pricingType: "per_person"
+   fee: 75
+   minTeamSize: 2, maxTeamSize: 10
+   isOnline: false
+
+10. indianName: "Group Dance"
+    englishName: "Group Dance"
+    slug: "group-dance"
+    category: "dance"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 799
+    minTeamSize: 6, maxTeamSize: 16
+    isOnline: false
+    tags: include "flagship", "large-team"
+
+─── ASSORTED ─────────────────────────────────
+
+11. indianName: "Sapientia"
+    englishName: "Sapientia"
+    slug: "sapientia"
+    category: "assorted"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 150
+    minTeamSize: 2, maxTeamSize: 2
+    isOnline: false
+
+12. indianName: "Escape Room"
+    englishName: "Escape Room"
+    slug: "escape-room"
+    category: "assorted"
+    type: "group"
+    pricingType: "per_person"
+    fee: 99
+    minTeamSize: 2, maxTeamSize: 6
+    isOnline: false
+
+13. indianName: "Fashion — Main Event"
+    englishName: "Fashion Main Event"
+    slug: "fashion-main"
+    category: "assorted"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 1299
+    minTeamSize: 12, maxTeamSize: 20
+    isOnline: false
+    tags: include "flagship", "large-team"
+
+14. indianName: "Twin Vogue"
+    englishName: "Twin Vogue"
+    slug: "twin-vogue"
+    category: "assorted"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 199
+    minTeamSize: 2, maxTeamSize: 2
+    isOnline: false
+
+15. indianName: "FIFA (PC)"
+    englishName: "FIFA PC Gaming"
+    slug: "fifa-pc"
+    category: "assorted"
+    type: "solo"
+    pricingType: "per_person"
+    fee: 150
+    minTeamSize: null, maxTeamSize: null
+    isOnline: false
+    tags: include "gaming"
+
+16. indianName: "BGMI (Mobile)"
+    englishName: "BGMI Mobile Gaming"
+    slug: "bgmi-mobile"
+    category: "assorted"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 399
+    minTeamSize: 4, maxTeamSize: 5
+    isOnline: false
+    tags: include "gaming", "flagship"
+    NOTE: 4 players + 1 substitute. Store maxTeamSize: 5
+
+17. indianName: "CODM (Mobile)"
+    englishName: "CODM Mobile Gaming"
+    slug: "codm-mobile"
+    category: "assorted"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 499
+    minTeamSize: 5, maxTeamSize: 6
+    isOnline: false
+    tags: include "gaming", "flagship"
+    NOTE: 5 players + 1 substitute. Store maxTeamSize: 6
+
+─── QUIZ ─────────────────────────────────────
+
+18. indianName: "General Quiz"
+    englishName: "General Quiz"
+    slug: "general-quiz"
+    category: "quiz"
+    type: "group"
+    pricingType: "per_person"
+    fee: 75
+    minTeamSize: 1, maxTeamSize: 3
+    isOnline: false
+    NOTE: min 1 means can be solo or up to 3. Store as 
+    type: "group" with minTeamSize: 1 so the cart page 
+    handles it as a group event but allows single participant.
+
+19. indianName: "Mela Quiz"
+    englishName: "Mela Quiz"
+    slug: "mela-quiz"
+    category: "quiz"
+    type: "group"
+    pricingType: "per_person"
+    fee: 75
+    minTeamSize: 1, maxTeamSize: 2
+    isOnline: false
+    NOTE: Same as above — min 1, max 2.
+
+─── DRAMA ────────────────────────────────────
+
+20. indianName: "Streetplay"
+    englishName: "Street Play"
+    slug: "streetplay"
+    category: "drama"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 799
+    minTeamSize: 8, maxTeamSize: 12
+    isOnline: false
+    tags: include "flagship", "large-team"
+
+21. indianName: "Mono Act"
+    englishName: "Mono Act"
+    slug: "mono-act"
+    category: "drama"
+    type: "solo"
+    pricingType: "per_person"
+    fee: 75
+    minTeamSize: null, maxTeamSize: null
+    isOnline: false
+
+22. indianName: "Dramathon"
+    englishName: "Dramathon"
+    slug: "dramathon"
+    category: "drama"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 199
+    minTeamSize: 2, maxTeamSize: 4
+    isOnline: false
+
+23. indianName: "Mad Ads"
+    englishName: "Mad Ads"
+    slug: "mad-ads"
+    category: "drama"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 150
+    minTeamSize: 3, maxTeamSize: 5
+    isOnline: true
+
+─── ART ──────────────────────────────────────
+
+24. indianName: "Art Attack"
+    englishName: "Art Attack"
+    slug: "art-attack"
+    category: "art"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 299
+    minTeamSize: 3, maxTeamSize: 6
+    isOnline: false
+
+25. indianName: "Tote Bag Painting"
+    englishName: "Tote Bag Painting"
+    slug: "tote-bag-painting"
+    category: "art"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 150
+    minTeamSize: 2, maxTeamSize: 2
+    isOnline: false
+
+26. indianName: "Face Painting"
+    englishName: "Face Painting"
+    slug: "face-painting"
+    category: "art"
+    type: "solo"
+    pricingType: "per_person"
+    fee: 99
+    minTeamSize: null, maxTeamSize: null
+    isOnline: false
+
+27. indianName: "Relay Painting"
+    englishName: "Relay Painting"
+    slug: "relay-painting"
+    category: "art"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 299
+    minTeamSize: 4, maxTeamSize: 4
+    isOnline: false
+
+28. indianName: "Duotone"
+    englishName: "Duotone"
+    slug: "duotone"
+    category: "art"
+    type: "solo"
+    pricingType: "per_person"
+    fee: 75
+    minTeamSize: null, maxTeamSize: null
+    isOnline: false
+
+─── LITERARY ─────────────────────────────────
+
+29. indianName: "Shipwreck"
+    englishName: "Shipwreck"
+    slug: "shipwreck"
+    category: "literary"
+    type: "solo"
+    pricingType: "per_person"
+    fee: 75
+    minTeamSize: null, maxTeamSize: null
+    isOnline: false
+
+30. indianName: "JAM"
+    englishName: "Just A Minute"
+    slug: "jam"
+    category: "literary"
+    type: "solo"
+    pricingType: "per_person"
+    fee: 75
+    minTeamSize: null, maxTeamSize: null
+    isOnline: false
+
+31. indianName: "Debate"
+    englishName: "Debate"
+    slug: "debate"
+    category: "literary"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 150
+    minTeamSize: 2, maxTeamSize: 2
+    isOnline: false
+
+32. indianName: "Lit Marathon"
+    englishName: "Literary Marathon"
+    slug: "lit-marathon"
+    category: "literary"
+    type: "group"
+    pricingType: "flat_total"
+    fee: 299
+    minTeamSize: 4, maxTeamSize: 4
+    isOnline: false
+
+33. indianName: "Poetry"
+    englishName: "Poetry"
+    slug: "poetry"
+    category: "literary"
+    type: "solo"
+    pricingType: "free"
+    fee: 0
+    minTeamSize: null, maxTeamSize: null
+    isOnline: true
+
+─────────────────────────────────────────────
+
+For ALL events set these fields to placeholder values:
+- description: "" (empty string — developer fills later)
+- shortDescription: "" (empty string)
+- imageUrls: [] (empty array)
+- venue: null
+- eventDate: null
+- eventTime: null
+- schedule: null
+- rules: [] (empty array)
+- contactName: null
+- contactPhone: null
+- isAvailable: true
+
+The eventId must be the same as the slug for consistency.
+Example: eventId: "swar-leela"
+
+When you're done with this part implementation, report to me and await instructions for the next part. Verify & test part implementation after you're finished.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 3/7 — UPDATE SEED SCRIPT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Update scripts/seedEvents.ts to:
+1. Import EVENTS_CATALOGUE from /lib/eventsCatalogue.ts
+2. Delete ALL existing documents in the events collection first before seeding (to prevent duplicates from old seed data)
+3. Write all 33 events as Firestore documents using eventId as the document ID
+4. Log progress: "Seeding [n]/33: [indianName]..."
+5. Log "✅ Seeded 33 events successfully" on completion
+
+Run the seed script after implementing:
+npx ts-node --project tsconfig.scripts.json scripts/seedEvents.ts
+
+Verify in Firebase console that all 33 events exist in the events collection before proceeding.
+
+When you're done with this part implementation, report to me and await instructions for the next part. Verify & test part implementation after you're finished.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 4/7 — UPDATE CartProvider
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Update components/CartProvider.tsx to handle the new event data shape.
+
+The cart item stored in context must include these fields from the event (needed on /cart page for display and delegate ID verification):
+
+```typescript
+interface CartItem {
+  eventId: string;
+  indianName: string;
+  englishName: string;
+  type: "solo" | "group";
+  pricingType: "per_person" | "flat_total" | "free";
+  fee: number;
+  minTeamSize: number | null;
+  maxTeamSize: number | null;
+  category: EventCategory;
+}
+```
+
+Update addToCart to:
+1. Check if eventId already exists in cart — if yes, do 
+   NOT add and return { added: false, reason: "already_in_cart" }
+2. If not in cart, add the item and return 
+   { added: true }
+
+The "already in cart" feedback is handled in the UI (EventCard shows "Already in Cart" state).
+
+When you're done with this part implementation, report to me and await instructions for the next part. Verify & test part implementation after you're finished.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 5/7 — REBUILD /events PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Rebuild app/events/page.tsx as a React Server Component.
+
+Fetch all events from Firestore using Admin SDK on the server. Pass events to client components as props.
+
+Page layout (top to bottom):
+
+1. PAGE HEADER
+   - Title: "Events"
+   - Subtitle: "Fest Name — [NEXT_PUBLIC_FEST_NAME]"
+
+2. SEARCH BAR
+   - Full width search input
+   - Placeholder: "Search by event name..."
+   - Searches across both indianName and englishName 
+     (case insensitive)
+   - Search is client-side (filter already-loaded events)
+   - Debounced by 200ms to avoid excessive re-renders
+   - Show result count when search is active: 
+     "X events found"
+   - Clear button (×) appears when search has input
+
+3. TAG FILTER BAR
+   - Horizontally scrollable row of tag pills
+   - Tags to show (in this order):
+     All | Solo | Group | Online | Free | Under ₹100 | 
+     Under ₹300 | Small Team | Large Team | Flagship | 
+     Gaming | Performing Arts | Visual Arts | Literary
+   - "All" is selected by default
+   - Clicking a tag filters events to show only events 
+     with that tag
+   - Only ONE tag can be active at a time
+   - Active tag pill has distinct styling (filled/highlighted)
+   - When a tag is active AND search is active, both 
+     filters apply (AND logic — event must match both)
+
+4. CATEGORY SECTIONS
+   Display events grouped in this order:
+   Music | Dance | Assorted | Quiz | Drama | Art | Literary
+   
+   Each category section:
+   - Category header with icon and name (e.g. 🎵 Music Events)
+   - Collapse/expand toggle button beside the header
+     (chevron icon, rotates on collapse)
+   - All categories start EXPANDED by default
+   - Smooth collapse animation (CSS transition)
+   - When collapsed: only header row visible, events hidden
+   - Event cards in a responsive grid:
+     mobile: 1 column
+     tablet (md): 2 columns
+     desktop (lg): 3 columns
+   - Cards stack vertically on mobile
+
+   CATEGORY ICONS:
+   Music: 🎵  Dance: 💃  Assorted: 🎭
+   Quiz: 🧠  Drama: 🎬  Art: 🎨  Literary: 📚
+
+   WHEN SEARCH OR TAG FILTER IS ACTIVE:
+   - Ignore category grouping entirely
+   - Show a flat list of matching events under a 
+     "Search Results" heading
+   - Show empty state if no matches: 
+     "No events found for '[query]'. Try a different 
+     search term or clear filters."
+
+5. EVENT CARD (component: components/EventCard.tsx)
+
+   Card displays:
+   - Indian name (primary, larger font)
+   - English name (secondary, smaller, muted)
+   - Category badge
+   - "Online" badge if isOnline is true (blue badge)
+   - Price display:
+     * Free: "Free" in green
+     * Per person: "₹[fee]/person"
+     * Flat total: "₹[fee] total"
+   - Team size display (for group events only):
+     * Fixed team: "Team of [n]"
+     * Range: "[min]–[max] members"
+   - Tags as small pills (show max 3 tags, rest hidden)
+   - Schedule/date if available, "TBA" if null
+   - Venue if available, "TBA" if null
+   - "View Details" button → opens event modal
+   - "Add to Cart" button:
+     * If event not in cart: primary button "Add to Cart"
+     * If event in cart: secondary/muted button 
+       "✓ Added to Cart" (disabled, not clickable)
+     * If isAvailable is false: "Registration Closed" 
+       (disabled)
+   - Cards have hover effect (subtle shadow/scale)
+   - Entire card is clickable to open modal (not just button)
+
+When you're done with this part implementation, report to me and await instructions for the next part. Verify & test part implementation after you're finished.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 6/7 — EVENT DETAIL MODAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create components/EventModal.tsx (client component)
+
+The modal opens when user clicks an event card or "View Details" button.
+
+MODAL BEHAVIOUR:
+- Background becomes blurred (backdrop-filter: blur(8px))
+  with a dark overlay (bg-black/50)
+- Modal has rounded corners (rounded-2xl or rounded-3xl)
+- Clicking OUTSIDE the modal closes it
+- Pressing Escape key closes it
+- Modal is scrollable internally if content is tall
+- Smooth open/close animation (fade + scale)
+- On mobile: modal takes full screen width with small 
+  horizontal margin, positioned near bottom 
+  (like a bottom sheet but with rounded top corners)
+- On desktop: centered modal, max-width 600px
+
+MODAL CONTENT (top to bottom):
+1. Close button (×) in top right corner
+2. Image gallery:
+   - If imageUrls is empty: show a placeholder gradient 
+     with the Indian event name centered
+   - If imageUrls has items: show first image full width,
+     thumbnail strip below for multiple images
+3. Indian name (large heading)
+4. English name (subtitle, muted)
+5. Badges row: category | Online (if applicable) | 
+   type (Solo/Group)
+6. Price section:
+   - Free: "Free Entry" in green
+   - Per person: "₹[fee] per person"
+   - Flat total: "₹[fee] total for the team"
+7. Team size (for group events):
+   - "Team of [n]" for fixed size
+   - "[min] to [max] members" for range
+   - For BGMI/CODM: "4 players + 1 substitute" / 
+     "5 players + 1 substitute"
+8. Schedule section: date, time, venue (show "TBA" if null)
+9. Description (show placeholder text if empty: 
+   "Event details coming soon.")
+10. Rules list (show placeholder if empty:
+    "Rules will be announced soon.")
+11. Contact (show if contactName is not null)
+12. "Add to Cart" button (full width, same logic as card):
+    - "Add to Cart" if not in cart
+    - "✓ Already in Cart" if in cart (disabled)
+    - "Registration Closed" if isAvailable false
+
+IMPORTANT: clicking outside the modal (on the backdrop) must close it. Implement using:
+```typescript
+const backdropRef = useRef<HTMLDivElement>(null);
+const handleBackdropClick = (e: React.MouseEvent) => {
+  if (e.target === backdropRef.current) onClose();
+};
+```
+
+When you're done with this part implementation, report to me and await instructions for the next part. Verify & test part implementation after you're finished.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 7/7 — PRICE DISPLAY HELPER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create lib/eventPricing.ts with helper functions:
+
+```typescript
+// Returns a display string for the event price
+export function formatEventPrice(event: Event): string {
+  if (event.pricingType === "free") return "Free";
+  if (event.pricingType === "per_person") 
+    return `₹${event.fee}/person`;
+  if (event.pricingType === "flat_total") 
+    return `₹${event.fee} total`;
+  return "";
+}
+
+// Returns the fee to store in the cart item
+// For cart display and payment calculation
+export function getCartFee(event: Event): number {
+  return event.fee; // always store raw fee, 
+  // display logic handles per_person vs flat_total
+}
+
+// Returns a human-readable team size string
+export function formatTeamSize(event: Event): string | null {
+  if (event.type === "solo") return null;
+  if (!event.minTeamSize || !event.maxTeamSize) return null;
+  if (event.minTeamSize === event.maxTeamSize) 
+    return `Team of ${event.minTeamSize}`;
+  return `${event.minTeamSize}–${event.maxTeamSize} members`;
+}
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VERIFICATION STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Run npx tsc --noEmit — zero errors required.
+
+2. Run seed script and verify in Firebase console:
+   - Exactly 33 documents in events collection
+   - Check "swar-leela" document has all fields
+   - Check "ahaang" has tags including "flagship"
+   - Check "tarang" has isOnline: true and fee: 0
+   - Check "group-dance" has pricingType: "flat_total"
+
+3. Go to http://localhost:3000/events:
+   - All 7 category sections visible and expanded
+   - All 33 events appear across categories
+   - Each card shows Indian name, English name, price, 
+     category badge
+   - "Online" badge visible on Tarang, Mad Ads, Poetry
+   - "Free" shown in green on Tarang and Poetry
+
+4. Test collapse/expand:
+   - Click collapse button on Music section
+   - Music events hide with smooth animation
+   - Click again — events reappear
+   - Other sections unaffected
+
+5. Test search:
+   - Type "swar" — only Swar Leela appears
+   - Type "singing" — Solo Eastern and Western Singing appear
+   - Type "natyanjali" — Natyanjali appears (Indian name search)
+   - Clear search — all events reappear in categories
+   - Type something with no match — empty state message shown
+
+6. Test tag filters:
+   - Click "Online" — only Tarang, Mad Ads, Poetry shown
+   - Click "Free" — only Tarang and Poetry shown
+   - Click "Gaming" — FIFA, BGMI, CODM shown
+   - Click "Flagship" — Ahaang, Group Dance, Street Play, 
+     Fashion Main, BGMI, CODM shown
+   - Click "All" — resets to show everything
+
+7. Test search + tag combined:
+   - Click "Group" tag, then type "dance" in search
+   - Only group dance events matching "dance" appear
+
+8. Test event modal:
+   - Click any event card
+   - Modal opens with blur background
+   - All fields visible (placeholders for empty fields)
+   - Click outside modal — modal closes
+   - Press Escape — modal closes
+   - Modal is scrollable if content overflows
+
+9. Test "Add to Cart":
+   - Click "Add to Cart" on Swar Leela
+   - Button changes to "✓ Added to Cart" on the card
+   - Cart icon count increments
+   - Open Swar Leela modal — button shows "✓ Already in Cart"
+   - Try adding Swar Leela again — blocked, button stays 
+     as "✓ Added to Cart"
+   - Add a group event (e.g. Jugalbandi) — cart count 
+     increments to 2
+
+10. Mobile verification (Chrome DevTools → iPhone viewport):
+    - Events page loads correctly
+    - Cards stack in single column
+    - Tag filter bar scrolls horizontally
+    - Modal opens as bottom-sheet style
+    - Modal content is scrollable
+    - Collapse buttons are easily tappable
+
+11. Verify /cart page still works:
+    - Add events to cart from /events
+    - Go to /cart — events appear correctly
+    - Delegate ID verification still works
+    - No regressions
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 I have finally gotten the real events list for this upcoming college fest. It's:
 
 
@@ -18,646 +919,3 @@ claude's questions
 - seed events in firestore unlike merch catalogue which is hard-coded
 - Open a modal/drawer on the same page but make it so that if the user clicks anywhere outside the modal, the modal closes. This modal will have the additional detail regarding the event including the images, description, etc. Users can add the event to the cart from over here as well. Make the modal have rounded corners and the background should become blur when the modal is shown on the screen. Optimize entire layout for mobile devices.
 
-
-
-
-
-
-
-Read @PLAN.md and @MerchPlan.md fully before writing any code.
-
-We are implementing a robust image upload system to solve two critical problems:
-1. Large multipart form submissions failing due to Vercel's 4.5MB request body limit (experienced with team of 5+ members)
-2. No image compression currently happening anywhere in the project
-
-This change affects:
-- app/registration/page.tsx (delegate registration — JSSMC and 
-  non-JSSMC flows, college ID images + payment screenshot)
-- app/merch/cart/page.tsx (merch store — payment screenshot only)
-
-This does NOT affect:
-- app/cart/page.tsx (event registration payment screenshot)
-  Leave this file completely untouched.
-- Any API routes other than the ones explicitly listed below
-- Any existing lib files other than cloudinaryUpload.ts
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TASK-BY-TASK IMPLEMENTATION PLAN
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-You MUST complete each task fully, verify it works, and explicitly state "TASK N COMPLETE — ALL CHECKS PASSED" before asking me for instructions for the next task.
-There are 9 tasks in total.
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-OVERVIEW OF THE NEW UPLOAD ARCHITECTURE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-BEFORE (broken for large teams):
-User fills form → selects all files → clicks submit → one giant multipart request with all binary file data → Vercel rejects if > 4.5MB
-
-AFTER (correct):
-User selects a file → browser compresses it immediately → compressed file uploads to /api/upload/image in background → field shows "Uploading..." then "Uploaded ✅" with preview → Cloudinary URL stored in React state → user clicks submit → final request contains ONLY text fields + Cloudinary URLs (tiny payload, never fails)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TASK 1 — INSTALL browser-image-compression
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Run:
-npm install browser-image-compression
-
-This is the only new npm package allowed in this implementation.
-Verify it installs without errors before proceeding.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TASK 2/9 — CREATE POST /api/upload/image ROUTE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Create app/api/upload/image/route.ts
-
-This is a standalone staging upload endpoint. It accepts a single file, validates it, compresses it server-side, uploads to Cloudinary, and returns the URL. It does NOT write to Firestore. It is called once per file as the user selects files, before form submission.
-
-Implementation requirements:
-
-1. Validate Content-Type is multipart/form-data. Return 415 if not.
-
-2. Parse FormData and extract:
-   - file: File (the image to upload)
-   - folder: string (where to store in Cloudinary — 
-     e.g. "college-ids", "payment-proofs", "merch-payments")
-     Validate folder is one of these three exact values.
-     Return 400 if folder is not one of the allowed values.
-
-3. Server-side file validation:
-   - Accepted MIME types: image/jpeg, image/jpg, image/png
-   - Max size: read from NEXT_PUBLIC_MAX_FILE_SIZE_MB env 
-     variable (default 10). Check BEFORE compression.
-   - Return 400 with descriptive message if either check fails.
-
-4. Convert File to Buffer:
-   const buffer = Buffer.from(await file.arrayBuffer());
-
-5. Apply Cloudinary incoming transformations during upload. Update uploadToCloudinary in lib/cloudinaryUpload.ts to accept an optional options parameter for transformations.
-   
-   For college-ids folder: apply these transformations:
-   {
-     transformation: [
-       { width: 1200, crop: "limit" },
-       { quality: "auto:good" },
-       { fetch_format: "auto" }
-     ]
-   }
-   
-   For payment-proofs and merch-payments folders: apply:
-   {
-     transformation: [
-       { width: 2000, crop: "limit" },
-       { quality: "auto:good" },
-       { fetch_format: "auto" }
-     ]
-   }
-   (payment screenshots need higher resolution for legibility)
-
-6. Call uploadToCloudinary(buffer, file.type, folder) with the appropriate transformations.
-   If upload throws: return 503 "Upload failed, please try again."
-
-7. Return:
-   {
-     success: true,
-     originalUrl: string,
-     transformedUrl: string,
-     folder: string
-   }
-
-8. This route must have a Vercel body size config override:
-   export const config = {
-     api: {
-       bodyParser: false,
-     },
-   };
-   
-   Also add this at the top of the route file to increase 
-   the limit for this specific route only:
-   export const maxDuration = 30; // seconds
-
-
-Verify task implementation and explicitly report task completion when done.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TASK 3/9 — CREATE useImageUpload HOOK
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Create hooks/useImageUpload.ts
-
-This hook encapsulates the entire client-side upload flow:
-browser compression → staged upload → state management.
-
-```typescript
-import imageCompression from 'browser-image-compression';
-
-export type UploadStatus = 
-  "idle" | "compressing" | "uploading" | "success" | "error";
-
-export interface UploadState {
-  status: UploadStatus;
-  originalUrl: string | null;
-  transformedUrl: string | null;
-  previewUrl: string | null;  // local object URL for preview
-  errorMessage: string | null;
-  fileName: string | null;
-}
-
-export interface UseImageUploadOptions {
-  folder: "college-ids" | "payment-proofs" | "merch-payments";
-  maxSizeMB?: number;        // default: 10
-  compressionTargetMB?: number; // default: 0.5
-  maxWidthOrHeight?: number; // default: 1200
-}
-
-export function useImageUpload(options: UseImageUploadOptions) {
-  // Returns:
-  // - uploadState: UploadState
-  // - handleFileSelect: (file: File) => Promise<void>
-  // - reset: () => void
-}
-```
-
-handleFileSelect must:
-
-1. Immediately validate file type (jpeg/jpg/png only) and size 
-   (≤ maxSizeMB). If invalid:
-   - Set status: "error"
-   - Set errorMessage to a descriptive message
-   - Do NOT proceed with compression or upload
-   - Return early
-
-2. Generate a local preview URL immediately using URL.createObjectURL(file) — set as previewUrl so the user sees the image instantly without waiting for upload
-
-3. Set status: "compressing"
-
-4. Compress the file using browser-image-compression:
-```typescript
-   const compressed = await imageCompression(file, {
-     maxSizeMB: options.compressionTargetMB ?? 0.5,
-     maxWidthOrHeight: options.maxWidthOrHeight ?? 1200,
-     useWebWorker: true,
-     fileType: 'image/webp', // always output webp
-   });
-```
-   If compression throws: set status "error" with message 
-   "Compression failed. Please try a different image."
-
-5. Set status: "uploading"
-
-6. Create a FormData with the compressed file and folder, 
-   POST to /api/upload/image:
-```typescript
-   const formData = new FormData();
-   formData.append('file', compressed, file.name);
-   formData.append('folder', options.folder);
-   const response = await fetch('/api/upload/image', {
-     method: 'POST',
-     body: formData,
-   });
-```
-   
-7. If response is not ok: set status "error" with the error message from the response body.
-
-8. If response is ok: 
-   - Set status: "success"
-   - Set originalUrl and transformedUrl from response
-   - Keep previewUrl as is (already showing the image)
-
-9. The reset function must:
-   - Revoke the object URL: URL.revokeObjectURL(previewUrl)
-   - Reset all state to initial values
-
-10. Use useCallback for handleFileSelect and reset to prevent unnecessary re-renders.
-
-11. Clean up object URLs on unmount using useEffect cleanup.
-
-Verify task implementation and explicitly report task completion when done.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TASK 4/9 — CREATE StagedFileUpload COMPONENT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Create components/StagedFileUpload.tsx (client component)
-
-This is a reusable file input component that wraps useImageUpload and displays the appropriate UI state.
-
-Props:
-```typescript
-interface StagedFileUploadProps {
-  folder: "college-ids" | "payment-proofs" | "merch-payments";
-  label: string;           // e.g. "College ID Image"
-  onUploadComplete: (urls: { 
-    originalUrl: string; 
-    transformedUrl: string 
-  }) => void;
-  onUploadReset: () => void;
-  disabled?: boolean;      // disable during form submission
-  compressionTargetMB?: number;  // default 0.5
-  maxWidthOrHeight?: number;     // default 1200
-}
-```
-
-UI states to render:
-
-IDLE state:
-- Dashed border upload area
-- Upload icon + "Click to upload or drag and drop"
-- "JPG, PNG up to [maxSizeMB]MB" subtitle
-- Clicking opens file picker (accept="image/jpeg,image/jpg,
-  image/png")
-
-COMPRESSING state:
-- Show preview thumbnail (from previewUrl)
-- Show spinner + text "Compressing..."
-- Input disabled
-
-UPLOADING state:
-- Show preview thumbnail
-- Show spinner + text "Uploading..."
-- Input disabled
-
-SUCCESS state:
-- Show preview thumbnail
-- Show green checkmark + text "Uploaded ✅"
-- Small "Change" button — clicking resets the upload state 
-  and re-opens file picker
-- Call onUploadComplete with the URLs when entering this state
-  (use useEffect watching status === "success")
-
-ERROR state:
-- Show red X icon + errorMessage text in red below
-- Upload area is re-enabled so user can try again
-- Call onUploadReset when entering error state
-
-IMPORTANT:
-- Call onUploadComplete only ONCE when status becomes "success"
-  (use a ref to track if it has been called)
-- Call onUploadReset when status becomes "error" or when 
-  "Change" is clicked
-- Never call onUploadComplete with null/undefined URLs
-
-Verify task implementation and explicitly report task completion when done.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TASK 5/9 — UPDATE DELEGATE REGISTRATION FORM
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Update app/registration/page.tsx
-
-The registration form has two separate flows (JSSMC and non-JSSMC) and supports up to 25 members. Each member has their own college ID image upload. There is also one shared payment screenshot upload (non-JSSMC only).
-
-CRITICAL: The final form submission (POST /api/registration/delegate) must send ONLY text fields and Cloudinary URLs. No file binary data in the final submission. Ever.
-
-Changes required:
-
-1. Replace every college ID image file input with 
-   <StagedFileUpload> component:
-   - folder="college-ids"
-   - label="College ID Image"
-   - compressionTargetMB={0.5}
-   - maxWidthOrHeight={1200}
-
-2. For each member in the form, maintain upload state in 
-   React state:
-```typescript
-   interface MemberUploadState {
-     collegeIdImageOriginalUrl: string | null;
-     collegeIdImageTransformedUrl: string | null;
-   }
-```
-   Store as an array: memberUploads[memberIndex]
-
-3. When StagedFileUpload calls onUploadComplete for member N:
-   - Update memberUploads[N] with the returned URLs
-   
-   When StagedFileUpload calls onUploadReset for member N:
-   - Clear memberUploads[N] back to null values
-
-4. For non-JSSMC flow — replace payment screenshot file input 
-   with <StagedFileUpload>:
-   - folder="payment-proofs"
-   - label="Payment Screenshot"
-   - compressionTargetMB={0.8}
-   - maxWidthOrHeight={2000}
-   
-   Store the returned URLs in:
-```typescript
-   const [paymentScreenshot, setPaymentScreenshot] = useState<{
-     originalUrl: string | null;
-     transformedUrl: string | null;
-   }>({ originalUrl: null, transformedUrl: null });
-```
-
-5. Submit button blocking logic:
-   Before allowing submission, check:
-   
-   a. All members have completed college ID uploads:
-      const pendingCollegeIds = members
-        .map((_, i) => i)
-        .filter(i => !memberUploads[i]?.collegeIdImageOriginalUrl);
-   
-   b. For non-JSSMC: payment screenshot is uploaded:
-      const paymentPending = !paymentScreenshot.originalUrl;
-   
-   If any uploads are pending when submit is clicked:
-   - Do NOT submit
-   - Show a clear error message above the submit button:
-     For pending college IDs: 
-     "Please wait for the following uploads to complete: 
-     College ID for [Member Name], College ID for [Member Name]"
-     For pending payment screenshot:
-     "Please wait for the payment screenshot to finish uploading"
-   - Do not disable the submit button preemptively — only 
-     show this message on click attempt
-
-6. Update the final FormData construction to send URLs 
-   instead of files:
-   REMOVE: formData.append(`member_${i}_collegeIdImage`, file)
-   ADD: formData.append(`member_${i}_collegeIdImageUrl`, 
-          memberUploads[i].collegeIdImageOriginalUrl)
-        formData.append(`member_${i}_collegeIdImageTransformedUrl`,
-          memberUploads[i].collegeIdImageTransformedUrl)
-   
-   REMOVE: formData.append('paymentScreenshot', file)
-   ADD: formData.append('paymentScreenshotUrl', 
-          paymentScreenshot.originalUrl)
-
-7. When "Add Member" button is clicked to add a new member:
-   - Add a new entry to memberUploads array initialised to 
-     { collegeIdImageOriginalUrl: null, 
-       collegeIdImageTransformedUrl: null }
-   
-   When a member is removed:
-   - Remove the corresponding memberUploads entry
-
-8. When the back button is clicked (returning to card 
-   selection screen):
-   - Reset all memberUploads to null
-   - Reset paymentScreenshot to null values
-
-Verify task implementation and explicitly report task completion when done.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TASK 6/9 — UPDATE DELEGATE REGISTRATION API ROUTE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Update app/api/registration/delegate/route.ts
-
-Since files are now uploaded before form submission, the API route no longer receives File objects. It receives URLs.
-
-Changes required:
-
-1. Remove ALL file parsing logic:
-   - Remove: formData.get(`member_${i}_collegeIdImage`) as File
-   - Remove: the Cloudinary upload loop for college ID images
-   - Remove: payment screenshot File parsing and upload
-   - Remove: any Buffer.from(await file.arrayBuffer()) calls
-   - Remove: uploadToCloudinary calls for these files
-
-2. Instead, read URLs directly from FormData:
-```typescript
-   const collegeIdImageUrl = formData.get(
-     `member_${i}_collegeIdImageUrl`
-   ) as string;
-   const collegeIdImageTransformedUrl = formData.get(
-     `member_${i}_collegeIdImageTransformedUrl`  
-   ) as string;
-```
-
-3. For non-JSSMC flow, read payment screenshot URL:
-```typescript
-   const paymentScreenshotUrl = formData.get(
-     'paymentScreenshotUrl'
-   ) as string;
-```
-
-4. Validate that all URL fields are present and are valid URLs (use Zod z.string().url() check). Return 400 if any are missing or malformed. This prevents someone from bypassing the staged upload on the client.
-
-5. For JSSMC flow: paymentScreenshotUrl should be set to "" (empty string) as before — no change to JSSMC logic.
-
-6. Keep ALL other logic unchanged:
-   - Uniqueness checks (email, phone, collegeIdNumber)
-   - Delegate ID generation
-   - Firestore batch write
-   - Team ID generation
-   - Email sending
-   - Sheets sync
-   - isJSSMC handling
-   - All validation except file validation
-
-7. The Cloudinary upload try/catch block that previously handled file uploads can be removed entirely since uploads happen before this route is called.
-
-8. Remove the file size/type validation for college ID images and payment screenshot from this route — that validation now happens in /api/upload/image.
-
-Verify task implementation and explicitly report task completion when done.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TASK 7/9 — UPDATE MERCH CART PAGE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Update app/merch/cart/page.tsx
-
-Only the payment screenshot upload needs to change here.
-The rest of the merch cart page remains unchanged.
-
-Changes required:
-
-1. Replace the payment screenshot file input with 
-   <StagedFileUpload>:
-   - folder="merch-payments"
-   - label="Payment Screenshot"
-   - compressionTargetMB={0.8}
-   - maxWidthOrHeight={2000}
-
-2. Store the returned URLs in state:
-```typescript
-   const [paymentScreenshot, setPaymentScreenshot] = useState<{
-     originalUrl: string | null;
-   }>({ originalUrl: null });
-```
-
-3. Submit blocking logic — if user clicks "Place Order" 
-   and payment screenshot upload is not complete:
-   - Do NOT submit
-   - Show message above submit button:
-     "Please wait for the payment screenshot to finish 
-     uploading"
-
-4. Update the fetch call to /api/merch/order:
-   Send paymentScreenshotUrl as a text field in FormData 
-   instead of a File:
-   REMOVE: formData.append('paymentScreenshot', file)
-   ADD: formData.append('paymentScreenshotUrl', 
-          paymentScreenshot.originalUrl)
-
-Verify task implementation and explicitly report task completion when done.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TASK 8/9 — UPDATE MERCH ORDER API ROUTE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Update app/api/merch/order/route.ts
-
-Changes required:
-
-1. Remove file parsing:
-   REMOVE: formData.get('paymentScreenshot') as File
-   REMOVE: Buffer.from(await file.arrayBuffer())
-   REMOVE: uploadToCloudinary call for payment screenshot
-   REMOVE: 503 error handling for Cloudinary upload
-
-2. Instead read URL:
-```typescript
-   const paymentScreenshotUrl = formData.get(
-     'paymentScreenshotUrl'
-   ) as string;
-```
-
-3. Validate paymentScreenshotUrl is a valid Cloudinary URL:
-   - Must be a valid URL (z.string().url())
-   - Must start with "https://res.cloudinary.com/" to confirm 
-     it went through the staging upload and wasn't spoofed
-   - Return 400 if validation fails
-
-4. Keep ALL other logic unchanged:
-   - Buyer details validation
-   - Units validation and price recalculation
-   - Order ID generation
-   - Firestore write
-   - Sheets sync
-   - Email sending
-
-Verify task implementation and explicitly report task completion when done.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TASK 9/9 — UPDATE lib/cloudinaryUpload.ts
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Update lib/cloudinaryUpload.ts to support incoming transformations.
-
-Update the function signature:
-```typescript
-export async function uploadToCloudinary(
-  fileBuffer: Buffer,
-  mimeType: string,
-  folder: string,
-  transformations?: object[]
-): Promise<{ originalUrl: string; transformedUrl: string }>
-```
-
-When transformations are provided, pass them to the 
-Cloudinary upload call:
-```typescript
-cloudinary.v2.uploader.upload_stream(
-  {
-    folder,
-    resource_type: "image",
-    ...(transformations && { transformation: transformations }),
-  },
-  ...
-)
-```
-
-The /api/upload/image route will pass the appropriate 
-transformations based on the folder parameter.
-
-Keep the existing transformedUrl generation logic unchanged 
-(replacing /upload/ with /upload/f_auto,q_auto,w_800/ in 
-the URL).
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-VERIFICATION STEPS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Perform ALL of these after implementing all tasks:
-
-1. Run npx tsc --noEmit — zero TypeScript errors required.
-
-2. Run npm run build — must complete without errors.
-
-3. Test StagedFileUpload component states:
-   - Go to /registration (non-JSSMC flow)
-   - Select a valid image for member 1's college ID
-   - Confirm you see "Compressing..." then "Uploading..." 
-     then "Uploaded ✅" with a thumbnail preview
-   - Select an invalid file type (PDF) — confirm immediate 
-     inline error appears
-   - Select a valid image then click "Change" — confirm 
-     upload state resets and file picker opens
-
-4. Test submit blocking:
-   - Fill all text fields for a solo registration
-   - Do NOT upload the college ID image
-   - Click submit — confirm message appears listing which 
-     uploads are pending
-   - Upload the college ID image — wait for "Uploaded ✅"
-   - Click submit — confirm it proceeds normally
-
-5. Test solo delegate registration end-to-end:
-   - JSSMC flow: upload college ID, submit
-   - Confirm Firestore document has collegeIdImageUrl 
-     populated with a Cloudinary URL
-   - Confirm no File objects were sent in the final 
-     submission (check Network tab in DevTools — the 
-     final POST to /api/registration/delegate should 
-     contain only text fields)
-
-6. Test team registration with 5 members:
-   - Register 5 members simultaneously
-   - Upload a college ID image for each member — confirm 
-     each shows "Uploading..." independently and resolves 
-     to "Uploaded ✅"
-   - Submit — confirm all 5 Firestore documents created 
-     with correct collegeIdImageUrls
-   - Check Network tab — final payload should be tiny 
-     (text only, no binary data)
-
-7. Test team registration with 10 members:
-   - Same as above with 10 members
-   - This must succeed — previously failed at 5 members
-
-8. Test merch payment screenshot upload:
-   - Go to /merch, add items, go to /merch/cart
-   - Proceed to checkout
-   - Select payment screenshot — confirm "Uploading..." 
-     then "Uploaded ✅"
-   - Submit — confirm Firestore document has 
-     paymentScreenshotUrl starting with 
-     "https://res.cloudinary.com/"
-
-9. Test Cloudinary transformations are being applied:
-   - After uploading a college ID image, go to Cloudinary 
-     dashboard → Media Library → college-ids folder
-   - Confirm uploaded image dimensions are capped at 1200px
-   - Confirm file size is significantly smaller than 
-     the original
-
-10. Test the /api/upload/image route security:
-    - Try to call it with folder="../../etc" or any 
-      value not in the allowed list — confirm 400 response
-    - Try to call it with a PDF — confirm 400 response
-    - Try to call POST /api/registration/delegate with a 
-      spoofed paymentScreenshotUrl like "http://evil.com/x"
-      — confirm 400 response (URL doesn't start with 
-      https://res.cloudinary.com/)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CONSTRAINTS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Only new npm package allowed: browser-image-compression
-- Do NOT modify app/cart/page.tsx (event registration)
-- Do NOT modify app/api/registration/events/route.ts
-- Do NOT modify any Sheets sync files
-- Do NOT modify any email template files
-- Do NOT change Firestore collection names or field names
-- Do NOT change delegate ID generation logic
-- Do NOT change JSSMC/non-JSSMC business logic
-- The /api/upload/image route must be the ONLY place where file binary data is received and processed
-- All other API routes must only receive and validate URLs
-- Report completion of each task explicitly before moving to the next
-- After all tasks: run npx tsc --noEmit and npm run build and report results before declaring completion

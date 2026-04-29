@@ -70,16 +70,65 @@ export const eventRegistrationSchema = z.object({
 
 export type EventRegistration = z.infer<typeof eventRegistrationSchema>;
 
+export type EventCategory =
+  | "music"
+  | "dance"
+  | "assorted"
+  | "quiz"
+  | "drama"
+  | "art"
+  | "literary";
+
+export type PricingType = "per_person" | "flat_total" | "free";
+
+export type EventTag =
+  | "solo"
+  | "group"
+  | "online"
+  | "large-team"      // teams of 6+
+  | "small-team"      // teams of 2-5
+  | "free"
+  | "under-100"       // fee < ₹100 per person or total
+  | "under-300"       // fee < ₹300
+  | "flagship"        // major events (battle of bands, group 
+                      // dance, street play, fashion main)
+  | "gaming"
+  | "performing-arts"
+  | "visual-arts"
+  | "literary"
+  | "music"
+  | "dance";
+
 export const eventSchema = z.object({
   eventId: z.string(),
-  name: z.string(),
-  description: z.string(),
-  type: eventTypeSchema,
+  indianName: z.string(),        // e.g. "Swar Leela"
+  englishName: z.string(),       // e.g. "Solo Eastern Singing"
+  slug: z.string(),              // url-safe, e.g. "swar-leela"
+  category: z.enum([
+    "music", "dance", "assorted", "quiz", 
+    "drama", "art", "literary"
+  ]),
+  description: z.string(),       // full description, can be 
+                                 // empty string for now
+  shortDescription: z.string(), // shown on card, 1-2 sentences
+  type: z.enum(["solo", "group"]),
+  pricingType: z.enum(["per_person", "flat_total", "free"]),
+  fee: z.number(),               // 0 if free. Per person if 
+                                 // per_person, total if flat_total
   minTeamSize: z.number().nullable(),
   maxTeamSize: z.number().nullable(),
-  fee: z.number(),
-  schedule: z.date().nullable(),
+  isOnline: z.boolean(),
+  isAvailable: z.boolean(),      // false = registration closed
+  tags: z.array(z.string()),
+  imageUrls: z.array(z.string()), // empty array for now
   venue: z.string().nullable(),
+  eventDate: z.string().nullable(),  // ISO date string or null
+  eventTime: z.string().nullable(),  // e.g. "10:00 AM" or null
+  schedule: z.string().nullable(),   // combined display string
+                                     // e.g. "Day 1, 10:00 AM"
+  rules: z.array(z.string()),        // empty array for now
+  contactName: z.string().nullable(),
+  contactPhone: z.string().nullable(),
 });
 
 export type Event = z.infer<typeof eventSchema>;

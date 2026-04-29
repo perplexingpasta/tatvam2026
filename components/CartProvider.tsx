@@ -1,11 +1,29 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { Event } from "@/types";
+import { Event, EventCategory } from "@/types";
+
+export interface CartItem {
+  eventId: string;
+  name: string; // backward compatibility for /cart page
+  indianName: string;
+  englishName: string;
+  type: "solo" | "group";
+  pricingType: "per_person" | "flat_total" | "free";
+  fee: number;
+  minTeamSize: number | null;
+  maxTeamSize: number | null;
+  category: EventCategory;
+}
+
+export interface AddToCartResult {
+  added: boolean;
+  reason?: "already_in_cart";
+}
 
 interface CartContextType {
-  cart: Event[];
-  addToCart: (event: Event) => void;
+  cart: CartItem[];
+  addToCart: (event: Event) => AddToCartResult;
   removeFromCart: (eventId: string) => void;
   isInCart: (eventId: string) => boolean;
   clearCart: () => void;
@@ -14,13 +32,35 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cart, setCart] = useState<Event[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
 
-  const addToCart = (event: Event) => {
+  const addToCart = (event: Event): AddToCartResult => {
+    if (cart.find((item) => item.eventId === event.eventId)) {
+      return { added: false, reason: "already_in_cart" };
+    }
+    
+    const newItem: CartItem = {
+      eventId: event.eventId,
+      name: event.indianName, // For backward compatibility
+      indianName: event.indianName,
+      englishName: event.englishName,
+      type: event.type,
+      pricingType: event.pricingType,
+      fee: event.fee,
+      minTeamSize: event.minTeamSize,
+      maxTeamSize: event.maxTeamSize,
+      category: event.category,
+    };
+    
     setCart((prev) => {
-      if (prev.find((item) => item.eventId === event.eventId)) return prev;
-      return [...prev, event];
+      // Double check in case of race condition
+      if (prev.find((item) => item.eventId === event.eventId)) {
+        return prev;
+      }
+      return [...prev, newItem];
     });
+
+    return { added: true };
   };
 
   const removeFromCart = (eventId: string) => {
