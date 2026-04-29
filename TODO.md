@@ -1,7 +1,5 @@
-check phase 4 implement
-commit
 implement image compress
-test exentensively
+test extensively
 commit
 
 
@@ -68,9 +66,8 @@ added vercel analytics, speed insights ✅
 move team name to the end after last member ✅
 make a README for the repo ✅
 merch-7b3fc instead RIS-HOO-9182J ✅
+merch store implementation complete ✅
 
-need to ask
-- delegate prices
-- delegate kit names
+need to ask:
 - schedule
-- all event names, their prices and desc
+- all event desc
