@@ -1,5 +1,5 @@
-image compress and webp for event payment ss
 refactor eventregistrations sheets data (per person? maybe js ask claude)
+image compress and webp for event payment ss
 
 
 registration status (via claude)
