@@ -619,7 +619,7 @@ export default function RegistrationPage() {
                   type="button"
                   onClick={handleNext}
                   disabled={isValidating || isSubmitting}
-                  className={`mt-4 sm:mt-0 px-8 py-3 ${mode === "jssmc" ? "bg-green-600 hover:bg-green-500" : "bg-blue-600 hover:bg-blue-500"} rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[200px]`}
+                  className={`mt-4 sm:mt-0 px-8 py-3 ${mode === "jssmc" ? "bg-green-600 hover:bg-green-500" : "bg-blue-600 hover:bg-blue-500"} rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-50`}
                 >
                   {isValidating || isSubmitting ? (
                     <span className="flex items-center gap-2">
@@ -704,7 +704,7 @@ export default function RegistrationPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-8 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[200px]"
+                  className="px-8 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-50"
                 >
                   {isSubmitting ? (
                     <span className="flex items-center gap-2">
