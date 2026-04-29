@@ -1,25 +1,15 @@
-implement image compress
-test extensively
-commit
+test stagedupload on vercel
+implement events (via claude)
+verify that
 
 
-large team error (should support 16)
-    image compression on upload
-test both team registration
-test even registration
-team name below add member
-
-complete events (via claude)
-
-
-then add schedule
-make it say early bird prices
-
-then registration status
+then registration status (via claude)
     I would like to add a page to my web app. It's /registration-status. I have already created a folder with the same name inside the app folder and it contains a blank page.tsx at the moment. The idea is that any user can just input his delegate ID or team ID or email to view all of his registration details. In the placeholder to collect this field have sample entries such as "user@mail.com, ADI-28210-KAW5A, XOT-HCYAS89" for a better UX. The user can also view all the events he has signed up for including their dates, venue and time. The user also sees which teams he's a part of and which team events he's signed up for. There's a few buttons at the bottom: one to view brochure, one to sign up for more events (/events). The contact of my team member is also given at the bottom in case he wants to modify any field/information since he's not allowed to do it himself. Feel free to give suggestions or ask me questions to make this better.
     Note that this field is not for checking merch order status in any way.
 
 
+then add schedule
+make it say early bird prices
 team name or any error should pop up as toast
 numbers 10 digits shown in subtext. if less or excees toast
 for solo events, it should not say lead
@@ -30,6 +20,11 @@ test suite
 toast notifs
 more emails (delegate confirmation, event confirmation, reminders)
 form should be blank after register another
+
+testing
+    both solo
+    both team registration
+    event registration (single and multiple)
 
 use nextjs Link tags
 fonts woff2
@@ -67,6 +62,7 @@ move team name to the end after last member ✅
 make a README for the repo ✅
 merch-7b3fc instead RIS-HOO-9182J ✅
 merch store implementation complete ✅
+large team error on vercel (need image compression on upload) ✅
 
 need to ask:
 - schedule

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import crypto from "crypto";
 import { adminDb } from "@/lib/firebaseAdmin";
-import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 import { attemptMerchSyncWithFallback } from "@/lib/merchSheetsSync";
 import { resend } from "@/lib/resend";
 import { generateMerchOrderEmailHtml } from "@/components/MerchOrderEmailTemplate";
@@ -22,7 +21,7 @@ export async function POST(req: NextRequest) {
     const buyerPhone = formData.get("buyerPhone") as string;
     const utrNumber = formData.get("utrNumber") as string;
     const unitsStr = formData.get("units") as string;
-    const paymentScreenshot = formData.get("paymentScreenshot") as File | null;
+    const paymentScreenshotUrl = formData.get("paymentScreenshotUrl") as string;
 
     // 1. Zod Validation for strings
     const strValidation = z.object({
@@ -36,16 +35,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Validation failure", details: strValidation.error.format() }, { status: 400 });
     }
 
-    // 2. Validate Screenshot
-    if (!paymentScreenshot) {
-      return NextResponse.json({ success: false, error: "Payment screenshot is required" }, { status: 400 });
+    // 2. Validate Screenshot URL
+    if (!paymentScreenshotUrl) {
+      return NextResponse.json({ success: false, error: "Payment screenshot URL is required" }, { status: 400 });
     }
-    const isValidType = ["image/jpeg", "image/jpg", "image/png"].includes(paymentScreenshot.type);
-    const maxSizeMB = parseInt(process.env.NEXT_PUBLIC_MAX_FILE_SIZE_MB || "10", 10);
-    const isValidSize = paymentScreenshot.size <= maxSizeMB * 1024 * 1024;
-
-    if (!isValidType || !isValidSize) {
-      return NextResponse.json({ success: false, error: "Invalid payment screenshot. Must be jpg/png and under 10MB." }, { status: 400 });
+    
+    try {
+      z.string().url().parse(paymentScreenshotUrl);
+      if (!paymentScreenshotUrl.startsWith("https://res.cloudinary.com/")) {
+        throw new Error("Not a Cloudinary URL");
+      }
+    } catch {
+      return NextResponse.json({ success: false, error: "Invalid payment screenshot URL." }, { status: 400 });
     }
 
     // 3. Validate Units Array
@@ -112,17 +113,6 @@ export async function POST(req: NextRequest) {
 
     if (!isUnique) {
       return NextResponse.json({ success: false, error: "Failed to generate unique Order ID. Please try again." }, { status: 500 });
-    }
-
-    // 5. Upload Screenshot to Cloudinary
-    let paymentScreenshotUrl = "";
-    try {
-      const buffer = Buffer.from(await paymentScreenshot.arrayBuffer());
-      const uploadResult = await uploadToCloudinary(buffer, paymentScreenshot.type, "merch-payments");
-      paymentScreenshotUrl = uploadResult.originalUrl;
-    } catch (err) {
-      console.error("Cloudinary upload failed:", err);
-      return NextResponse.json({ success: false, error: "File upload failed, please try again." }, { status: 503 });
     }
 
     // 6. Write to Firestore

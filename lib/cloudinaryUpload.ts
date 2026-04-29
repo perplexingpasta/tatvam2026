@@ -1,15 +1,17 @@
 import { cloudinary } from './cloudinary';
 
-export const uploadToCloudinary = async (
+export async function uploadToCloudinary(
   fileBuffer: Buffer,
   mimeType: string,
-  folder: string
-): Promise<{ originalUrl: string; transformedUrl: string }> => {
+  folder: string,
+  transformations?: object[]
+): Promise<{ originalUrl: string; transformedUrl: string }> {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: folder,
-        resource_type: 'auto',
+        folder,
+        resource_type: "image",
+        ...(transformations && { transformation: transformations }),
       },
       (error, result) => {
         if (error) {
@@ -39,4 +41,4 @@ export const uploadToCloudinary = async (
     // Write the buffer to the upload stream
     uploadStream.end(fileBuffer);
   });
-};
+}

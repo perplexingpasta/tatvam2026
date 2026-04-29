@@ -3,7 +3,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { adminDb } from "@/lib/firebaseAdmin";
-import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 import { resend } from "@/lib/resend";
 import { FieldValue } from "firebase-admin/firestore";
 import { generateRegistrationEmailHtml } from "@/components/RegistrationEmailTemplate";
@@ -22,9 +21,7 @@ export async function POST(req: NextRequest) {
     }
 
     const formData = await req.formData();
-    const MAX_FILE_SIZE = parseInt(process.env.NEXT_PUBLIC_MAX_FILE_SIZE_MB || "10", 10) * 1024 * 1024;
-
-
+    
     const isJSSMC = formData.get("isJSSMC") === "true";
 
     interface MemberInput {
@@ -34,7 +31,8 @@ export async function POST(req: NextRequest) {
       collegeName: string;
       collegeIdNumber: string;
       delegateTier: string;
-      collegeIdImage: File;
+      collegeIdImageUrl: string;
+      collegeIdImageTransformedUrl: string;
     }
 
     // 1. Parse members
@@ -63,7 +61,8 @@ export async function POST(req: NextRequest) {
         collegeName,
         collegeIdNumber: formData.get(`member_${i}_collegeIdNumber`) as string,
         delegateTier,
-        collegeIdImage: formData.get(`member_${i}_collegeIdImage`) as File,
+        collegeIdImageUrl: formData.get(`member_${i}_collegeIdImageUrl`) as string,
+        collegeIdImageTransformedUrl: formData.get(`member_${i}_collegeIdImageTransformedUrl`) as string,
       });
       i++;
     }
@@ -86,18 +85,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const paymentScreenshot = formData.get("paymentScreenshot") as File | null;
+    let paymentScreenshotUrl = formData.get("paymentScreenshotUrl") as string | null || "";
     let utrNumber = formData.get("utrNumber") as string | null || "";
     let paymentStatus = "pending_verification";
 
     if (isJSSMC) {
       paymentStatus = "verified";
       utrNumber = "";
+      paymentScreenshotUrl = "";
     } else {
-      if (!paymentScreenshot || !utrNumber || !/^[A-Za-z0-9]{12,22}$/.test(utrNumber)) {
+      if (!paymentScreenshotUrl || !utrNumber || !/^[A-Za-z0-9]{12,22}$/.test(utrNumber)) {
         return NextResponse.json(
           { success: false, message: "A valid UTR number (12-22 alphanumeric characters) and payment screenshot are required" },
           { status: 400 },
+        );
+      }
+      
+      try {
+        z.string().url().parse(paymentScreenshotUrl);
+      } catch {
+        return NextResponse.json(
+          { success: false, message: "Invalid payment screenshot URL" },
+          { status: 400 }
         );
       }
     }
@@ -110,6 +119,8 @@ export async function POST(req: NextRequest) {
       collegeName: z.string(),
       collegeIdNumber: z.string().min(1),
       delegateTier: delegateTierSchema,
+      collegeIdImageUrl: z.string().url(),
+      collegeIdImageTransformedUrl: z.string().url(),
     });
 
     for (const member of members) {
@@ -118,42 +129,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           {
             success: false,
-            message: `Validation failed for member: ${member.name}`,
+            message: `Validation failed for member: ${member.name}. Ensure all fields including images are provided.`,
           },
-          { status: 400 },
-        );
-      }
-      if (
-        !member.collegeIdImage ||
-        member.collegeIdImage.size > 10 * 1024 * 1024
-      ) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: `Invalid college ID image for member: ${member.name}`,
-          },
-          { status: 400 },
-        );
-      }
-      const mime = member.collegeIdImage.type;
-      if (!["image/jpeg", "image/png", "image/jpg"].includes(mime)) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: `Invalid image type for member: ${member.name}`,
-          },
-          { status: 400 },
-        );
-      }
-    }
-
-    if (!isJSSMC && paymentScreenshot) {
-      if (
-        paymentScreenshot.size > 10 * 1024 * 1024 ||
-        !["image/jpeg", "image/png", "image/jpg"].includes(paymentScreenshot.type)
-      ) {
-        return NextResponse.json(
-          { success: false, message: "Invalid payment screenshot" },
           { status: 400 },
         );
       }
@@ -161,6 +138,8 @@ export async function POST(req: NextRequest) {
 
     // 3. Re-validate uniqueness in Firestore Transaction
     let attempt = 0;
+    let transactionSuccess = false;
+    
     while (attempt < 3) {
       try {
         await adminDb.runTransaction(async (transaction) => {
@@ -195,6 +174,7 @@ export async function POST(req: NextRequest) {
               );
           }
         });
+        transactionSuccess = true;
         break; // success, exit loop
       } catch (error: unknown) {
         if (error instanceof Error && error.message.startsWith("Conflict:")) {
@@ -214,50 +194,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 4. Upload files to Cloudinary
-    const generateId = () =>
-      Math.random().toString(36).substring(2, 7).toUpperCase();
-    interface UploadedMember extends MemberInput {
-      collegeIdImageUrl: string;
-      collegeIdImageOriginalUrl: string;
-    }
-    const uploadedMembers: UploadedMember[] = [];
-
-    let paymentScreenshotUrl = "";
-    try {
-      if (!isJSSMC && paymentScreenshot) {
-        const paymentBuffer = Buffer.from(await paymentScreenshot.arrayBuffer());
-        const paymentUpload = await uploadToCloudinary(
-          paymentBuffer,
-          paymentScreenshot.type,
-          "payments",
-        );
-        paymentScreenshotUrl = paymentUpload.originalUrl; // Original URL for payment
-      }
-
-      for (const member of members) {
-        const buffer = Buffer.from(await member.collegeIdImage.arrayBuffer());
-        const upload = await uploadToCloudinary(
-          buffer,
-          member.collegeIdImage.type,
-          "college-ids",
-        );
-
-        uploadedMembers.push({
-          ...member,
-          collegeIdImageUrl: upload.transformedUrl,
-          collegeIdImageOriginalUrl: upload.originalUrl,
-        });
-      }
-    } catch (error) {
-      console.error("Cloudinary upload error:", error);
+    if (!transactionSuccess) {
       return NextResponse.json(
-        { success: false, message: "File upload failed, please try again." },
-        { status: 503 },
+        { success: false, message: "Registration failed due to concurrent request. Please try again." },
+        { status: 409 },
       );
     }
 
-    // 5. Generate IDs and Prepare Data
+    // 4. Generate IDs and Prepare Data
+    const generateId = () => Math.random().toString(36).substring(2, 7).toUpperCase();
     const teamId = teamName
       ? `${teamName.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`
       : null;
@@ -277,8 +222,8 @@ export async function POST(req: NextRequest) {
     const now = FieldValue.serverTimestamp();
     const delegatesData: Record<string, unknown>[] = [];
 
-    for (let j = 0; j < uploadedMembers.length; j++) {
-      const member = uploadedMembers[j];
+    for (let j = 0; j < members.length; j++) {
+      const member = members[j];
       const firstName3 = member.name
         .substring(0, 3)
         .toUpperCase()
@@ -295,7 +240,7 @@ export async function POST(req: NextRequest) {
         collegeName: member.collegeName,
         isJSSMC: isJSSMC,
         collegeIdNumber: member.collegeIdNumber,
-        collegeIdImageUrl: member.collegeIdImageUrl, // Transformed for delegates collection
+        collegeIdImageUrl: member.collegeIdImageTransformedUrl, // Transformed for delegates collection
         delegateTier: member.delegateTier,
         tierPrice: getTierPrice(member.delegateTier),
         teamId: teamId,
@@ -315,7 +260,7 @@ export async function POST(req: NextRequest) {
       delegatesData.push({
         ...delegateData,
         createdAt: new Date().toISOString(), // Override serverTimestamp for array payload
-        collegeIdImageOriginalUrl: member.collegeIdImageOriginalUrl, // Pass original URL for sheets
+        collegeIdImageOriginalUrl: member.collegeIdImageUrl, // Pass original URL for sheets
       });
 
       const delegateRef = adminDb.collection("delegates").doc(delId);
@@ -333,16 +278,16 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 7. Commit Batch
+    // 5. Commit Batch
     await batch.commit();
 
     // Fire and forget - never await this
     attemptSyncWithFallback("delegate", { delegates: delegatesData, teamId, teamName }, teamId || delegateIds[0]);
 
-    // 8. Send Emails
+    // 6. Send Emails
     const festName = process.env.NEXT_PUBLIC_FEST_NAME || "Our Fest";
-    for (let j = 0; j < uploadedMembers.length; j++) {
-      const member = uploadedMembers[j];
+    for (let j = 0; j < members.length; j++) {
+      const member = members[j];
       const delId = delegateIds[j];
       try {
         console.log(`Attempting to send email to ${member.email} from ${process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev"}...`);

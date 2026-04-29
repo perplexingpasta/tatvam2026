@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { StagedFileUpload } from "@/components/StagedFileUpload";
 
 const TIERS = [
   {
@@ -27,9 +28,6 @@ const TIERS = [
   },
 ];
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
-
 const memberSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
@@ -37,20 +35,12 @@ const memberSchema = z.object({
   collegeName: z.string().optional(),
   collegeIdNumber: z.string().min(1, "College ID is required"),
   delegateTier: z.enum(["tier1", "tier2", "tier3"]).optional(),
-  collegeIdImage: z.any()
-    .refine((file) => typeof window !== "undefined" && file instanceof File, "College ID image is required")
-    .refine((file) => file?.size <= MAX_FILE_SIZE, "Max file size is 10MB.")
-    .refine(
-      (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
-      "Only .jpg, .jpeg, .png formats are supported."
-    ),
 });
 
 const registrationSchema = z.object({
   teamName: z.string().optional(),
   members: z.array(memberSchema).min(1).max(25),
   utrNumber: z.string().optional().or(z.literal("")),
-  paymentScreenshot: z.any().optional(),
 }).superRefine((data, ctx) => {
   if (data.members.length > 1 && (!data.teamName || data.teamName.trim() === "")) {
     ctx.addIssue({
@@ -65,6 +55,11 @@ type RegistrationFormValues = z.infer<typeof registrationSchema>;
 
 type RegistrationMode = "selection" | "jssmc" | "external";
 
+interface MemberUploadState {
+  collegeIdImageOriginalUrl: string | null;
+  collegeIdImageTransformedUrl: string | null;
+}
+
 export default function RegistrationPage() {
   const [mode, setMode] = useState<RegistrationMode>("selection");
   const [step, setStep] = useState(1);
@@ -75,8 +70,14 @@ export default function RegistrationPage() {
   const [generatedDelegateIds, setGeneratedDelegateIds] = useState<string[]>([]);
   const [generatedTeamId, setGeneratedTeamId] = useState<string | null>(null);
 
-  const [imagePreviews, setImagePreviews] = useState<Record<string, string>>({});
-  const [paymentPreview, setPaymentPreview] = useState<string | null>(null);
+  const [memberUploads, setMemberUploads] = useState<MemberUploadState[]>([
+    { collegeIdImageOriginalUrl: null, collegeIdImageTransformedUrl: null }
+  ]);
+
+  const [paymentScreenshot, setPaymentScreenshot] = useState<{
+    originalUrl: string | null;
+    transformedUrl: string | null;
+  }>({ originalUrl: null, transformedUrl: null });
 
   const {
     register,
@@ -100,7 +101,6 @@ export default function RegistrationPage() {
           collegeName: "",
           collegeIdNumber: "",
           delegateTier: "tier1",
-          collegeIdImage: undefined,
         },
       ],
       utrNumber: "",
@@ -135,18 +135,19 @@ export default function RegistrationPage() {
           collegeName: newMode === "jssmc" ? "JSS Medical College" : "",
           collegeIdNumber: "",
           delegateTier: newMode === "jssmc" ? "tier3" : "tier1",
-          collegeIdImage: undefined,
         },
       ],
       utrNumber: "",
     });
-    setImagePreviews({});
-    setPaymentPreview(null);
+    setMemberUploads([{ collegeIdImageOriginalUrl: null, collegeIdImageTransformedUrl: null }]);
+    setPaymentScreenshot({ originalUrl: null, transformedUrl: null });
   };
 
   const handleBackToSelection = () => {
     if (confirm("Are you sure you want to go back? Your form data will be lost.")) {
       setMode("selection");
+      setMemberUploads([{ collegeIdImageOriginalUrl: null, collegeIdImageTransformedUrl: null }]);
+      setPaymentScreenshot({ originalUrl: null, transformedUrl: null });
     }
   };
 
@@ -162,11 +163,20 @@ export default function RegistrationPage() {
       collegeName: mode === "jssmc" ? "JSS Medical College" : "",
       collegeIdNumber: "",
       delegateTier: mode === "jssmc" ? "tier3" : "tier1",
-      collegeIdImage: undefined,
+    });
+    setMemberUploads(prev => [...prev, { collegeIdImageOriginalUrl: null, collegeIdImageTransformedUrl: null }]);
+  };
+
+  const handleRemoveMember = (index: number) => {
+    remove(index);
+    setMemberUploads(prev => {
+      const newUploads = [...prev];
+      newUploads.splice(index, 1);
+      return newUploads;
     });
   };
 
-  const submitRegistration = async (membersData: RegistrationFormValues["members"], paymentData?: { paymentScreenshot: File, utrNumber: string }) => {
+  const submitRegistration = async (membersData: RegistrationFormValues["members"], paymentData?: { utrNumber: string }) => {
     setIsSubmitting(true);
     setError(null);
 
@@ -180,9 +190,9 @@ export default function RegistrationPage() {
       formData.append("isJSSMC", mode === "jssmc" ? "true" : "false");
 
       if (mode === "external") {
-        if (!paymentData?.paymentScreenshot) throw new Error("Payment screenshot missing");
+        if (!paymentScreenshot.originalUrl) throw new Error("Payment screenshot missing");
         if (!paymentData?.utrNumber) throw new Error("UTR number missing");
-        formData.append("paymentScreenshot", paymentData.paymentScreenshot);
+        formData.append("paymentScreenshotUrl", paymentScreenshot.originalUrl);
         formData.append("utrNumber", paymentData.utrNumber);
       }
 
@@ -193,8 +203,12 @@ export default function RegistrationPage() {
         formData.append(`member_${index}_collegeName`, mode === "jssmc" ? "JSS Medical College" : (m.collegeName || ""));
         formData.append(`member_${index}_collegeIdNumber`, m.collegeIdNumber);
         formData.append(`member_${index}_delegateTier`, mode === "jssmc" ? "tier3" : (m.delegateTier || ""));
-        if (m.collegeIdImage) {
-          formData.append(`member_${index}_collegeIdImage`, m.collegeIdImage);
+        
+        if (memberUploads[index]?.collegeIdImageOriginalUrl) {
+          formData.append(`member_${index}_collegeIdImageUrl`, memberUploads[index].collegeIdImageOriginalUrl!);
+        }
+        if (memberUploads[index]?.collegeIdImageTransformedUrl) {
+          formData.append(`member_${index}_collegeIdImageTransformedUrl`, memberUploads[index].collegeIdImageTransformedUrl!);
         }
       });
 
@@ -250,6 +264,16 @@ export default function RegistrationPage() {
       if (hasCollegeNameError) return;
     }
 
+    const pendingCollegeIds = watchMembers
+      .map((_, i) => i)
+      .filter(i => !memberUploads[i]?.collegeIdImageOriginalUrl);
+    
+    if (pendingCollegeIds.length > 0) {
+      const pendingNames = pendingCollegeIds.map(i => watchMembers[i]?.name || `Member ${i + 1}`).join(", ");
+      setError(`Please wait for the following uploads to complete: College ID for ${pendingNames}`);
+      return;
+    }
+
     setIsValidating(true);
     setError(null);
 
@@ -293,49 +317,18 @@ export default function RegistrationPage() {
     }
   };
 
-  const handlePaymentScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    if (file) {
-      if (file.size > MAX_FILE_SIZE) {
-        alert("File size must be under 10MB");
-        return;
-      }
-      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-        alert("Only JPG, JPEG, and PNG are allowed");
-        return;
-      }
-      setValue("paymentScreenshot", file, { shouldValidate: true });
-      setPaymentPreview(URL.createObjectURL(file));
-    }
-  };
-
-  const handleCollegeIdChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    if (file) {
-      if (file.size > MAX_FILE_SIZE) {
-        alert("File size must be under 10MB");
-        return;
-      }
-      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-        alert("Only JPG, JPEG, and PNG are allowed");
-        return;
-      }
-      setValue(`members.${index}.collegeIdImage`, file, { shouldValidate: true });
-      setImagePreviews(prev => ({ ...prev, [index]: URL.createObjectURL(file) }));
-    }
-  };
-
   const onSubmit = async (data: RegistrationFormValues) => {
     if (mode === "external") {
-      if (!data.paymentScreenshot) {
-        setError("Please provide a payment screenshot");
+      const paymentPending = !paymentScreenshot.originalUrl;
+      if (paymentPending) {
+        setError("Please wait for the payment screenshot to finish uploading");
         return;
       }
       if (!data.utrNumber || !/^[A-Za-z0-9]{12,22}$/.test(data.utrNumber)) {
         setError("Please provide a valid UTR number (12-22 alphanumeric characters)");
         return;
       }
-      await submitRegistration(data.members, { paymentScreenshot: data.paymentScreenshot, utrNumber: data.utrNumber });
+      await submitRegistration(data.members, { utrNumber: data.utrNumber });
     }
   };
 
@@ -464,7 +457,7 @@ export default function RegistrationPage() {
                   {index > 0 && (
                     <button
                       type="button"
-                      onClick={() => remove(index)}
+                      onClick={() => handleRemoveMember(index)}
                       className="absolute top-4 right-4 text-red-500 hover:text-red-700 font-medium text-sm"
                     >
                       Remove
@@ -534,19 +527,37 @@ export default function RegistrationPage() {
                       {errors.members?.[index]?.collegeIdNumber && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.collegeIdNumber?.message}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">College ID Image</label>
-                      <input
-                        type="file"
-                        accept="image/jpeg, image/png, image/jpg"
-                        onChange={(e) => handleCollegeIdChange(index, e)}
-                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      <StagedFileUpload
+                        folder="college-ids"
+                        label="College ID Image"
+                        compressionTargetMB={0.5}
+                        maxWidthOrHeight={1200}
+                        onUploadComplete={(urls) => {
+                          setMemberUploads(prev => {
+                            const newUploads = [...prev];
+                            if (newUploads[index]) {
+                              newUploads[index] = {
+                                collegeIdImageOriginalUrl: urls.originalUrl,
+                                collegeIdImageTransformedUrl: urls.transformedUrl
+                              };
+                            }
+                            return newUploads;
+                          });
+                        }}
+                        onUploadReset={() => {
+                          setMemberUploads(prev => {
+                            const newUploads = [...prev];
+                            if (newUploads[index]) {
+                              newUploads[index] = {
+                                collegeIdImageOriginalUrl: null,
+                                collegeIdImageTransformedUrl: null
+                              };
+                            }
+                            return newUploads;
+                          });
+                        }}
+                        disabled={isValidating || isSubmitting}
                       />
-                      {errors.members?.[index]?.collegeIdImage && <p className="text-red-500 text-sm mt-1">{errors.members[index]?.collegeIdImage?.message as string}</p>}
-                      {imagePreviews[index] && (
-                        <div className="mt-2">
-                          <Image src={imagePreviews[index]} alt="ID Preview" width={150} height={100} unoptimized className="h-20 w-auto object-contain border rounded" />
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -662,19 +673,22 @@ export default function RegistrationPage() {
 
                 <div className="max-w-md mx-auto text-left space-y-6">
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Upload Payment Screenshot</label>
-                    <input
-                      type="file"
-                      accept="image/jpeg, image/png, image/jpg"
-                      onChange={handlePaymentScreenshotChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-black bg-white"
+                    <StagedFileUpload
+                      folder="payment-proofs"
+                      label="Upload Payment Screenshot"
+                      compressionTargetMB={0.8}
+                      maxWidthOrHeight={2000}
+                      onUploadComplete={(urls) => {
+                        setPaymentScreenshot({
+                          originalUrl: urls.originalUrl,
+                          transformedUrl: urls.transformedUrl
+                        });
+                      }}
+                      onUploadReset={() => {
+                        setPaymentScreenshot({ originalUrl: null, transformedUrl: null });
+                      }}
+                      disabled={isSubmitting}
                     />
-                    {paymentPreview && (
-                      <div className="mt-4 flex justify-center">
-                        <Image src={paymentPreview} alt="Screenshot Preview" width={400} height={300} unoptimized className="h-40 w-auto object-contain border rounded-lg shadow-sm" />
-                      </div>
-                    )}
-                    {error && !paymentPreview && <p className="text-red-500 text-sm mt-1">{error}</p>}
                   </div>
 
                   <div>

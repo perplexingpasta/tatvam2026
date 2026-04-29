@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMerchCart } from "@/components/MerchCartProvider";
 import { MerchCartUnit } from "@/types/merch";
+import { StagedFileUpload } from "@/components/StagedFileUpload";
 
 type PageState = 1 | 2 | 3;
 
@@ -19,10 +20,10 @@ export default function MerchCartPage() {
   const [buyerEmail, setBuyerEmail] = useState("");
   const [buyerPhone, setBuyerPhone] = useState("");
   const [utrNumber, setUtrNumber] = useState("");
-  const [screenshot, setScreenshot] = useState<File | null>(null);
-  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(
-    null,
-  );
+  
+  const [paymentScreenshot, setPaymentScreenshot] = useState<{
+    originalUrl: string | null;
+  }>({ originalUrl: null });
 
   // Errors
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -94,56 +95,23 @@ export default function MerchCartPage() {
     }
   };
 
-  const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const isValidType = ["image/jpeg", "image/jpg", "image/png"].includes(
-        file.type,
-      );
-      const isSizeValid = file.size <= 10 * 1024 * 1024;
-
-      if (!isValidType) {
-        setErrors((prev) => ({
-          ...prev,
-          screenshot: "Must be a jpg, jpeg, or png image",
-        }));
-        setScreenshot(null);
-        setScreenshotPreview(null);
-        return;
-      }
-      if (!isSizeValid) {
-        setErrors((prev) => ({
-          ...prev,
-          screenshot: "File must be smaller than 10MB",
-        }));
-        setScreenshot(null);
-        setScreenshotPreview(null);
-        return;
-      }
-
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next.screenshot;
-        return next;
-      });
-      setScreenshot(file);
-      setScreenshotPreview(URL.createObjectURL(file));
-    }
-  };
-
   const isFormValid = () => {
     return (
       buyerName.trim() &&
       /^\S+@\S+\.\S+$/.test(buyerEmail) &&
       /^\d{10,}$/.test(buyerPhone.replace(/\D/g, "")) &&
       /^[A-Za-z0-9]{12,22}$/.test(utrNumber) &&
-      screenshot &&
       Object.values(errors).every((err) => !err)
     );
   };
 
   const handleSubmit = async () => {
     if (!isFormValid()) return;
+    
+    if (!paymentScreenshot.originalUrl) {
+      setSubmitError("Please wait for the payment screenshot to finish uploading");
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitError(null);
@@ -157,7 +125,7 @@ export default function MerchCartPage() {
       formData.append("buyerEmail", buyerEmail);
       formData.append("buyerPhone", buyerPhone);
       formData.append("utrNumber", utrNumber);
-      if (screenshot) formData.append("paymentScreenshot", screenshot);
+      formData.append("paymentScreenshotUrl", paymentScreenshot.originalUrl);
       formData.append("units", JSON.stringify(merchCart));
 
       const res = await fetch("/api/merch/order", {
@@ -279,7 +247,7 @@ export default function MerchCartPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth="2"
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                 ></path>
               </svg>
               A confirmation email has been sent to{" "}
@@ -499,34 +467,19 @@ export default function MerchCartPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Payment Screenshot <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/jpg,image/png"
-                      onChange={handleScreenshotChange}
-                      className={`w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 ${errors.screenshot ? "border-red-500" : ""}`}
+                    <StagedFileUpload
+                      folder="merch-payments"
+                      label="Payment Screenshot *"
+                      compressionTargetMB={0.8}
+                      maxWidthOrHeight={2000}
+                      onUploadComplete={(urls) => {
+                        setPaymentScreenshot({ originalUrl: urls.originalUrl });
+                      }}
+                      onUploadReset={() => {
+                        setPaymentScreenshot({ originalUrl: null });
+                      }}
+                      disabled={isSubmitting}
                     />
-                    {errors.screenshot && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.screenshot}
-                      </p>
-                    )}
-                    <p className="text-xs text-gray-500 mt-1">
-                      Accepts JPG, PNG (Max 10MB)
-                    </p>
-
-                    {screenshotPreview && (
-                      <div className="mt-3 relative w-32 h-48 border border-gray-200 rounded-md overflow-hidden bg-gray-50">
-                        <Image
-                          src={screenshotPreview}
-                          alt="Screenshot preview"
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
-                    )}
                   </div>
 
                   <div>

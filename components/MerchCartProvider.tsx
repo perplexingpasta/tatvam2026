@@ -20,16 +20,18 @@ export function MerchCartProvider({ children }: { children: ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => setIsMounted(true), 0);
     try {
       const stored = localStorage.getItem("merchCart");
       if (stored) {
-        setMerchCart(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        setTimeout(() => setMerchCart(parsed), 0);
       }
     } catch (error) {
       console.error("Failed to parse merch cart from localStorage", error);
-      setMerchCart([]);
+      setTimeout(() => setMerchCart([]), 0);
     }
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {

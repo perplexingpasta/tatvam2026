@@ -29,7 +29,6 @@ export async function POST(req: NextRequest) {
     }
 
     const formData = await req.formData();
-    const MAX_FILE_SIZE = parseInt(process.env.NEXT_PUBLIC_MAX_FILE_SIZE_MB || "10", 10) * 1024 * 1024;
 
 
     const cartItemsStr = formData.get("cartItems") as string;

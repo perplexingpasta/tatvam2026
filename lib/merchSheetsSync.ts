@@ -1,6 +1,23 @@
 import { getSheetsClient } from "./sheets";
 
-export async function syncMerchOrderToSheets(order: any, units: any[]) {
+type MerchOrderSheetData = {
+  orderId: string;
+  buyerName: string;
+  buyerEmail: string;
+  buyerPhone: string;
+  totalAmount: number;
+  utrNumber: string;
+  paymentScreenshotUrl: string;
+  submittedAt: Date | string;
+};
+
+type MerchUnitSheetData = {
+  itemName: string;
+  price: number;
+  attributes?: Record<string, string>;
+};
+
+export async function syncMerchOrderToSheets(order: MerchOrderSheetData, units: MerchUnitSheetData[]) {
   try {
     const sheets = await getSheetsClient();
     const spreadsheetId = process.env.GOOGLE_MERCH_SHEETS_SPREADSHEET_ID;
@@ -45,7 +62,7 @@ export async function syncMerchOrderToSheets(order: any, units: any[]) {
   }
 }
 
-export async function attemptMerchSyncWithFallback(orderId: string, payload: any) {
+export async function attemptMerchSyncWithFallback(orderId: string, payload: { order: MerchOrderSheetData, units: MerchUnitSheetData[] }) {
   try {
     const { adminDb } = await import("./firebaseAdmin");
     try {
@@ -55,10 +72,12 @@ export async function attemptMerchSyncWithFallback(orderId: string, payload: any
         "merchSheetsSync.status": "synced",
         "merchSheetsSync.lastAttempt": new Date(),
       });
-    } catch (error: any) {
+    } catch (error) {
       const nextRetryAt = new Date();
       // First retry happens immediately (or within a minute), subsequent retries use exponential backoff in retry cron
       
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
       await adminDb.collection("merchSheetsRetryQueue").add({
         type: "merchOrder",
         referenceId: orderId,
@@ -66,14 +85,14 @@ export async function attemptMerchSyncWithFallback(orderId: string, payload: any
         retryCount: 0,
         status: "pending",
         nextRetryAt,
-        lastError: error.message || "Unknown error",
+        lastError: errorMessage,
         createdAt: new Date(),
       });
 
       await adminDb.collection("merchOrders").doc(orderId).update({
         "merchSheetsSync.status": "pending",
         "merchSheetsSync.lastAttempt": new Date(),
-        "merchSheetsSync.lastError": error.message || "Unknown error",
+        "merchSheetsSync.lastError": errorMessage,
       });
     }
   } catch (outerError) {

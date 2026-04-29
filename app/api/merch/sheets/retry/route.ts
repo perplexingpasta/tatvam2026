@@ -40,21 +40,22 @@ export async function POST() {
         });
         
         syncedCount++;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(`Merch sheets retry failed for ${referenceId}:`, error);
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
         const newRetryCount = retryCount + 1;
         
         if (newRetryCount >= 10) {
           batch.update(doc.ref, {
             status: "dead_letter",
-            lastError: error.message || "Unknown error",
+            lastError: errorMessage,
           });
           
           const orderRef = adminDb.collection("merchOrders").doc(referenceId);
           batch.update(orderRef, {
             "merchSheetsSync.status": "dead_letter",
             "merchSheetsSync.lastAttempt": new Date(),
-            "merchSheetsSync.lastError": error.message || "Unknown error",
+            "merchSheetsSync.lastError": errorMessage,
           });
           console.error("Merch dead letter payload:", JSON.stringify(payload, null, 2));
         } else {
@@ -66,13 +67,13 @@ export async function POST() {
             status: "failed",
             retryCount: newRetryCount,
             nextRetryAt,
-            lastError: error.message || "Unknown error",
+            lastError: errorMessage,
           });
           
           const orderRef = adminDb.collection("merchOrders").doc(referenceId);
           batch.update(orderRef, {
             "merchSheetsSync.lastAttempt": new Date(),
-            "merchSheetsSync.lastError": error.message || "Unknown error",
+            "merchSheetsSync.lastError": errorMessage,
           });
         }
       }
@@ -86,7 +87,7 @@ export async function POST() {
       message: `Successfully processed ${syncedCount} out of ${snapshot.size} retries.` 
     });
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Critical error in merch sheets retry route:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
