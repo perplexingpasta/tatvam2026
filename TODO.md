@@ -1,4 +1,3 @@
-test stagedupload on vercel
 implement events (via claude)
 verify that
 
@@ -63,6 +62,7 @@ make a README for the repo ✅
 merch-7b3fc instead RIS-HOO-9182J ✅
 merch store implementation complete ✅
 large team error on vercel (need image compression on upload) ✅
+test stagedupload on vercel ✅
 
 need to ask:
 - schedule
