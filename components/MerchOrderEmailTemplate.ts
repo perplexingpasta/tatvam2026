@@ -96,7 +96,7 @@ export const generateMerchOrderEmailHtml = ({
         
         <div class="footer">
           <p>If you have any questions, please contact us at:</p>
-          <p><strong>[TEAM_CONTACT_DETAILS_HERE]</strong></p>
+          <p><strong>Merch Team: merch@example.com | Phone: 9876543210</strong></p>
           <p style="margin-top: 20px; font-size: 12px;">This is an automated email. Please do not reply directly to this address.</p>
         </div>
       </body>

@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Validate Units Array
-    let unitsRaw: any;
+    let unitsRaw: unknown;
     try {
       unitsRaw = JSON.parse(unitsStr);
     } catch {
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(await paymentScreenshot.arrayBuffer());
       const uploadResult = await uploadToCloudinary(buffer, paymentScreenshot.type, "merch-payments");
       paymentScreenshotUrl = uploadResult.originalUrl;
-    } catch (err: any) {
+    } catch (err) {
       console.error("Cloudinary upload failed:", err);
       return NextResponse.json({ success: false, error: "File upload failed, please try again." }, { status: 503 });
     }
@@ -180,7 +180,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, orderId, message: "Order placed successfully!" }, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Merch order submission error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }

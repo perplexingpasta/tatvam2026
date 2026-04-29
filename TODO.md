@@ -1,14 +1,25 @@
+check phase 4 implement
+commit
+implement image compress
+test exentensively
+commit
+
+
 large team error (should support 16)
+    image compression on upload
 test both team registration
 test even registration
-image compression on upload
+team name below add member
 
 complete events (via claude)
+
+
 then add schedule
-early bird prices
+make it say early bird prices
 
 then registration status
     I would like to add a page to my web app. It's /registration-status. I have already created a folder with the same name inside the app folder and it contains a blank page.tsx at the moment. The idea is that any user can just input his delegate ID or team ID or email to view all of his registration details. In the placeholder to collect this field have sample entries such as "user@mail.com, ADI-28210-KAW5A, XOT-HCYAS89" for a better UX. The user can also view all the events he has signed up for including their dates, venue and time. The user also sees which teams he's a part of and which team events he's signed up for. There's a few buttons at the bottom: one to view brochure, one to sign up for more events (/events). The contact of my team member is also given at the bottom in case he wants to modify any field/information since he's not allowed to do it himself. Feel free to give suggestions or ask me questions to make this better.
+    Note that this field is not for checking merch order status in any way.
 
 
 team name or any error should pop up as toast
@@ -63,7 +74,3 @@ need to ask
 - delegate kit names
 - schedule
 - all event names, their prices and desc
-
-
-
-

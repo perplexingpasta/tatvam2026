@@ -40,7 +40,7 @@ Do not modify any registration system files when working on merch.
 - Merch Phase 1: ✅ Complete
 - Merch Phase 2: ✅ Complete
 - Merch Phase 3: ✅ Complete
-- Merch Phase 4: 🔄 In progress
+- Merch Phase 4: ✅ Complete
 
 **Main Technologies:**
 - Next.js (16.2.4)

@@ -125,4 +125,13 @@ Example: /public/merch/jersey-1.jpg, /public/merch/jersey-2.jpg
 - Phase 1: ✅ Complete
 - Phase 2: ✅ Complete
 - Phase 3: ✅ Complete
-- Phase 4: 🔄 In progress
+- Phase 4: ✅ Complete
+
+## Pre-Launch Checklist
+- [ ] Real merch item images added to /public/merch/
+- [ ] /lib/merchCatalogue.ts updated with real item details and correct prices
+- [ ] Real merch payment QR code image added to /public/ and NEXT_PUBLIC_MERCH_PAYMENT_QR_IMAGE_PATH updated
+- [ ] GOOGLE_MERCH_SHEETS_SPREADSHEET_ID set in Vercel environment variables
+- [ ] MerchOrders sheet header row set correctly
+- [ ] Team contact details filled in /components/MerchOrderEmailTemplate.ts
+- [ ] Tested full order flow on production URL

@@ -293,6 +293,12 @@ export default function MerchCartPage() {
                 your order details.
               </p>
             </div>
+            <div className="bg-gray-50 border border-gray-200 p-4 rounded-md text-gray-800 text-sm">
+              <p className="font-semibold mb-1">Team Contacts</p>
+              <p>
+                For queries, contact: [Team Lead Name] - [Phone Number]
+              </p>
+            </div>
           </div>
 
           <Link
