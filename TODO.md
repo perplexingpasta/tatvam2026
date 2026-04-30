@@ -60,6 +60,7 @@ make registrationstatus page ✅
 refactor eventregistrations sheets data ✅
 image compress and webp for event payment ss ✅
 webp in event registration form ✅
+increased image size upload limit ✅
 
 need to ask:
 - schedule

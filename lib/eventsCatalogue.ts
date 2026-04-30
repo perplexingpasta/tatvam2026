@@ -1,6 +1,6 @@
 import { Event } from "../types";
 
-type RawEvent = Omit<Event, "eventId" | "description" | "shortDescription" | "imageUrls" | "venue" | "eventDate" | "eventTime" | "schedule" | "rules" | "contactName" | "contactPhone" | "isAvailable" | "tags"> & {
+export type RawEvent = Omit<Event, "eventId" | "description" | "shortDescription" | "imageUrls" | "venue" | "eventDate" | "eventTime" | "schedule" | "rules" | "contactName" | "contactPhone" | "isAvailable" | "tags"> & {
   description?: string;
   shortDescription?: string;
   imageUrls?: string[];
@@ -14,7 +14,7 @@ type RawEvent = Omit<Event, "eventId" | "description" | "shortDescription" | "im
   isAvailable?: boolean;
 };
 
-const generateTags = (event: RawEvent): string[] => {
+export const generateTags = (event: RawEvent): string[] => {
   const tags = new Set<string>();
 
   // Always add "solo" or "group" based on type
@@ -64,7 +64,7 @@ const generateTags = (event: RawEvent): string[] => {
   return Array.from(tags);
 };
 
-const buildEvent = (raw: RawEvent): Event => ({
+export const buildEvent = (raw: RawEvent): Event => ({
   ...raw,
   eventId: raw.slug,
   description: raw.description ?? "",
