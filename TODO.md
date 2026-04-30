@@ -19,7 +19,6 @@ testing
     event registration (single and multiple)
 
 use nextjs Link tags
-images webp w compression
 favicon
 dynamic loading
 easter egg

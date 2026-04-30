@@ -1,64 +1,52 @@
-# College Cultural Fest Registration System
+# Tatvam 2026 — College Cultural Fest Registration System
 
-A robust, full-stack registration platform for college cultural fests, built with **Next.js (App Router)**, **TypeScript**, and **Firebase**.
+A robust, premium full-stack registration platform for Tatvam 2026, built with **Next.js**, **TypeScript**, and **Firebase**. This system handles delegate registrations, event signups, and merchandise sales with a focus on speed, data integrity, and visual excellence.
 
-## 🚀 Features
+## 🚀 Key Features
 
-- **Delegate Registration**: Support for individual and team registrations with tiered pricing.
-- **Event Registration**: Cart-based system for solo and group event signups.
-- **Secure Lookups**: Rate-limited delegate ID verification for event participants.
-- **Image Management**: Automated upload and optimization of ID cards and payment screenshots via **Cloudinary**.
-- **Email Notifications**: Transactional emails for registration confirmation using **Resend**.
-- **Data Integrity**: **Google Sheets** secondary mirror for easy administrative access and offline reporting.
-- **Reliability**: Fault-tolerant retry queue for asynchronous background tasks (like Google Sheets syncing).
+### 🎫 Registration Modules
+- **Delegate Registration**: Individual and team registration system with tiered pricing (Gold, Platinum, Diamond). Supports JSSMC-specific complimentary registration.
+- **Event Registration**: A cart-based system allowing delegates to sign up for solo or group events. Includes real-time delegate ID verification and team lead assignment.
+- **Merch Store**: Fully integrated store for festival merchandise with cart management and separate payment verification.
+
+### ⚡ Performance & Optimization
+- **Staged Image Uploads**: Client-side image compression and **WebP conversion** using `browser-image-compression`. This significantly reduces upload times and server load.
+- **Smart Image Delivery**: Automatic Cloudinary URL transforms (`f_auto, q_auto`) for optimal asset delivery.
+- **Speed Insights**: Integrated Vercel Analytics and Speed Insights for real-time performance monitoring.
+
+### 🛡️ Reliability & Security
+- **Data Mirroring**: Primary source of truth in **Firestore** with an automated asynchronous mirror to **Google Sheets** for administrative ease.
+- **Fault Tolerance**: Background task queue with a retry mechanism (`sheetsRetryQueue`) to handle intermittent external API failures (Google Sheets/Resend).
+- **Secure Lookups**: Rate-limited delegate ID verification to prevent enumeration attacks.
+- **Admin Verification**: All payments are staged as `pending_verification` for administrative review via UTR matching.
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
+- **Framework**: [Next.js 16.2.4](https://nextjs.org/) (App Router)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 - **Styling**: [TailwindCSS v4](https://tailwindcss.com/)
 - **Database**: [Firebase Firestore](https://firebase.google.com/docs/firestore)
 - **Server-side Logic**: [Firebase Admin SDK](https://firebase.google.com/docs/admin)
 - **Storage & CDN**: [Cloudinary](https://cloudinary.com/)
 - **Email**: [Resend](https://resend.com/)
-- **Sheets Sync**: [Google Sheets API](https://developers.google.com/sheets/api)
+- **Sheets Sync**: [Google Sheets API v4](https://developers.google.com/sheets/api)
 - **Validation**: [Zod](https://zod.dev/) & [React Hook Form](https://react-hook-form.com/)
 - **Hosting**: [Vercel](https://www.vercel.com/)
 
 ## 📂 Project Structure
 
-- `app/`: Next.js App Router pages and API routes.
-- `components/`: Reusable React components and email templates.
-- `lib/`: Core logic for Firebase, Cloudinary, Resend, and Google Sheets.
-- `types/`: Shared TypeScript interfaces and schemas.
-- `scripts/`: Utility scripts (e.g., database seeding).
-- `vercel/`: Background functions for task processing.
+- `app/`: Next.js App Router pages, layouts, and API routes.
+- `components/`: Reusable UI components, providers, and email templates.
+- `lib/`: Core service integrations (Firebase, Cloudinary, Sheets, Resend).
+- `hooks/`: Custom hooks for image processing and state management.
+- `scripts/`: Administrative utility scripts (e.g., seeding events).
+- `types/`: Shared TypeScript interfaces and Zod schemas.
 
 ## ⚙️ Setup & Installation
 
 ### 1. Environment Variables
 
-Create a `.env.local` file in the root directory and populate it with the following keys (refer to `PLAN.md` for details):
-
-```env
-# Firebase Client
-NEXT_PUBLIC_FIREBASE_API_KEY=...
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
-# Firebase Admin
-FIREBASE_CLIENT_EMAIL=...
-FIREBASE_PRIVATE_KEY="..."
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=...
-CLOUDINARY_API_KEY=...
-CLOUDINARY_API_SECRET=...
-# Resend
-RESEND_API_KEY=...
-# Google Sheets
-GOOGLE_SERVICE_ACCOUNT_EMAIL=...
-GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY="..."
-GOOGLE_SHEETS_SPREADSHEET_ID=...
-```
+Create a `.env.local` file in the root directory. Refer to `PLAN.md` for a comprehensive list of all required variables across Firebase, Cloudinary, Resend, and Google Sheets.
 
 ### 2. Install Dependencies
 
@@ -72,9 +60,9 @@ npm install
 npm run dev
 ```
 
-### 4. Seed Database (Optional)
+### 4. Sync Events Database
 
-To populate initial event data:
+To populate the Firestore `events` collection from the local catalogue:
 ```bash
 npx ts-node scripts/seedEvents.ts
 ```
@@ -84,8 +72,10 @@ npx ts-node scripts/seedEvents.ts
 - **Source of Truth**: Firestore is the primary database.
 - **File Uploads**: All images are processed via Next.js API routes using the Admin SDK and uploaded directly to Cloudinary.
 - **Google Sheets**: Acts as a secondary mirror. Syncing is handled asynchronously via a `sheetsRetryQueue` to ensure data consistency even during API downtime.
-- **Cart State**: Managed client-side via React Context; no persistence until payment submission.
+- **Cart State**: Registration and Merch carts use React Context for session-only persistence. No data is written to the database until the payment proof and UTR are submitted.
+- **Asynchronous Processing**: Google Sheets synchronization is "fire-and-forget" from the main API routes to ensure fast response times for users. Failures are automatically caught and queued for retries.
+- **Payment Verification**: The system is designed for manual UTR/Screenshot reconciliation. Automatic payment gateway integration is not implemented by design.
 
 ## 📄 License
 
-This project is private and intended for specific fest use.
+This project is private and intended exclusively for Tatvam 2026.
