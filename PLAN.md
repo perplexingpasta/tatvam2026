@@ -343,7 +343,7 @@ Shared image upload endpoint. Handles compression, validation, and Cloudinary up
 - `college-ids`: `width: 1200, crop: "limit"` + `quality: "auto:good"` + `fetch_format: "auto"`
 - `payment-proofs` and `merch-payments`: `width: 2000, crop: "limit"` + `quality: "auto:good"` + `fetch_format: "auto"`
 
-**Max file size:** Controlled by `NEXT_PUBLIC_MAX_FILE_SIZE_MB` (default: 10MB).
+**Max file size:** Controlled by `NEXT_PUBLIC_MAX_FILE_SIZE_MB` (default: 20MB).
 
 **Note:** Client side already compresses to WebP via `useImageUpload` hook before this endpoint is called. The `transformedUrl` uses the pattern: `{baseUrl}/upload/f_auto,q_auto,w_800/{path}`.
 

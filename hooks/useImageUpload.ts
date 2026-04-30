@@ -54,7 +54,7 @@ export function useImageUpload(options: UseImageUploadOptions) {
       return;
     }
 
-    const maxSizeMB = options.maxSizeMB ?? 10;
+    const maxSizeMB = options.maxSizeMB ?? parseInt(process.env.NEXT_PUBLIC_MAX_FILE_SIZE_MB || "20", 10);
     const maxFileSizeBytes = maxSizeMB * 1024 * 1024;
     
     if (file.size > maxFileSizeBytes) {

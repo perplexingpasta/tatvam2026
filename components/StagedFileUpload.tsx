@@ -284,7 +284,7 @@ export function StagedFileUpload({
 
   const isBusy =
     uploadState.status === "compressing" || uploadState.status === "uploading";
-  const maxSizeMB = process.env.NEXT_PUBLIC_MAX_FILE_SIZE_MB || "10";
+  const maxSizeMB = process.env.NEXT_PUBLIC_MAX_FILE_SIZE_MB || "20";
 
   return (
     <div className="flex flex-col gap-2">

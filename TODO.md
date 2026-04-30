@@ -1,7 +1,8 @@
+"if it's pdf, take screenshot"
 team name or any error should pop up as toast (and inline)
 test suite (vitest) via claude ag
 make all pages
-ask claude ag how to optimise it
+ask claude ag how to optimise it for user experience while having maximum performance
 
 fonts woff2
 then add schedule

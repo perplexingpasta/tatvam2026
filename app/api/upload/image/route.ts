@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     const maxFileSizeMb = parseInt(
-      process.env.NEXT_PUBLIC_MAX_FILE_SIZE_MB || "10",
+      process.env.NEXT_PUBLIC_MAX_FILE_SIZE_MB || "20",
       10,
     );
     const maxFileSizeBytes = maxFileSizeMb * 1024 * 1024;
