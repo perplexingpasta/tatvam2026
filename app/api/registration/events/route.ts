@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { adminDb } from "@/lib/firebaseAdmin";
-import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 import { resend } from "@/lib/resend";
 import { FieldValue } from "firebase-admin/firestore";
 import { generateEventRegistrationEmailHtml } from "@/components/EventRegistrationEmailTemplate";
@@ -33,9 +32,9 @@ export async function POST(req: NextRequest) {
 
     const cartItemsStr = formData.get("cartItems") as string;
     const utrNumber = formData.get("utrNumber") as string;
-    const paymentScreenshot = formData.get("paymentScreenshot") as File | null;
+    const paymentScreenshotUrl = formData.get("paymentScreenshotUrl") as string | null;
 
-    if (!cartItemsStr || !utrNumber || !paymentScreenshot) {
+    if (!cartItemsStr || !utrNumber || !paymentScreenshotUrl) {
       return NextResponse.json(
         { success: false, message: "Missing required fields" },
         { status: 400 }
@@ -49,12 +48,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (
-      paymentScreenshot.size > 10 * 1024 * 1024 ||
-      !["image/jpeg", "image/png", "image/jpg"].includes(paymentScreenshot.type)
-    ) {
+    try {
+      z.string().url().parse(paymentScreenshotUrl);
+    } catch {
       return NextResponse.json(
-        { success: false, message: "Invalid payment screenshot. Max 10MB JPG/PNG" },
+        { success: false, message: "Invalid payment screenshot URL" },
         { status: 400 }
       );
     }
@@ -144,23 +142,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2. Upload payment screenshot
-    let paymentScreenshotUrl = "";
-    try {
-      const paymentBuffer = Buffer.from(await paymentScreenshot.arrayBuffer());
-      const paymentUpload = await uploadToCloudinary(
-        paymentBuffer,
-        paymentScreenshot.type,
-        "payment-proofs" // From instructions
-      );
-      paymentScreenshotUrl = paymentUpload.originalUrl;
-    } catch (error) {
-      console.error("Cloudinary upload error:", error);
-      return NextResponse.json(
-        { success: false, message: "File upload failed, please try again." },
-        { status: 503 }
-      );
-    }
+    // 2. Payment screenshot is already uploaded, use the URL from form data
 
     // Get all participant IDs for sheets payload and registration document
     const allParticipantIds = new Set<string>();

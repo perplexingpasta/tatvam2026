@@ -4,6 +4,7 @@ import { useCart } from "@/components/CartProvider";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { StagedFileUpload } from "@/components/StagedFileUpload";
 
 interface ParticipantDetails {
   id: string;
@@ -33,7 +34,10 @@ export default function CartPage() {
   
   // Checkout state
   const [utrNumber, setUtrNumber] = useState("");
-  const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
+  const [paymentScreenshot, setPaymentScreenshot] = useState<{
+    originalUrl: string | null;
+    transformedUrl: string | null;
+  }>({ originalUrl: null, transformedUrl: null });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
@@ -202,8 +206,8 @@ export default function CartPage() {
       setCheckoutError("Please verify all delegates for all events before checking out.");
       return;
     }
-    if (!utrNumber || !paymentScreenshot) {
-      setCheckoutError("Please provide both UTR number and payment screenshot.");
+    if (!utrNumber || !paymentScreenshot.originalUrl) {
+      setCheckoutError("Please provide both UTR number and wait for payment screenshot to upload.");
       return;
     }
 
@@ -212,7 +216,7 @@ export default function CartPage() {
 
     const formData = new FormData();
     formData.append("utrNumber", utrNumber);
-    formData.append("paymentScreenshot", paymentScreenshot);
+    formData.append("paymentScreenshotUrl", paymentScreenshot.originalUrl);
 
     const cartItemsPayload = cart.map(event => {
       const state = itemStates[event.eventId];
@@ -498,15 +502,21 @@ export default function CartPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                        Payment Screenshot (Max 10MB)
-                      </label>
-                      <input
-                        type="file"
-                        required
-                        accept="image/jpeg,image/png,image/jpg"
-                        onChange={(e) => setPaymentScreenshot(e.target.files?.[0] || null)}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white dark:bg-zinc-900"
+                      <StagedFileUpload
+                        folder="payment-proofs"
+                        label="Upload Payment Screenshot"
+                        compressionTargetMB={0.8}
+                        maxWidthOrHeight={2000}
+                        onUploadComplete={(urls) => {
+                          setPaymentScreenshot({
+                            originalUrl: urls.originalUrl,
+                            transformedUrl: urls.transformedUrl
+                          });
+                        }}
+                        onUploadReset={() => {
+                          setPaymentScreenshot({ originalUrl: null, transformedUrl: null });
+                        }}
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
