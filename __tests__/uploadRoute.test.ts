@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '@/app/api/upload/image/route';
 import { makePostRequest } from './helpers/makeRequest';
 import { uploadToCloudinary } from '@/lib/cloudinaryUpload';
+import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/cloudinaryUpload', () => ({
   uploadToCloudinary: vi.fn(),

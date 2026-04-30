@@ -2,6 +2,7 @@
 
 import { Event } from "@/types";
 import { useCart } from "./CartProvider";
+import { toast } from "sonner";
 
 interface EventCardProps {
   event: Event;
@@ -15,7 +16,10 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!inCart && event.isAvailable) {
-      addToCart(event);
+      const result = addToCart(event);
+      if (result.added) {
+        toast.success(`${event.indianName} added to cart`);
+      }
     }
   };
 

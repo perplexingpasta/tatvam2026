@@ -1,10 +1,32 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCart } from "./CartProvider";
+import { Menu, X } from "lucide-react";
 
 export function Header() {
   const { cart } = useCart();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  const navLinks = [
+    { label: "Home", path: "/" },
+    { label: "Events", path: "/events" },
+    { label: "Registration", path: "/registration" },
+    { label: "Check Status", path: "/registration-status" },
+    { label: "Merch", path: "/merch" },
+    { label: "About", path: "/about" },
+    { label: "Contact", path: "/contact" },
+    { label: "Schedule", path: "/schedule" },
+  ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-zinc-200 dark:border-zinc-800">
@@ -14,16 +36,22 @@ export function Header() {
             {process.env.NEXT_PUBLIC_FEST_NAME || "FEST"}
           </Link>
           <nav className="hidden md:flex gap-6">
-            <Link href="/events" className="text-sm font-medium hover:underline underline-offset-4">
-              Events
-            </Link>
-            <Link href="/registration" className="text-sm font-medium hover:underline underline-offset-4">
-              Registration
-            </Link>
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                href={link.path}
+                className="text-sm font-medium hover:underline underline-offset-4"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/cart" className="relative p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+          <Link
+            href="/cart"
+            className="relative p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -45,8 +73,32 @@ export function Header() {
               </span>
             )}
           </Link>
+          <button
+            className="md:hidden p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Menu Panel */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-background absolute w-full shadow-lg">
+          <nav className="flex flex-col p-4 space-y-4">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                href={link.path}
+                className="text-sm font-medium hover:underline underline-offset-4"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

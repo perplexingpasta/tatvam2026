@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '@/app/api/merch/order/route';
 import { makePostRequest } from './helpers/makeRequest';
 import { merchCatalogue } from '@/lib/merchCatalogue';
-import { merchCatalogue } from '@/lib/merchCatalogue';
 
 vi.mock('@/lib/firebaseAdmin', () => ({
   adminDb: {

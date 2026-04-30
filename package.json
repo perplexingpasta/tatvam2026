@@ -22,11 +22,13 @@
     "firebase-admin": "^13.8.0",
     "google-auth-library": "^10.6.2",
     "googleapis": "^171.4.0",
+    "lucide-react": "^1.14.0",
     "next": "16.2.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.73.1",
     "resend": "^6.12.2",
+    "sonner": "^2.0.7",
     "ts-node": "^10.9.2",
     "zod": "^4.3.6"
   },

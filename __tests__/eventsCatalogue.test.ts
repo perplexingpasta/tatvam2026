@@ -130,7 +130,7 @@ describe('eventsCatalogue', () => {
       eventsCatalogue.forEach(event => {
         const result = eventSchema.safeParse(event);
         if (!result.success) {
-          console.error(`Validation failed for event ${event.slug}:`, result.error.errors);
+          console.error(`Validation failed for event ${event.slug}:`, result.error.message);
         }
         expect(result.success).toBe(true);
       });

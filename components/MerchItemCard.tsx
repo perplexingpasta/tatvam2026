@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { MerchItem } from "@/types/merch";
 import { useMerchCart } from "@/components/MerchCartProvider";
+import { toast } from "sonner";
 
 export function MerchItemCard({ item }: { item: MerchItem }) {
   const { addMerchUnit } = useMerchCart();
@@ -57,6 +58,8 @@ export function MerchItemCard({ item }: { item: MerchItem }) {
       price: item.price,
       attributes: { ...attributes },
     });
+
+    toast.success(`${item.name} added to cart`);
 
     setShowSuccess(true);
     setShowBuyAnother(true);

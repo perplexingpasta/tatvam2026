@@ -3,7 +3,11 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Event, EventCategory } from "@/types";
 import { EventCard } from "./EventCard";
-import { EventModal } from "./EventModal";
+import dynamic from "next/dynamic";
+
+const EventModal = dynamic(() =>
+  import("./EventModal").then((mod) => mod.EventModal),
+);
 
 const CATEGORIES: { id: EventCategory; name: string; icon: string }[] = [
   { id: "music", name: "Music", icon: "🎵" },

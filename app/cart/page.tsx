@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { StagedFileUpload } from "@/components/StagedFileUpload";
+import { toast } from "sonner";
 
 interface ParticipantDetails {
   id: string;
@@ -196,6 +197,7 @@ export default function CartPage() {
       delete newState[eventId];
       return newState;
     });
+    toast("Event removed from cart");
   };
 
   const allVerified = cart.length > 0 && cart.every(event => itemStates[event.eventId]?.isVerified);
@@ -256,13 +258,18 @@ export default function CartPage() {
 
       if (res.ok && data.success) {
         setCheckoutSuccess(true);
+        toast.success("Event registration submitted!");
         clearCart();
         setItemStates({});
       } else {
-        setCheckoutError(data.message || "An error occurred during checkout.");
+        const errorMsg = data.message || "An error occurred during checkout.";
+        setCheckoutError(errorMsg);
+        toast.error(errorMsg);
       }
     } catch {
-      setCheckoutError("Failed to submit registration. Please try again.");
+      const errorMsg = "Failed to submit registration. Please try again.";
+      setCheckoutError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsSubmitting(false);
     }

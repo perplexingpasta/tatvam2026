@@ -1,63 +1,82 @@
-import Image from "next/image";
+import Link from "next/link";
+import { UserPlus, Calendar, ShoppingBag, ArrowRight } from "lucide-react";
 
 export default function Home() {
+  const festName = process.env.NEXT_PUBLIC_FEST_NAME || "Tatvam 2026";
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="flex flex-col min-h-[calc(100vh-4rem)] bg-zinc-50 dark:bg-black relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob dark:mix-blend-screen"></div>
+      <div className="absolute top-[10%] right-[-10%] w-96 h-96 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000 dark:mix-blend-screen"></div>
+      <div className="absolute bottom-[-10%] left-[20%] w-96 h-96 bg-pink-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000 dark:mix-blend-screen"></div>
+
+      <main className="flex-1 flex flex-col items-center justify-center relative z-10 px-4 py-20 sm:px-6 lg:px-8">
+        {/* Hero Section */}
+        <div className="text-center max-w-4xl mx-auto mb-16">
+          <h1 className="text-5xl sm:text-7xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-6 font-[family-name:var(--font-heading)]">
+            {festName}
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-xl sm:text-2xl text-zinc-600 dark:text-zinc-400 font-medium max-w-2xl mx-auto">
+            The Annual Cultural Fest of JSS Medical College
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* CTA Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto w-full">
+          <Link
+            href="/registration"
+            className="group relative flex flex-col p-8 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-300 shadow-sm hover:shadow-md"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/8 px-5 transition-colors hover:border-transparent hover:bg-black/4 dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <div className="mb-4 inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
+              <UserPlus size={24} />
+            </div>
+            <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-2 font-[family-name:var(--font-heading)]">
+              Delegate Registration
+            </h3>
+            <p className="text-zinc-600 dark:text-zinc-400 mb-6 flex-1">
+              Register as a delegate to participate in events and get your official fest ID.
+            </p>
+            <div className="flex items-center text-sm font-medium text-indigo-600 dark:text-indigo-400 mt-auto group-hover:translate-x-1 transition-transform">
+              Get Started <ArrowRight size={16} className="ml-1" />
+            </div>
+          </Link>
+
+          <Link
+            href="/events"
+            className="group relative flex flex-col p-8 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-purple-500 dark:hover:border-purple-500 transition-all duration-300 shadow-sm hover:shadow-md"
           >
-            Documentation
-          </a>
+            <div className="mb-4 inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400">
+              <Calendar size={24} />
+            </div>
+            <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-2 font-[family-name:var(--font-heading)]">
+              Explore Events
+            </h3>
+            <p className="text-zinc-600 dark:text-zinc-400 mb-6 flex-1">
+              Browse our exciting lineup of cultural, literary, and performing arts events.
+            </p>
+            <div className="flex items-center text-sm font-medium text-purple-600 dark:text-purple-400 mt-auto group-hover:translate-x-1 transition-transform">
+              View Schedule <ArrowRight size={16} className="ml-1" />
+            </div>
+          </Link>
+
+          <Link
+            href="/merch"
+            className="group relative flex flex-col p-8 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-pink-500 dark:hover:border-pink-500 transition-all duration-300 shadow-sm hover:shadow-md"
+          >
+            <div className="mb-4 inline-flex items-center justify-center w-12 h-12 rounded-full bg-pink-100 dark:bg-pink-900/50 text-pink-600 dark:text-pink-400">
+              <ShoppingBag size={24} />
+            </div>
+            <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-2 font-[family-name:var(--font-heading)]">
+              Merch Store
+            </h3>
+            <p className="text-zinc-600 dark:text-zinc-400 mb-6 flex-1">
+              Grab your official Tatvam 2026 merchandise, including t-shirts and hoodies.
+            </p>
+            <div className="flex items-center text-sm font-medium text-pink-600 dark:text-pink-400 mt-auto group-hover:translate-x-1 transition-transform">
+              Shop Now <ArrowRight size={16} className="ml-1" />
+            </div>
+          </Link>
         </div>
       </main>
     </div>

@@ -11,9 +11,6 @@ export function makePostRequest(url: string, formData: FormData, headers?: Recor
   return new NextRequest(url, {
     method: 'POST',
     body: formData,
-    headers: {
-      'content-type': 'multipart/form-data; boundary=boundary',
-      ...headers,
-    },
+    headers: headers ?? {},
   });
 }

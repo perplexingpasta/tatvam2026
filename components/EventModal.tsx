@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import Image from "next/image";
 import { Event } from "@/types";
 import { useCart } from "./CartProvider";
+import { toast } from "sonner";
 
 interface EventModalProps {
   event: Event;
@@ -28,7 +30,10 @@ export function EventModal({ event, onClose }: EventModalProps) {
 
   const handleAddToCart = () => {
     if (!inCart && event.isAvailable) {
-      addToCart(event);
+      const result = addToCart(event);
+      if (result.added) {
+        toast.success(`${event.indianName} added to cart`);
+      }
     }
   };
 
@@ -73,7 +78,7 @@ export function EventModal({ event, onClose }: EventModalProps) {
         <div className="overflow-y-auto flex-1 overscroll-contain">
           <div className="relative w-full h-48 sm:h-64 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-6 shrink-0">
             {event.imageUrls && event.imageUrls.length > 0 ? (
-               <img src={event.imageUrls[0]} alt={event.indianName} className="absolute inset-0 w-full h-full object-cover" />
+               <Image src={event.imageUrls[0]} alt={event.indianName} fill className="object-cover" />
             ) : (
                <h3 className="text-3xl sm:text-4xl font-extrabold text-white text-center drop-shadow-md z-10 break-words line-clamp-3">
                  {event.indianName}

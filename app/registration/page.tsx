@@ -6,6 +6,7 @@ import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { StagedFileUpload } from "@/components/StagedFileUpload";
+import { toast } from "sonner";
 
 const TIERS = [
   {
@@ -144,16 +145,14 @@ export default function RegistrationPage() {
   };
 
   const handleBackToSelection = () => {
-    if (confirm("Are you sure you want to go back? Your form data will be lost.")) {
-      setMode("selection");
-      setMemberUploads([{ collegeIdImageOriginalUrl: null, collegeIdImageTransformedUrl: null }]);
-      setPaymentScreenshot({ originalUrl: null, transformedUrl: null });
-    }
+    setMode("selection");
+    setMemberUploads([{ collegeIdImageOriginalUrl: null, collegeIdImageTransformedUrl: null }]);
+    setPaymentScreenshot({ originalUrl: null, transformedUrl: null });
   };
 
   const handleAddMember = () => {
     if (fields.length >= 25) {
-      alert("Maximum 25 members allowed");
+      toast.error("Maximum 25 members allowed");
       return;
     }
     append({
@@ -239,8 +238,11 @@ export default function RegistrationPage() {
       setGeneratedDelegateIds(resData.delegateIds || []);
       setGeneratedTeamId(resData.teamId || null);
       setSuccess(true);
+      toast.success("Registration submitted successfully!");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

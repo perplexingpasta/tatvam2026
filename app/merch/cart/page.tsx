@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useMerchCart } from "@/components/MerchCartProvider";
 import { MerchCartUnit } from "@/types/merch";
 import { StagedFileUpload } from "@/components/StagedFileUpload";
+import { toast } from "sonner";
 
 type PageState = 1 | 2 | 3;
 
@@ -150,6 +151,7 @@ export default function MerchCartPage() {
 
       clearMerchCart();
       setPageState(3);
+      toast.success("Order placed successfully!");
       window.scrollTo(0, 0);
     } catch (err) {
       const error = err as Error;
@@ -157,8 +159,10 @@ export default function MerchCartPage() {
         setSubmitError(
           "Upload is taking too long. Please check your connection and try again.",
         );
+        toast.error("Upload is taking too long. Please check your connection and try again.");
       } else {
         setSubmitError(error.message || "An unexpected error occurred");
+        toast.error(error.message || "An unexpected error occurred");
       }
     } finally {
       clearTimeout(timeoutId);

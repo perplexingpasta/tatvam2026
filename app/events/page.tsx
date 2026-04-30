@@ -1,6 +1,10 @@
 import { adminDb } from "@/lib/firebaseAdmin";
 import { Event } from "@/types";
-import { EventsClient } from "@/components/EventsClient";
+import dynamic from "next/dynamic";
+
+const EventsClient = dynamic(() =>
+  import("@/components/EventsClient").then((mod) => mod.EventsClient)
+);
 
 export const metadata = {
   title: "Events",
