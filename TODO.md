@@ -1,11 +1,19 @@
-verify registrationstatus vercel
-
-
-do you see how we compress images and convert them to webp format before sending them to the backend in the delegate registrations form? well i would like to implement the same thing for the payment proof screenshot upload in the event registrations form. can you get this done for me? ensure no existing functionality breaks and you only touch relevant files. feel free to ask me questions or offer suggestions to improve this 
-
-image compress and webp for event payment ss
 how to change any property in currently listed events or add or delete events so that the change is updated everywhere
+fix eventpage error
 
+
+ GET /events 500 in 72s (next.js: 589ms, application-code: 71s)
+[browser] Uncaught Error: 14 UNAVAILABLE: No connection established. Last error: Failed to connect (2026-04-30T01:54:48.171Z). Resolution note:
+    at EventsPage (app\events\page.tsx:8:61)
+   6 |
+   7 | export default async function EventsPage() {
+>  8 |   const eventsSnapshot = await adminDb.collection("events").get();
+     |                                                             ^
+   9 |
+  10 |   const events = eventsSnapshot.docs.map((doc) => {
+  11 |     const data = doc.data();
+
+  
 
 team name or any error should pop up as toast (and inline)
 test suite (vitest) via claude ag
@@ -67,6 +75,7 @@ implement events ✅
 add solo tag to quizzes ✅
 make registrationstatus page ✅
 refactor eventregistrations sheets data ✅
+image compress and webp for event payment ss ✅
 
 need to ask:
 - schedule

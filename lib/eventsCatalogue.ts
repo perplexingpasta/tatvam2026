@@ -81,6 +81,7 @@ const buildEvent = (raw: RawEvent): Event => ({
   tags: generateTags(raw),
 });
 
+
 const rawEvents: RawEvent[] = [
   // --- MUSIC ---
   {
@@ -95,6 +96,29 @@ const rawEvents: RawEvent[] = [
     maxTeamSize: null,
     isOnline: false,
   },
+
+//   {
+//   indianName: "Swar Leela",
+//   englishName: "Solo Eastern Singing",
+//   slug: "swar-leela",
+//   category: "music",
+//   type: "solo",
+//   pricingType: "per_person",
+//   fee: 75,
+//   // Add these:
+//   description: "A soulful competition for classical and semi-classical eastern vocals.",
+//   imageUrls: ["https://example.com/image1.webp"],
+//   venue: "Main Auditorium",
+//   contactName: "John Doe",
+//   contactPhone: "9876543210"
+// },
+
+// to create more events, just add an object but make sure to keep the event-id field unique
+// run this after making all changes so that firestore is also updated accordingly: npx tsx scripts/seedEvents.ts
+// Always use WebP image URLs for the imageUrls parameter to ensure the fastest page load times, as we discussed earlier!
+
+
+
   {
     indianName: "Solo Western Singing",
     englishName: "Solo Western Singing",
