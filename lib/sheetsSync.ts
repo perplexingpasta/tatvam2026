@@ -123,21 +123,22 @@ export const syncToSheets = async (
         requestBody: { values: delegateValues },
       });
     } else if (type === "eventRegistration") {
-      const values = [
-        [
-          payload.registrationId,
-          (payload.participantDelegateIds || []).join(","),
-          (payload.eventNames || []).join(","),
-          payload.totalAmount,
-          payload.utrNumber || "",
-          payload.paymentStatus || "",
-          formatDate(payload.submittedAt),
-        ],
-      ];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const values = (payload.cartItems || []).map((item: any) => [
+        payload.registrationId,
+        item.eventName || "",
+        item.eventType || "",
+        item.teamId || "",
+        (item.participantDelegateIds || []).join(", "),
+        payload.totalAmount,
+        payload.utrNumber || "",
+        payload.paymentStatus || "",
+        formatDate(payload.submittedAt),
+      ]);
 
       await sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
-        range: "EventRegistrations!A:G",
+        range: "EventRegistrations!A:I",
         valueInputOption: "USER_ENTERED",
         requestBody: { values },
       });

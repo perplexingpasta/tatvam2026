@@ -1,5 +1,505 @@
 Read @PLAN.md fully before writing any code.
 
+We are implementing a new page at /registration-status. A blank page.tsx already exists at app/registration-status/page.tsx.
+
+This page allows anyone to look up their registration details by entering their delegate ID, team ID, or email address. It is purely a read-only lookup page — no editing, no payments, no cart. It has nothing to do with merch orders.
+
+This does NOT affect:
+- Any registration API routes
+- Any merch files
+- Any Sheets sync files
+- Any cart or events files
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONSTRAINTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Do not modify any registration API routes
+- Do not modify any merch files
+- Do not modify any Sheets sync files
+- Do not modify CartProvider or events files
+- Do not add any new npm packages
+- All Firestore reads in the API route use Admin SDK only
+- Never expose phone, collegeIdNumber, collegeIdImageUrl, paymentScreenshotUrl, or utrNumber to the client
+- The page must work even if registeredEventIds is an empty array (handle gracefully)
+- The page must work even if the events collection has no matching event for a given  (handle with a fallback: show the eventId with "Event details unavailable")
+- Rate limit the API endpoint to prevent scraping
+- Report completion of each Part explicitly before moving to the next
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART-BY-PART IMPLEMENTATION PLAN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+You MUST complete each part fully, verify it works, and explicitly state "PART N COMPLETE — ALL CHECKS PASSED" before asking me for instructions for the next part.
+There are 3 parts in total.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 1/3 — NEW API ROUTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create app/api/registration-status/route.ts
+
+METHOD: GET
+Query parameter: ?query=USER_INPUT
+
+This route detects what type of input was provided and 
+queries Firestore accordingly.
+
+INPUT DETECTION LOGIC:
+Trim whitespace from the query parameter first, then:
+
+1. If input contains "@" → treat as EMAIL
+   - Query delegates collection where email == input
+   - Return the matching delegate(s)
+
+2. If input matches regex /^[A-Z]{3}-\d{5}-[A-Z0-9]{5}$/
+   (e.g. ADI-28210-KAW5A) → treat as DELEGATE ID
+   - Fetch delegates/{input} directly by document ID
+
+3. If input matches regex /^[A-Z]{3}-[A-Z0-9]{7}$/
+   (e.g. XOT-HCYAS89) → treat as TEAM ID
+   - Fetch teams/{input} directly by document ID
+   - Then fetch all delegate documents whose delegateId 
+     is in team.memberDelegateIds
+
+4. If none of the above patterns match → return 400:
+   { success: false, error: "invalid_input", 
+     message: "Please enter a valid email address, 
+     delegate ID, or team ID." }
+
+PRIVACY RULES — NEVER return these fields to the client:
+- phone
+- collegeIdImageUrl
+- paymentScreenshotUrl
+- utrNumber
+- collegeIdNumber
+
+SAFE FIELDS to return for each delegate:
+- delegateId
+- name
+- email
+- collegeName
+- delegateTier
+- teamId
+- isJSSMC
+- paymentStatus
+- registeredEventIds
+- createdAt
+
+RESPONSE SHAPE:
+
+For EMAIL or DELEGATE ID lookup (single delegate found):
+```typescript
+{
+  success: true,
+  lookupType: "delegate",
+  delegate: {
+    delegateId: string,
+    name: string,
+    email: string,
+    collegeName: string,
+    delegateTier: string,
+    teamId: string | null,
+    isJSSMC: boolean,
+    paymentStatus: string,
+    registeredEventIds: string[],
+    createdAt: string, // ISO string
+  },
+  team: {           // null if delegate has no teamId
+    teamId: string,
+    teamName: string,
+    leadDelegateId: string,
+    memberDelegateIds: string[],
+    members: Array<{  // safe fields only for teammates
+      delegateId: string,
+      name: string,
+      collegeName: string,
+      delegateTier: string,
+    }>
+  } | null,
+  soloEvents: EventRegistrationDetail[],
+  teamEvents: EventRegistrationDetail[],
+}
+```
+
+For TEAM ID lookup:
+```typescript
+{
+  success: true,
+  lookupType: "team",
+  team: {
+    teamId: string,
+    teamName: string,
+    leadDelegateId: string,
+    memberDelegateIds: string[],
+    members: Array<{
+      delegateId: string,
+      name: string,
+      collegeName: string,
+      delegateTier: string,
+      isJSSMC: boolean,
+      paymentStatus: string,
+    }>
+  },
+  teamEvents: EventRegistrationDetail[],
+}
+```
+
+EventRegistrationDetail shape:
+```typescript
+interface EventRegistrationDetail {
+  eventId: string,
+  indianName: string,
+  englishName: string,
+  category: string,
+  type: "solo" | "group",
+  venue: string | null,
+  schedule: string | null,
+  eventDate: string | null,
+  eventTime: string | null,
+  fee: number,
+  pricingType: string,
+  teamName: string | null, // for group events
+  participantNames: string[], // names of all participants
+}
+```
+
+FETCHING EVENT DETAILS:
+For each eventId in registeredEventIds, fetch the event 
+document from the events Firestore collection to get 
+indianName, englishName, category, venue, schedule, 
+eventDate, eventTime, fee, pricingType.
+
+To determine solo vs team events and get participant names:
+- Query eventRegistrations collection where 
+  participantDelegateIds array-contains the delegateId
+- For each matching eventRegistration, find the cartItem 
+  whose participantDelegateIds includes this delegate
+- If cartItem.eventType === "solo": add to soloEvents
+- If cartItem.eventType === "group": add to teamEvents,
+  fetch names of all participants from delegates collection
+
+For team ID lookup:
+- Only return teamEvents (events where the team participated)
+- Query eventRegistrations where any member's delegateId 
+  appears in participantDelegateIds
+
+ERROR RESPONSES:
+- No delegate found for email: 
+  { success: false, error: "not_found_email",
+    message: "No delegate found with this email address." }
+- No delegate found for delegate ID:
+  { success: false, error: "not_found_delegate",
+    message: "No delegate found with ID [input]." }
+- No team found for team ID:
+  { success: false, error: "not_found_team",
+    message: "No team found with ID [input]." }
+- Missing query parameter:
+  { success: false, error: "missing_query",
+    message: "Please enter a delegate ID, team ID, 
+    or email address." }
+- Server error: 500 with generic message
+
+SECURITY:
+- Rate limit this endpoint: max 10 requests per IP 
+  per minute using the same in-memory pattern as 
+  /api/delegates/lookup
+- Never expose the rate limiter warning in the response
+- All Firestore reads use Admin SDK only
+
+When you're done with this part implementation, report to me and await instructions for the next part. Verify & test part implementation after you're finished.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 2/3 — PAGE IMPLEMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement app/registration-status/page.tsx as a client 
+component ("use client").
+
+The page has two states:
+STATE 1: Search input (initial state)
+STATE 2: Results display
+
+━━━━━━━━━━━━━━━━━━━━
+STATE 1 — SEARCH INPUT
+━━━━━━━━━━━━━━━━━━━━
+
+Layout:
+- Page title: "Registration Status"
+- Subtitle: "Look up your delegate registration, 
+  team details, and event registrations"
+- A single search input field:
+  - Placeholder: "e.g. user@mail.com, ADI-28210-KAW5A, 
+    XOT-HCYAS89"
+  - Large, prominent input — full width on mobile
+  - Pressing Enter triggers search
+  - "Search" button beside the input triggers search
+- Loading indicator: spinner inside or beside the Search 
+  button while API call is in progress
+- Inline error message below the input if:
+  - Input is empty on submit
+  - API returns any error (show the error message from 
+    the response)
+  - Rate limit hit: "Too many searches. Please wait 
+    a moment and try again."
+- "Search Again" link/button appears below results 
+  to return to STATE 1 and clear results
+
+━━━━━━━━━━━━━━━━━━━━
+STATE 2 — RESULTS DISPLAY
+━━━━━━━━━━━━━━━━━━━━
+
+The results section renders differently based on 
+lookupType returned by the API.
+
+─── DELEGATE LOOKUP RESULT ───────────────────────────
+
+SECTION A — Delegate Profile Card:
+Show a card with:
+- Name (large, prominent)
+- Delegate ID (monospace font, copyable — clicking copies 
+  to clipboard with a brief "Copied!" tooltip)
+- College name
+- Delegate tier name (resolve tier1/tier2/tier3 to 
+  display name using NEXT_PUBLIC_TIER_1_NAME etc.)
+- "JSSMC Student" badge if isJSSMC is true
+- Payment status badge:
+  * pending_verification: yellow badge "Payment Pending"
+  * verified: green badge "Payment Verified"
+  * rejected: red badge "Payment Rejected"
+- Team ID (if present, monospace, copyable) with label 
+  "Team ID"
+- Registration date (formatted as DD MMM YYYY)
+
+SECTION B — Team Details (only if delegate has a team):
+Show a card titled "Your Team — [teamName]":
+- Team ID (monospace, copyable)
+- "Team Lead" badge next to the lead member's name
+- List of all team members showing:
+  * Name
+  * Delegate ID (monospace)
+  * College name
+  * Delegate tier name
+  * "You" badge next to the current delegate
+
+SECTION C — Registered Events:
+Show two subsections:
+
+SUBSECTION 1 — "Solo Registrations":
+If soloEvents is empty: show "You have not registered 
+for any solo events yet."
+If not empty: show event cards for each solo event.
+
+SUBSECTION 2 — "Team Registrations":
+If teamEvents is empty: show "You have not registered 
+for any team events yet."
+If not empty: show event cards for each team event, 
+including the team name and list of participant names.
+
+EVENT CARD (used in both subsections):
+Each event card shows:
+- Indian name (primary)
+- English name (secondary, muted)
+- Category badge
+- Schedule: eventDate + eventTime, or "Date TBA" if null
+- Venue: venue value, or "Venue TBA" if null
+- Fee display (use pricingType to format correctly):
+  * free: "Free"
+  * per_person: "₹[fee]/person"
+  * flat_total: "₹[fee] total"
+- For team events: "Team: [teamName]" and participant 
+  names listed as small chips/badges
+
+─── TEAM LOOKUP RESULT ───────────────────────────────
+
+SECTION A — Team Card:
+- Team name (large heading)
+- Team ID (monospace, copyable)
+- "Team Lead: [lead member name]" line
+
+SECTION B — Team Members:
+List all members showing:
+- Name
+- Delegate ID (monospace)
+- College name
+- "Team Lead" badge for lead member
+- Payment status badge per member
+
+SECTION C — Team Events:
+Title: "Team Event Registrations"
+If no team events: "This team has not registered for 
+any events yet."
+Otherwise: same event card format as above.
+
+━━━━━━━━━━━━━━━━━━━━
+BOTTOM SECTION (shown in STATE 2 only, below all results)
+━━━━━━━━━━━━━━━━━━━━
+
+Show these three elements at the bottom of the results:
+
+1. ACTION BUTTONS (side by side on desktop, stacked on 
+   mobile):
+   
+   Button A: "View Brochure"
+   - Opens a PDF or link in a new tab
+   - Use a placeholder href="#" for now with a comment:
+     // TODO: Replace with actual brochure URL
+   - Icon: document/PDF icon
+   
+   Button B: "Register for More Events"
+   - Links to /events
+   - Icon: calendar/events icon
+
+2. NEED HELP? SECTION:
+   A card or box with:
+   - Title: "Need to modify your details?"
+   - Body: "If you need to update any of your registration 
+     information, please contact our registrations team 
+     directly. We'll be happy to help."
+   - Contact details placeholder:
+     [REGISTRATIONS_TEAM_CONTACT_NAME] — [PHONE_NUMBER]
+     Add a comment: // TODO: Fill in actual contact details
+   - "Cannot modify registrations yourself for security 
+     reasons" note in small text
+
+3. "Search Again" button:
+   - Clicking returns to STATE 1 and clears all results
+
+When you're done with this part implementation, report to me and await instructions for the next part. Verify & test part implementation after you're finished.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 3/3 — UX REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Mobile-first layout — all cards stack vertically on 
+   mobile, side by side on larger screens where appropriate
+
+2. Loading state — show a spinner/skeleton while the API 
+   call is in progress. Disable the Search button during 
+   loading to prevent double requests.
+
+3. Copyable IDs — delegate IDs and team IDs should be 
+   copyable via click. Show a brief "Copied!" tooltip 
+   that auto-dismisses after 1.5 seconds. Use the 
+   Clipboard API:
+   navigator.clipboard.writeText(id)
+
+4. Smooth transition — when results appear, scroll the 
+   page to the top of the results section smoothly:
+   resultsRef.current?.scrollIntoView({ behavior: 'smooth' })
+
+5. Input trimming — always trim whitespace from the 
+   input before sending to the API
+
+6. Input auto-detection hint — as the user types, show 
+   a small hint below the input detecting what they're 
+   typing:
+   - Contains "@": "Searching by email address"
+   - Matches delegate ID pattern: "Searching by delegate ID"
+   - Matches team ID pattern: "Searching by team ID"
+   - Otherwise: "Enter your email, delegate ID, or team ID"
+   This hint updates in real time as the user types.
+
+7. Empty registered events — if a delegate has no events 
+   registered at all (both soloEvents and teamEvents are 
+   empty), show a friendly prompt:
+   "You haven't registered for any events yet. 
+   [Browse Events →] to sign up."
+   Where [Browse Events →] links to /events
+
+8. Payment status explanation — below the payment status 
+   badge, show a small explanatory note:
+   * pending_verification: "Our team is verifying your 
+     payment. This usually takes 24–48 hours."
+   * verified: "Your payment has been verified. 
+     You're all set!"
+   * rejected: "There was an issue with your payment. 
+     Please contact our team using the details below."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VERIFICATION STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After implementing, perform ALL of these:
+
+1. Run npx tsc --noEmit — zero errors required.
+
+2. Test with a real delegate ID from your Firestore:
+   - Go to /registration-status
+   - Enter a delegate ID you created during testing
+   - Click Search
+   - Confirm loading spinner appears then results show
+   - Confirm delegate profile card shows correct details
+   - Confirm payment status badge is correct colour
+   - Confirm registered events appear (or empty state 
+     if none registered)
+   - Confirm delegate ID is copyable
+
+3. Test with email address:
+   - Enter the email of a delegate you registered
+   - Confirm same result as delegate ID lookup
+
+4. Test with team ID (register a team first if needed):
+   - Enter a team ID
+   - Confirm team card shows all members
+   - Confirm team lead badge appears on correct member
+   - Confirm all member delegate IDs are correct
+
+5. Test error states:
+   - Enter a fake delegate ID like "AAA-00000-XXXXX"
+   - Confirm specific error: "No delegate found with 
+     ID AAA-00000-XXXXX."
+   - Enter a fake email "fake@fake.com"
+   - Confirm specific error: "No delegate found with 
+     this email address."
+   - Enter a fake team ID "AAA-BBBBBBB"
+   - Confirm specific error: "No team found with 
+     ID AAA-BBBBBBB."
+   - Enter gibberish like "hello world"
+   - Confirm specific error about invalid format
+
+6. Test input detection hints:
+   - Type "test@" — hint shows "Searching by email address"
+   - Type "ADI-28" — hint shows "Searching by delegate ID"
+   - Type "XOT-HC" — hint shows "Searching by team ID"
+   - Type "hello" — hint shows generic message
+
+7. Test copyable IDs:
+   - Click a delegate ID — "Copied!" tooltip appears
+   - Paste elsewhere — correct ID pasted
+
+8. Test action buttons:
+   - "Register for More Events" navigates to /events
+   - "View Brochure" opens a new tab (placeholder for now)
+
+9. Test "Search Again":
+   - Click "Search Again" — results clear, input shown
+   - Input field is focused and empty
+
+10. Mobile verification (Chrome DevTools → iPhone):
+    - Search input full width
+    - Results cards stack vertically
+    - Action buttons stack vertically
+    - All text readable without horizontal scroll
+    - Copyable IDs work on mobile
+
+
+
+
+
+
+
+
+
+
+
+
+
+----
+
+Read @PLAN.md fully before writing any code.
+
 We are rebuilding the /events page and its underlying data with real event data for the fest. This involves:
 1. A new events catalogue with complete event data
 2. An updated seed script to populate Firestore

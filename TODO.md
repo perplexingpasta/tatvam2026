@@ -1,13 +1,5 @@
-refactor eventregistrations sheets data (per person? maybe js ask claude)
+verify registrationstatus vercel
 image compress and webp for event payment ss
-
-
-registration status (via claude)
-    I would like to add a page to my web app. It's /registration-status. I have already created a folder with the same name inside the app folder and it contains a blank page.tsx at the moment. The idea is that any user can just input his delegate ID or team ID or email to view all of his registration details. In the placeholder to collect this field have sample entries such as "user@mail.com, ADI-28210-KAW5A, XOT-HCYAS89" for a better UX. The user can also view all the events he has signed up for including their dates, venue and time. The user also sees which teams he's a part of and which team events he's signed up for. If the input email is the team lead's email, then all information pertaining to his team, events he's signed up for including his teammates will be shown. There's a few buttons at the bottom: one to view brochure, one to sign up for more events (/events). The contact of my team member is also given at the bottom in case he wants to modify any field/information since he's not allowed to do it himself. Feel free to give suggestions or ask me questions to make this better.
-    Note that this field is not for checking merch order status in any way.
-    craft a comprehensive prompt to give to my coding agent (gemini cli). feel free to ask me questions or make suggestions to improve this.
-
-
 how to change any property in currently listed events or add or delete events so that the change is updated everywhere
 
 
@@ -69,6 +61,8 @@ large team error on vercel (need image compression on upload) ✅
 test stagedupload on vercel ✅
 implement events ✅
 add solo tag to quizzes ✅
+make registrationstatus page ✅
+refactor eventregistrations sheets data ✅
 
 need to ask:
 - schedule

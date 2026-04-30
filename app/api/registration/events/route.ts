@@ -162,6 +162,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Get all participant IDs for sheets payload and registration document
+    const allParticipantIds = new Set<string>();
+    const eventNames: string[] = [];
+    cartItems.forEach(item => {
+      item.participantDelegateIds.forEach(id => allParticipantIds.add(id));
+      eventNames.push(item.eventName);
+    });
+
     // 3. Write eventRegistration document to Firestore
     const batch = adminDb.batch();
     const registrationRef = adminDb.collection("eventRegistrations").doc();
@@ -169,6 +177,7 @@ export async function POST(req: NextRequest) {
 
     const registrationData = {
       registrationId: registrationRef.id,
+      participantDelegateIds: Array.from(allParticipantIds),
       cartItems,
       totalAmount,
       paymentScreenshotUrl,
@@ -193,21 +202,12 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. Trigger Sheets sync asynchronously via sheetsRetryQueue
-    // Get all participant IDs for sheets payload
-    const allParticipantIds = new Set<string>();
-    const eventNames: string[] = [];
-    cartItems.forEach(item => {
-      item.participantDelegateIds.forEach(id => allParticipantIds.add(id));
-      eventNames.push(item.eventName);
-    });
-
     await batch.commit();
 
     // Fire and forget — never await this
     attemptSyncWithFallback("eventRegistration", {
       registrationId: registrationRef.id,
-      participantDelegateIds: Array.from(allParticipantIds),
-      eventNames: eventNames,
+      cartItems,
       totalAmount,
       utrNumber,
       paymentStatus: "pending_verification",
