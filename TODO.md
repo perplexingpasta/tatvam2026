@@ -1,4 +1,8 @@
 verify registrationstatus vercel
+
+
+do you see how we compress images and convert them to webp format before sending them to the backend in the delegate registrations form? well i would like to implement the same thing for the payment proof screenshot upload in the event registrations form. can you get this done for me? ensure no existing functionality breaks and you only touch relevant files. feel free to ask me questions or offer suggestions to improve this 
+
 image compress and webp for event payment ss
 how to change any property in currently listed events or add or delete events so that the change is updated everywhere
 

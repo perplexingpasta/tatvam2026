@@ -525,7 +525,7 @@ export default function RegistrationStatusPage() {
                     </p>
                   </div>
                   {result.delegate.teamId && (
-                    <div>
+                    <div className="text-gray-900">
                       <p className="text-sm text-gray-900 mb-1">Team ID</p>
                       <CopyableText text={result.delegate.teamId} />
                     </div>
