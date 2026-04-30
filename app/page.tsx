@@ -14,7 +14,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col items-center justify-center relative z-10 px-4 py-20 sm:px-6 lg:px-8">
         {/* Hero Section */}
         <div className="text-center max-w-4xl mx-auto mb-16">
-          <h1 className="text-5xl sm:text-7xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-6 font-[family-name:var(--font-heading)]">
+          <h1 className="text-5xl sm:text-7xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-6 font-heading">
             {festName}
           </h1>
           <p className="text-xl sm:text-2xl text-zinc-600 dark:text-zinc-400 font-medium max-w-2xl mx-auto">
@@ -31,7 +31,7 @@ export default function Home() {
             <div className="mb-4 inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
               <UserPlus size={24} />
             </div>
-            <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-2 font-[family-name:var(--font-heading)]">
+            <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-2 font-heading">
               Delegate Registration
             </h3>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6 flex-1">
@@ -49,7 +49,7 @@ export default function Home() {
             <div className="mb-4 inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400">
               <Calendar size={24} />
             </div>
-            <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-2 font-[family-name:var(--font-heading)]">
+            <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-2 font-heading">
               Explore Events
             </h3>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6 flex-1">
@@ -67,7 +67,7 @@ export default function Home() {
             <div className="mb-4 inline-flex items-center justify-center w-12 h-12 rounded-full bg-pink-100 dark:bg-pink-900/50 text-pink-600 dark:text-pink-400">
               <ShoppingBag size={24} />
             </div>
-            <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-2 font-[family-name:var(--font-heading)]">
+            <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-2 font-heading">
               Merch Store
             </h3>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6 flex-1">
