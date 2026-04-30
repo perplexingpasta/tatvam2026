@@ -2,6 +2,10 @@ import { adminDb } from "@/lib/firebaseAdmin";
 import { Event } from "@/types";
 import { EventsClient } from "@/components/EventsClient";
 
+export const metadata = {
+  title: "Events",
+};
+
 export const revalidate = 60; // Revalidate every minute if necessary
 
 export default async function EventsPage() {

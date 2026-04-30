@@ -3,9 +3,13 @@ import { merchCatalogue } from "@/lib/merchCatalogue";
 import { MerchItemCard } from "@/components/MerchItemCard";
 import { MerchCartIcon } from "@/components/MerchCartIcon";
 
+// export const metadata = {
+//   title: `${process.env.NEXT_PUBLIC_FEST_NAME || "Fest"} Merch Store`,
+//   description: "Get your official fest merchandise here.",
+// };
+
 export const metadata = {
-  title: `${process.env.NEXT_PUBLIC_FEST_NAME || "Fest"} Merch Store`,
-  description: "Get your official fest merchandise here.",
+  title: "Merch",
 };
 
 export default function MerchPage() {
