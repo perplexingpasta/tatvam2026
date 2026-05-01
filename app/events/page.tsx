@@ -49,7 +49,7 @@ export default async function EventsPage() {
     <div className="container mx-auto px-4 py-12 max-w-6xl">
       <div className="mb-12">
         <h1 className="text-4xl font-extrabold tracking-tight mb-4">Events</h1>
-        <p className="text-lg text-zinc-600 dark:text-zinc-400">
+        <p className="text-lg text-zinc-600 ">
           Fest Name — {process.env.NEXT_PUBLIC_FEST_NAME || "College Fest"}
         </p>
       </div>

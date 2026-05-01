@@ -44,25 +44,25 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
   return (
     <div 
       onClick={() => onViewDetails(event)}
-      className="group flex flex-col border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 bg-white dark:bg-zinc-950 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer h-full relative overflow-hidden"
+      className="group flex flex-col border border-zinc-200 rounded-xl p-5 bg-white shadow-sm hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer h-full relative overflow-hidden"
     >
       <div className="flex justify-between items-start mb-3 gap-4">
         <div>
-          <h3 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white leading-tight">
+          <h3 className="text-xl font-bold tracking-tight text-zinc-900 leading-tight">
             {event.indianName}
           </h3>
           {event.englishName && event.englishName !== event.indianName && (
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+            <p className="text-sm text-zinc-500 mt-0.5">
               {event.englishName}
             </p>
           )}
         </div>
         <div className="flex flex-col items-end gap-2 shrink-0">
-          <span className="inline-flex items-center rounded-md bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs font-medium text-zinc-800 dark:text-zinc-200 capitalize">
+          <span className="inline-flex items-center rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-800 capitalize">
             {event.category}
           </span>
           {event.isOnline && (
-            <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/30 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
+            <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ">
               Online
             </span>
           )}
@@ -71,12 +71,12 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
       
       <div className="flex flex-wrap gap-1.5 mb-4">
         {event.tags.slice(0, 3).map((tag) => (
-          <span key={tag} className="inline-flex items-center rounded-full border border-zinc-200 dark:border-zinc-700 px-2 py-0.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400">
+          <span key={tag} className="inline-flex items-center rounded-full border border-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-600 ">
             {tag.replace(/-/g, ' ')}
           </span>
         ))}
         {event.tags.length > 3 && (
-          <span className="inline-flex items-center rounded-full border border-zinc-200 dark:border-zinc-700 px-2 py-0.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400">
+          <span className="inline-flex items-center rounded-full border border-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-600 ">
             +{event.tags.length - 3}
           </span>
         )}
@@ -91,30 +91,30 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
           {event.type === "group" && (
             <div className="flex flex-col">
               <span className="text-xs text-zinc-500">Team Size</span>
-              <span className="font-medium text-zinc-700 dark:text-zinc-300">{renderTeamSize()}</span>
+              <span className="font-medium text-zinc-700 ">{renderTeamSize()}</span>
             </div>
           )}
           <div className="flex flex-col col-span-2 sm:col-span-1">
             <span className="text-xs text-zinc-500">Schedule</span>
-            <span className="font-medium text-zinc-700 dark:text-zinc-300 truncate" title={event.schedule || "TBA"}>
+            <span className="font-medium text-zinc-700 truncate" title={event.schedule || "TBA"}>
               {event.schedule || "TBA"}
             </span>
           </div>
           <div className="flex flex-col col-span-2 sm:col-span-1">
             <span className="text-xs text-zinc-500">Venue</span>
-            <span className="font-medium text-zinc-700 dark:text-zinc-300 truncate" title={event.venue || "TBA"}>
+            <span className="font-medium text-zinc-700 truncate" title={event.venue || "TBA"}>
               {event.venue || "TBA"}
             </span>
           </div>
         </div>
 
-        <div className="flex gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+        <div className="flex gap-2 pt-2 border-t border-zinc-100 ">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onViewDetails(event);
             }}
-            className="flex-1 py-2 px-3 rounded-lg font-medium text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+            className="flex-1 py-2 px-3 rounded-lg font-medium text-sm border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 transition-colors"
           >
             View Details
           </button>
@@ -124,10 +124,10 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             disabled={inCart || !event.isAvailable}
             className={`flex-1 py-2 px-3 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-1.5 ${
               !event.isAvailable
-                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed"
+                ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
                 : inCart
-                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
-                : "bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200"
+                ? "bg-zinc-100 text-zinc-500 cursor-not-allowed"
+                : "bg-black text-white hover:bg-zinc-800 "
             }`}
           >
             {!event.isAvailable ? (

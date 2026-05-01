@@ -42,9 +42,9 @@ export function EventModal({ event, onClose }: EventModalProps) {
       return <span className="text-green-600 font-semibold">Free Entry</span>;
     }
     if (event.pricingType === "per_person") {
-      return <span className="font-semibold">₹{event.fee} <span className="text-sm font-normal text-zinc-500 dark:text-zinc-400">per person</span></span>;
+      return <span className="font-semibold">₹{event.fee} <span className="text-sm font-normal text-zinc-500 ">per person</span></span>;
     }
-    return <span className="font-semibold">₹{event.fee} <span className="text-sm font-normal text-zinc-500 dark:text-zinc-400">total for the team</span></span>;
+    return <span className="font-semibold">₹{event.fee} <span className="text-sm font-normal text-zinc-500 ">total for the team</span></span>;
   };
 
   const renderTeamSize = () => {
@@ -66,7 +66,7 @@ export function EventModal({ event, onClose }: EventModalProps) {
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-[8px] p-2 sm:p-4 sm:pt-4 transition-all"
     >
       <div 
-        className="bg-white dark:bg-zinc-950 w-full sm:max-w-[600px] rounded-t-3xl sm:rounded-2xl sm:rounded-t-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 fade-in duration-200"
+        className="bg-white w-full sm:max-w-[600px] rounded-t-3xl sm:rounded-2xl sm:rounded-t-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 fade-in duration-200"
       >
         <button 
           onClick={onClose}
@@ -88,81 +88,81 @@ export function EventModal({ event, onClose }: EventModalProps) {
           </div>
 
           <div className="p-6 sm:p-8">
-            <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-1">
+            <h2 className="text-3xl font-bold tracking-tight text-zinc-900 mb-1">
               {event.indianName}
             </h2>
             {event.englishName && event.englishName !== event.indianName && (
-              <p className="text-lg text-zinc-500 dark:text-zinc-400 mb-6 font-medium">
+              <p className="text-lg text-zinc-500 mb-6 font-medium">
                 {event.englishName}
               </p>
             )}
 
             <div className="flex flex-wrap items-center gap-2 mb-8">
-              <span className="inline-flex items-center rounded-md bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 text-xs font-semibold text-zinc-800 dark:text-zinc-200 capitalize">
+              <span className="inline-flex items-center rounded-md bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-800 capitalize">
                 {event.category}
               </span>
               {event.isOnline && (
-                <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/30 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300">
+                <span className="inline-flex items-center rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 ">
                   Online
                 </span>
               )}
-              <span className="inline-flex items-center rounded-md bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 text-xs font-semibold text-zinc-800 dark:text-zinc-200 capitalize">
+              <span className="inline-flex items-center rounded-md bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-800 capitalize">
                 {event.type}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 bg-zinc-50 dark:bg-zinc-900/50 p-5 rounded-2xl border border-zinc-100 dark:border-zinc-800/50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 bg-zinc-50 p-5 rounded-2xl border border-zinc-100 ">
               <div className="space-y-4">
                 <div>
                   <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-1">Price</span>
-                  <div className="text-zinc-900 dark:text-zinc-100">{renderPrice()}</div>
+                  <div className="text-zinc-900 ">{renderPrice()}</div>
                 </div>
                 <div>
                   <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-1">Team Size</span>
-                  <div className="text-zinc-900 dark:text-zinc-100 font-medium">{renderTeamSize()}</div>
+                  <div className="text-zinc-900 font-medium">{renderTeamSize()}</div>
                 </div>
               </div>
               <div className="space-y-4">
                 <div>
                   <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-1">Schedule</span>
-                  <div className="text-zinc-900 dark:text-zinc-100 font-medium">
+                  <div className="text-zinc-900 font-medium">
                     {event.schedule || (event.eventDate || event.eventTime ? `${event.eventDate || ''} ${event.eventTime || ''}`.trim() : "TBA")}
                   </div>
                 </div>
                 <div>
                   <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-1">Venue</span>
-                  <div className="text-zinc-900 dark:text-zinc-100 font-medium">{event.venue || "TBA"}</div>
+                  <div className="text-zinc-900 font-medium">{event.venue || "TBA"}</div>
                 </div>
               </div>
             </div>
 
             <div className="space-y-8">
               <section>
-                <h4 className="text-lg font-bold text-zinc-900 dark:text-white mb-3">About this Event</h4>
-                <p className="text-zinc-600 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                <h4 className="text-lg font-bold text-zinc-900 mb-3">About this Event</h4>
+                <p className="text-zinc-600 leading-relaxed whitespace-pre-wrap">
                   {event.description || "Event details coming soon."}
                 </p>
               </section>
               
               <section>
-                <h4 className="text-lg font-bold text-zinc-900 dark:text-white mb-3">Rules</h4>
+                <h4 className="text-lg font-bold text-zinc-900 mb-3">Rules</h4>
                 {event.rules && event.rules.length > 0 ? (
-                  <ul className="list-disc list-inside space-y-2 text-zinc-600 dark:text-zinc-300 pl-1 marker:text-zinc-400">
+                  <ul className="list-disc list-inside space-y-2 text-zinc-600 pl-1 marker:text-zinc-400">
                     {event.rules.map((rule, idx) => (
                       <li key={idx} className="pl-1 leading-relaxed">{rule}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-zinc-600 dark:text-zinc-300 italic">Rules will be announced soon.</p>
+                  <p className="text-zinc-600 italic">Rules will be announced soon.</p>
                 )}
               </section>
               
               {(event.contactName || event.contactPhone) && (
                 <section>
-                  <h4 className="text-lg font-bold text-zinc-900 dark:text-white mb-3">Contact</h4>
-                  <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-xl p-4 border border-zinc-100 dark:border-zinc-800/50 flex flex-col gap-1 text-sm font-medium">
-                    {event.contactName && <span className="text-zinc-900 dark:text-zinc-100">{event.contactName}</span>}
-                    {event.contactPhone && <a href={`tel:${event.contactPhone}`} className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-2">
+                  <h4 className="text-lg font-bold text-zinc-900 mb-3">Contact</h4>
+                  <div className="bg-zinc-50 rounded-xl p-4 border border-zinc-100 flex flex-col gap-1 text-sm font-medium">
+                    {event.contactName && <span className="text-zinc-900 ">{event.contactName}</span>}
+                    {event.contactPhone && <a href={`tel:${event.contactPhone}`} className="text-blue-600 hover:underline inline-flex items-center gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                       {event.contactPhone}
                     </a>}
@@ -173,16 +173,16 @@ export function EventModal({ event, onClose }: EventModalProps) {
           </div>
         </div>
 
-        <div className="p-4 sm:p-6 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shrink-0">
+        <div className="p-4 sm:p-6 border-t border-zinc-200 bg-white shrink-0">
           <button
             onClick={handleAddToCart}
             disabled={inCart || !event.isAvailable}
             className={`w-full py-3.5 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-base ${
               !event.isAvailable
-                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed border border-zinc-200 dark:border-zinc-700"
+                ? "bg-zinc-100 text-zinc-400 cursor-not-allowed border border-zinc-200 "
                 : inCart
-                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 cursor-not-allowed border border-zinc-200 dark:border-zinc-700"
-                : "bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 hover:scale-[1.01] active:scale-[0.99] shadow-md hover:shadow-lg"
+                ? "bg-zinc-100 text-zinc-600 cursor-not-allowed border border-zinc-200 "
+                : "bg-black text-white hover:bg-zinc-800 hover:scale-[1.01] active:scale-[0.99] shadow-md hover:shadow-lg"
             }`}
           >
             {!event.isAvailable ? (

@@ -29,7 +29,7 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-zinc-200 dark:border-zinc-800">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-zinc-200 ">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex gap-6 items-center">
           <Link href="/" className="font-bold text-xl">
@@ -50,7 +50,7 @@ export function Header() {
         <div className="flex items-center gap-4">
           <Link
             href="/cart"
-            className="relative p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            className="relative p-2 rounded-md hover:bg-zinc-100 transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -68,13 +68,13 @@ export function Header() {
               <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
             </svg>
             {cart.length > 0 && (
-              <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-black dark:bg-white dark:text-black rounded-full">
+              <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-black rounded-full">
                 {cart.length}
               </span>
             )}
           </Link>
           <button
-            className="md:hidden p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            className="md:hidden p-2 rounded-md hover:bg-zinc-100 transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle mobile menu"
           >
@@ -85,7 +85,7 @@ export function Header() {
 
       {/* Mobile Menu Panel */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-background absolute w-full shadow-lg">
+        <div className="md:hidden border-t border-zinc-200 bg-background absolute w-full shadow-lg">
           <nav className="flex flex-col p-4 space-y-4">
             {navLinks.map((link) => (
               <Link

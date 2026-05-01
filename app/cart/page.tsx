@@ -278,20 +278,20 @@ export default function CartPage() {
   if (checkoutSuccess) {
     return (
       <div className="container mx-auto px-4 py-12 max-w-4xl text-center">
-        <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-xl p-12">
-          <div className="text-green-600 dark:text-green-400 mb-4">
+        <div className="bg-green-50 border border-green-200 rounded-xl p-12">
+          <div className="text-green-600 mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
           <h2 className="text-3xl font-bold mb-4">Registration Submitted!</h2>
-          <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-8">
+          <p className="text-lg text-zinc-600 mb-8">
             Your event registration has been received. We are verifying your payment.
             A confirmation email has been sent to the lead delegate.
           </p>
           <Link
             href="/"
-            className="inline-flex items-center justify-center h-12 px-8 font-medium tracking-wide text-white transition duration-200 bg-black dark:bg-white dark:text-black rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200"
+            className="inline-flex items-center justify-center h-12 px-8 font-medium tracking-wide text-white transition duration-200 bg-black rounded-lg hover:bg-zinc-800 "
           >
             Return Home
           </Link>
@@ -306,10 +306,10 @@ export default function CartPage() {
 
       {cart.length === 0 ? (
         <div className="text-center py-12 border rounded-xl border-dashed">
-          <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-4">Your cart is empty.</p>
+          <p className="text-lg text-zinc-600 mb-4">Your cart is empty.</p>
           <Link
             href="/events"
-            className="inline-flex items-center justify-center h-10 px-6 font-medium tracking-wide text-white transition duration-200 bg-black dark:bg-white dark:text-black rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200"
+            className="inline-flex items-center justify-center h-10 px-6 font-medium tracking-wide text-white transition duration-200 bg-black rounded-lg hover:bg-zinc-800 "
           >
             Browse Events
           </Link>
@@ -322,7 +322,7 @@ export default function CartPage() {
               if (!state) return null;
 
               return (
-                <div key={event.eventId} className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden p-6 relative">
+                <div key={event.eventId} className="bg-white border border-zinc-200 rounded-xl overflow-hidden p-6 relative">
                   <button
                     onClick={() => handleRemoveFromCart(event.eventId)}
                     className="absolute top-4 right-4 text-red-600 hover:text-red-800 text-sm font-medium"
@@ -348,7 +348,7 @@ export default function CartPage() {
                     <div className="space-y-4">
                       {state.eventType === "solo" ? (
                         <div>
-                          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                          <label className="block text-sm font-medium text-zinc-700 mb-1">
                             Enter your Delegate ID
                           </label>
                           <div className="flex gap-3">
@@ -363,12 +363,12 @@ export default function CartPage() {
                                 }
                               }))}
                               placeholder="XXX-XXXXX-XXXXX"
-                              className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white dark:bg-zinc-900"
+                              className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black "
                             />
                             <button
                               onClick={() => handleSoloVerify(event.eventId)}
                               disabled={!state.inputIds[0] || state.isVerifying}
-                              className="px-6 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg font-medium disabled:opacity-50 flex items-center justify-center min-w-[100px]"
+                              className="px-6 py-2 bg-black text-white rounded-lg font-medium disabled:opacity-50 flex items-center justify-center min-w-[100px]"
                             >
                               {state.isVerifying ? (
                                 <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -383,7 +383,7 @@ export default function CartPage() {
                         </div>
                       ) : (
                         <div>
-                          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          <label className="block text-sm font-medium text-zinc-700 mb-2">
                             Enter Delegate IDs for Group Members (Min: {state.minTeamSize}, Max: {state.maxTeamSize})
                           </label>
                           {state.inputIds.map((id, index) => (
@@ -400,7 +400,7 @@ export default function CartPage() {
                                   };
                                 })}
                                 placeholder={index === 0 ? "Member 1 ID (Lead)" : `Member ${index + 1} ID`}
-                                className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white dark:bg-zinc-900"
+                                className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black "
                               />
                               {state.inputIds.length > state.minTeamSize && (
                                 <button
@@ -417,14 +417,14 @@ export default function CartPage() {
                             {state.inputIds.length < state.maxTeamSize && (
                               <button
                                 onClick={() => handleAddGroupMember(event.eventId)}
-                                className="px-4 py-2 text-zinc-600 border rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                                className="px-4 py-2 text-zinc-600 border rounded-lg hover:bg-zinc-50 "
                               >
                                 + Add Member
                               </button>
                             )}
                             <button
                               onClick={() => handleGroupVerify(event.eventId)}
-                              className="px-6 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg font-medium ml-auto"
+                              className="px-6 py-2 bg-black text-white rounded-lg font-medium ml-auto"
                             >
                               Confirm Team
                             </button>
@@ -433,9 +433,9 @@ export default function CartPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800/30 rounded-lg p-4">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       <div className="flex justify-between items-center mb-3">
-                        <span className="text-green-700 dark:text-green-400 font-semibold flex items-center gap-2">
+                        <span className="text-green-700 font-semibold flex items-center gap-2">
                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
@@ -450,7 +450,7 @@ export default function CartPage() {
                       </div>
                       <ul className="space-y-2">
                         {state.participants.map((p, i) => (
-                          <li key={i} className="text-sm text-zinc-800 dark:text-zinc-200">
+                          <li key={i} className="text-sm text-zinc-800 ">
                             <span className="font-medium">{p?.name}</span> {i === 0 && "(Lead)"} ({p?.id}) - {p?.collegeName}
                           </li>
                         ))}
@@ -463,8 +463,8 @@ export default function CartPage() {
           </div>
 
           {allVerified && (
-            <form onSubmit={handleCheckout} className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden mt-8">
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
+            <form onSubmit={handleCheckout} className="bg-white border border-zinc-200 rounded-xl overflow-hidden mt-8">
+              <div className="p-6 bg-zinc-50 border-b border-zinc-200 flex justify-between items-center">
                 <span className="text-xl font-medium">Grand Total</span>
                 <span className="text-3xl font-bold">
                   ₹{cart.reduce((total, event) => total + event.fee, 0)}
@@ -495,7 +495,7 @@ export default function CartPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                      <label className="block text-sm font-medium text-zinc-700 mb-2">
                         UTR Number (12-22 alphanumeric characters)
                       </label>
                       <input
@@ -504,7 +504,7 @@ export default function CartPage() {
                         value={utrNumber}
                         onChange={(e) => setUtrNumber(e.target.value)}
                         placeholder="e.g. ABC123456789"
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white dark:bg-zinc-900"
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black "
                         pattern="[A-Za-z0-9]{12,22}"
                       />
                     </div>
@@ -533,7 +533,7 @@ export default function CartPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex items-center justify-center h-12 px-8 font-medium tracking-wide text-white transition duration-200 bg-black dark:bg-white dark:text-black rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-70"
+                    className="inline-flex items-center justify-center h-12 px-8 font-medium tracking-wide text-white transition duration-200 bg-black rounded-lg hover:bg-zinc-800 disabled:opacity-70"
                   >
                     {isSubmitting ? "Processing..." : "Complete Registration"}
                   </button>

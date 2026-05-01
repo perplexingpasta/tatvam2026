@@ -94,14 +94,14 @@ export function EventsClient({ events }: { events: Event[] }) {
           </div>
           <input
             type="text"
-            className="block w-full pl-11 pr-12 py-3.5 border border-zinc-200 dark:border-zinc-800 rounded-xl leading-5 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100 transition-colors sm:text-base shadow-sm"
+            className="block w-full pl-11 pr-12 py-3.5 border border-zinc-200 rounded-xl leading-5 bg-white text-zinc-900 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 transition-colors sm:text-base shadow-sm"
             placeholder="Search by event name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
             <button
-              className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
+              className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-400 hover:text-zinc-600 transition-colors"
               onClick={() => setSearchQuery("")}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -112,7 +112,7 @@ export function EventsClient({ events }: { events: Event[] }) {
         </div>
 
         {debouncedQuery && (
-          <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400 px-1">
+          <p className="text-sm font-medium text-zinc-600 px-1">
             {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'} found
           </p>
         )}
@@ -126,8 +126,8 @@ export function EventsClient({ events }: { events: Event[] }) {
                 onClick={() => setActiveTag(tag)}
                 className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   isActive
-                    ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-sm"
-                    : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-800 dark:hover:bg-zinc-900"
+                    ? "bg-zinc-900 text-white shadow-sm"
+                    : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50 "
                 }`}
               >
                 {tag}
@@ -149,15 +149,15 @@ export function EventsClient({ events }: { events: Event[] }) {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+            <div className="text-center py-16 bg-zinc-50 rounded-2xl border border-zinc-200 ">
               <span className="text-4xl mb-4 block">🔍</span>
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">No events found</h3>
+              <h3 className="text-lg font-bold text-zinc-900 mb-2">No events found</h3>
               <p className="text-zinc-500 max-w-md mx-auto">
                 No events found matching your criteria. Try a different search term or clear filters.
               </p>
               <button 
                 onClick={() => { setSearchQuery(""); setActiveTag("All"); }}
-                className="mt-6 px-4 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                className="mt-6 px-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm font-medium hover:bg-zinc-50 transition-colors"
               >
                 Clear Filters
               </button>
@@ -175,17 +175,17 @@ export function EventsClient({ events }: { events: Event[] }) {
             return (
               <section key={category.id} className="scroll-mt-24">
                 <div 
-                  className="flex items-center justify-between mb-6 pb-2 border-b border-zinc-200 dark:border-zinc-800 cursor-pointer group"
+                  className="flex items-center justify-between mb-6 pb-2 border-b border-zinc-200 cursor-pointer group"
                   onClick={() => toggleCategory(category.id)}
                 >
                   <h2 className="text-2xl font-bold flex items-center gap-3">
                     <span>{category.icon}</span>
                     <span>{category.name} Events</span>
-                    <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 px-2.5 py-0.5 rounded-full">
+                    <span className="text-sm font-medium text-zinc-500 bg-zinc-100 px-2.5 py-0.5 rounded-full">
                       {categoryEvents.length}
                     </span>
                   </h2>
-                  <button className="p-1 rounded-md text-zinc-400 group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition-colors">
+                  <button className="p-1 rounded-md text-zinc-400 group-hover:bg-zinc-100 transition-colors">
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
                       width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
