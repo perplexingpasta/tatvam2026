@@ -3,6 +3,7 @@ dotenv.config({ path: ".env.local" });
 
 import * as admin from "firebase-admin";
 import { eventsCatalogue } from "../lib/eventsCatalogue";
+import { sportsCatalogue } from "../lib/sportsCatalogue";
 
 // Initialize Firebase Admin SDK
 if (!admin.apps.length) {
@@ -24,6 +25,8 @@ const db = admin.firestore();
 async function seedEvents() {
   console.log("Starting to seed events...");
   
+  const ALL_EVENTS = [...eventsCatalogue, ...sportsCatalogue];
+  
   try {
     const eventsRef = db.collection("events");
     
@@ -41,16 +44,18 @@ async function seedEvents() {
 
     // Seed new events
     const seedBatch = db.batch();
-    eventsCatalogue.forEach((event, index) => {
+    ALL_EVENTS.forEach((event, index) => {
       const docRef = eventsRef.doc(event.eventId);
       seedBatch.set(docRef, event);
-      console.log(`Seeding ${index + 1}/${eventsCatalogue.length}: ${event.indianName}...`);
+      console.log(`Seeding ${index + 1}/${ALL_EVENTS.length}: ${event.indianName} (${event.eventDomain})...`);
     });
 
     await seedBatch.commit();
-    console.log(`✅ Seeded ${eventsCatalogue.length} events successfully`);
+    console.log(`✅ Seeded ${ALL_EVENTS.length} events (${eventsCatalogue.length} cultural + ${sportsCatalogue.length} sports) successfully!`);
   } catch (error) {
     console.error("Error seeding events:", error);
+  } finally {
+    process.exit();
   }
 }
 

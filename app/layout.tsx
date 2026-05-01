@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import { CartProvider } from "@/components/CartProvider";
 import { MerchCartProvider } from "@/components/MerchCartProvider";
+import { SportsCartProvider } from "@/components/SportsCartProvider";
 import { Header } from "@/components/Header";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -57,10 +58,12 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <CartProvider>
-          <MerchCartProvider>
-            <Header />
-            <main className="flex-1 flex flex-col">{children}</main>
-          </MerchCartProvider>
+          <SportsCartProvider>
+            <MerchCartProvider>
+              <Header />
+              <main className="flex-1 flex flex-col">{children}</main>
+            </MerchCartProvider>
+          </SportsCartProvider>
         </CartProvider>
         <Toaster position="bottom-right" richColors />
         <Analytics />

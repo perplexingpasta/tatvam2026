@@ -55,6 +55,15 @@ export async function POST(req: NextRequest) {
       //   continue;
       // }
 
+    if (!["delegate", "eventRegistration", "sportsRegistration"].includes(data.type)) {
+        await doc.ref.update({
+          status: "dead_letter",
+          lastError: `Unknown sync type: ${data.type}`,
+          updatedAt: Timestamp.now()
+        });
+        continue;
+      }
+
       const result = await syncToSheets(
         data.type as SyncType,
         data.payload,

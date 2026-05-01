@@ -5,6 +5,7 @@ import { Event } from '@/types';
 function createDummyEvent(overrides: Partial<Event>): Event {
   return {
     eventId: "dummy",
+    eventDomain: "cultural",
     indianName: "Dummy",
     englishName: "Dummy",
     slug: "dummy",

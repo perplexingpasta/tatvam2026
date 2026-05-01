@@ -63,6 +63,7 @@ All must be set in `.env.local` for development and in Vercel for production.
 - `NEXT_PUBLIC_FEST_NAME` — e.g. `"Tatvam 2026"`
 - `NEXT_PUBLIC_SITE_URL` — e.g. `"https://tatvam.in"` (used by cron)
 - `NEXT_PUBLIC_PAYMENT_QR_IMAGE_PATH` — path to QR image for delegate/event payments, e.g. `"/qr-code.webp"`
+- `NEXT_PUBLIC_SPORTS_PAYMENT_QR_IMAGE_PATH` — path to QR image for sports committee payments, e.g. `"/sports-qr-code.webp"`
 - `NEXT_PUBLIC_MERCH_PAYMENT_QR_IMAGE_PATH` — path to QR image for merch payments
 - `NEXT_PUBLIC_MAX_FILE_SIZE_MB` — max upload size, e.g. `"10"` (read in `/api/upload/image`)
 - `NEXT_PUBLIC_TIER_1_NAME` — e.g. `"Gold"`
@@ -114,6 +115,7 @@ All must be set in `.env.local` for development and in Vercel for production.
 ### 3. `eventRegistrations/{registrationId}`
 
 - `registrationId`: string — auto-generated Firestore doc ID
+- `domain`: `"cultural"` | `"sports"` (optional, defaults to cultural for older entries)
 - `participantDelegateIds`: string[] — flat array of all delegate IDs across all cart items (deduplicated)
 - `cartItems`: array of objects:
   - `eventId`: string
@@ -171,7 +173,7 @@ This wipes and re-seeds the entire `events` collection.
 
 Used by `lib/sheetsSync.ts` for the registration system's retry queue.
 
-- `type`: `"delegate"` | `"eventRegistration"`
+- `type`: `"delegate"` | `"eventRegistration"` | `"sportsRegistration"`
 - `referenceId`: string — delegateId, teamId, or registrationId
 - `payload`: any — the full sync payload
 - `retryCount`: number
@@ -270,6 +272,12 @@ Submits an event registration cart.
 **Error codes:** 400 (validation/missing fields), 409 (delegate already registered for an event), 415, 500
 
 **Behaviour:** Runs a Firestore transaction to verify no delegate is already in `registeredEventIds` for any event in the cart, then writes the `eventRegistrations` doc, batch-updates all delegate docs (`registeredEventIds: FieldValue.arrayUnion(eventId)`), fires Google Sheets sync (async), and sends a confirmation email to the lead delegate.
+
+---
+
+### `POST /api/registration/sports`
+
+Submits a sports registration cart. Identical contract and behaviour to `/api/registration/events`, but writes to the `SportsRegistrations` tab in Google Sheets.
 
 ---
 
@@ -401,7 +409,7 @@ All image uploads follow this pattern:
 
 ### Registration System (`lib/sheetsSync.ts`)
 
-**Sync types:** `"delegate"` | `"eventRegistration"`
+**Sync types:** `"delegate"` | `"eventRegistration"` | `"sportsRegistration"`
 
 **Flow:** `attemptSyncWithFallback()` is called fire-and-forget after writing to Firestore. It calls `syncToSheets()`. On failure, a doc is added to `sheetsRetryQueue` and the source doc's `sheetsSync.status` is set to `"failed"`.
 
@@ -437,6 +445,20 @@ All image uploads follow this pattern:
 | G | UTR Number |
 | H | Payment Status |
 | I | Submitted At (formatted in IST) |
+
+#### Sports Registrations Sheet (`"SportsRegistrations!A:J"`) — 10 columns, one row per cart item
+| Col | Field |
+|-----|-------|
+| A | Registration ID |
+| B | Event Name |
+| C | Event Type |
+| D | Participant Names (comma-separated) |
+| E | Participant IDs (comma-separated) |
+| F | Event Fee |
+| G | Total Amount |
+| H | UTR Number |
+| I | Payment Status |
+| J | Submitted At (formatted in IST) |
 
 ---
 
@@ -507,8 +529,17 @@ Defined in `lib/eventsCatalogue.ts` as a `rawEvents` array. The `buildEvent()` f
 
 - **`components/StagedFileUpload.tsx`** — File upload UI component used for college IDs, payment proofs, and merch payments. Uses `useImageUpload` hook internally.
 - **`hooks/useImageUpload.ts`** — Handles client-side compression (WebP), upload to `/api/upload/image`, and state management.
-- **`components/CartProvider.tsx`** — React context for the event registration cart. Session-only (no persistence).
+- **`components/CartProvider.tsx`** — React context for the cultural event registration cart. Persisted to `localStorage` under `"eventsCart"`.
 - **`lib/eventPricing.ts`** — Utility functions: `formatEventPrice()`, `getCartFee()`, `formatTeamSize()`.
+
+---
+
+## State Management & Carts
+
+All carts are persisted to `localStorage` and strictly isolated to prevent overlaps:
+- `"eventsCart"` — Cultural events cart state
+- `"sportsCart"` — Sports events cart state
+- `"merchCart"` — Merchandise cart state
 
 ---
 
@@ -524,7 +555,7 @@ Defined in `lib/eventsCatalogue.ts` as a `rawEvents` array. The `buildEvent()` f
 ## Event Registration Flow (Summary)
 
 1. Browse `/events` page (reads from Firestore `events` collection).
-2. Add events to cart (via `CartProvider` context).
+2. Add events to cart (persisted in `localStorage` under key `"eventsCart"`).
 3. Go to `/cart`. Enter delegate IDs per event, verify via `/api/delegates/lookup`.
 4. Upload payment screenshot via `StagedFileUpload`, enter UTR.
 5. Submit → calls `/api/registration/events` with pre-uploaded `paymentScreenshotUrl`.

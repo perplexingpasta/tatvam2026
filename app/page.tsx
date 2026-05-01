@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { UserPlus, Calendar, ShoppingBag, ArrowRight } from "lucide-react";
+import { UserPlus, Calendar, ShoppingBag, ArrowRight, Trophy } from "lucide-react";
 
 export default function Home() {
   const festName = process.env.NEXT_PUBLIC_FEST_NAME || "Tatvam 2026";
@@ -23,7 +23,7 @@ export default function Home() {
         </div>
 
         {/* CTA Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto w-full">
           <Link
             href="/registration"
             className="group relative flex flex-col p-8 bg-white/60 backdrop-blur-md rounded-2xl border border-zinc-200 hover:border-indigo-500 transition-all duration-300 shadow-sm hover:shadow-md"
@@ -75,6 +75,24 @@ export default function Home() {
             </p>
             <div className="flex items-center text-sm font-medium text-pink-600 mt-auto group-hover:translate-x-1 transition-transform">
               Shop Now <ArrowRight size={16} className="ml-1" />
+            </div>
+          </Link>
+
+          <Link
+            href="/sports"
+            className="group relative flex flex-col p-8 bg-white/60 backdrop-blur-md rounded-2xl border border-zinc-200 hover:border-emerald-500 transition-all duration-300 shadow-sm hover:shadow-md"
+          >
+            <div className="mb-4 inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 ">
+              <Trophy size={24} />
+            </div>
+            <h3 className="text-xl font-semibold text-zinc-900 mb-2 font-heading">
+              Sports Events
+            </h3>
+            <p className="text-zinc-600 mb-6 flex-1">
+              Participate in exciting sports events and showcase your athletic prowess.
+            </p>
+            <div className="flex items-center text-sm font-medium text-emerald-600 mt-auto group-hover:translate-x-1 transition-transform">
+              View Sports <ArrowRight size={16} className="ml-1" />
             </div>
           </Link>
         </div>

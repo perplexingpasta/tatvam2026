@@ -5,7 +5,7 @@ import { Timestamp } from "firebase-admin/firestore";
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
 
-export type SyncType = "delegate" | "eventRegistration";
+export type SyncType = "delegate" | "eventRegistration" | "sportsRegistration";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const formatDate = (dateValue: any) => {
@@ -142,6 +142,38 @@ export const syncToSheets = async (
         valueInputOption: "USER_ENTERED",
         requestBody: { values },
       });
+    } else if (type === "sportsRegistration") {
+      const cartItems = payload.cartItems || [];
+      if (cartItems.length === 0) {
+        throw new Error(
+          "No cart items in sportsRegistration payload"
+        );
+      }
+      const values = cartItems.map((item: {
+        eventName: string;
+        eventType: string;
+        participantNames: string[];
+        participantDelegateIds: string[];
+        eventFee: number;
+      }) => [
+        payload.registrationId,
+        item.eventName,
+        item.eventType === "solo" ? "Solo" : "Group",
+        (item.participantNames || []).join(", "),
+        (item.participantDelegateIds || []).join(", "),
+        `₹${item.eventFee}`,
+        `₹${payload.totalAmount}`,
+        payload.utrNumber || "",
+        payload.paymentStatus || "",
+        formatDate(payload.submittedAt),
+      ]);
+
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: SPREADSHEET_ID,
+        range: "SportsRegistrations!A:J",
+        valueInputOption: "USER_ENTERED",
+        requestBody: { values },
+      });
     } else {
       throw new Error(`Invalid sync type: ${type}`);
     }
@@ -183,8 +215,7 @@ export const syncToSheets = async (
         }
       }
     } else if (referenceId) {
-      const collection =
-        type === "eventRegistration" ? "eventRegistrations" : "delegates";
+      const collection = type === "delegate" ? "delegates" : "eventRegistrations";
       try {
         await adminDb.collection(collection).doc(referenceId).update({
           "sheetsSync.status": "synced",
@@ -276,8 +307,7 @@ export const syncToSheets = async (
         }
       }
     } else if (referenceId) {
-      const collection =
-        type === "eventRegistration" ? "eventRegistrations" : "delegates";
+      const collection = type === "delegate" ? "delegates" : "eventRegistrations";
       try {
         await adminDb
           .collection(collection)

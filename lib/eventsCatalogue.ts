@@ -3,6 +3,7 @@ import { Event } from "../types";
 export type RawEvent = Omit<
   Event,
   | "eventId"
+  | "eventDomain"
   | "description"
   | "shortDescription"
   | "imageUrls"
@@ -16,6 +17,7 @@ export type RawEvent = Omit<
   | "isAvailable"
   | "tags"
 > & {
+  eventDomain?: "cultural" | "sports";
   description?: string;
   shortDescription?: string;
   imageUrls?: string[];
@@ -91,6 +93,7 @@ export const generateTags = (event: RawEvent): string[] => {
 export const buildEvent = (raw: RawEvent): Event => ({
   ...raw,
   eventId: raw.slug,
+  eventDomain: raw.eventDomain ?? "cultural",
   description: raw.description ?? "",
   shortDescription: raw.shortDescription ?? "",
   imageUrls: raw.imageUrls ?? [],

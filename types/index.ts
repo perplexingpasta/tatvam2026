@@ -77,7 +77,8 @@ export type EventCategory =
   | "quiz"
   | "drama"
   | "art"
-  | "literary";
+  | "literary"
+  | "sports";
 
 export type PricingType = "per_person" | "flat_total" | "free";
 
@@ -97,16 +98,18 @@ export type EventTag =
   | "visual-arts"
   | "literary"
   | "music"
-  | "dance";
+  | "dance"
+  | "sports";
 
 export const eventSchema = z.object({
   eventId: z.string(),
+  eventDomain: z.enum(["cultural", "sports"]).default("cultural"),
   indianName: z.string(),        // e.g. "Swar Leela"
   englishName: z.string(),       // e.g. "Solo Eastern Singing"
   slug: z.string(),              // url-safe, e.g. "swar-leela"
   category: z.enum([
     "music", "dance", "assorted", "quiz", 
-    "drama", "art", "literary"
+    "drama", "art", "literary", "sports"
   ]),
   description: z.string(),       // full description, can be 
                                  // empty string for now

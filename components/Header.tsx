@@ -1,25 +1,60 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "./CartProvider";
-import { Menu, X } from "lucide-react";
+import { useSportsCart } from "./SportsCartProvider";
+import { useMerchCart } from "./MerchCartProvider";
+import { Menu, X, ShoppingCart, Music, Trophy, Shirt } from "lucide-react";
 
 export function Header() {
   const { cart } = useCart();
+  const { sportsCart, sportsCartCount } = useSportsCart();
+  const { merchCart, merchCartCount } = useMerchCart();
+  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const pathname = usePathname();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close mobile menu on route change
+  const totalCartCount = cart.length + sportsCartCount + merchCartCount;
+
+  // Close menus on route change
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobileMenuOpen(false);
+    setIsCartOpen(false);
   }, [pathname]);
+
+  // Handle click outside and Escape key for cart dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsCartOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsCartOpen(false);
+      }
+    }
+
+    if (isCartOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isCartOpen]);
 
   const navLinks = [
     { label: "Home", path: "/" },
     { label: "Events", path: "/events" },
+    { label: "Sports", path: "/sports" },
     { label: "Registration", path: "/registration" },
     { label: "Check Status", path: "/registration-status" },
     { label: "Merch", path: "/merch" },
@@ -29,7 +64,7 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-zinc-200 ">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-zinc-200">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex gap-6 items-center">
           <Link href="/" className="font-bold text-xl">
@@ -48,31 +83,119 @@ export function Header() {
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          <Link
-            href="/cart"
-            className="relative p-2 rounded-md hover:bg-zinc-100 transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setIsCartOpen(!isCartOpen)}
+              className="relative p-2 rounded-md hover:bg-zinc-100 transition-colors"
+              aria-label="Cart"
+              aria-expanded={isCartOpen}
             >
-              <circle cx="8" cy="21" r="1" />
-              <circle cx="19" cy="21" r="1" />
-              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-            </svg>
-            {cart.length > 0 && (
-              <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-black rounded-full">
-                {cart.length}
-              </span>
+              <ShoppingCart size={24} />
+              {totalCartCount > 0 && (
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-black rounded-full">
+                  {totalCartCount}
+                </span>
+              )}
+            </button>
+
+            {/* Cart Dropdown Panel */}
+            {isCartOpen && (
+              <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] md:w-80 bg-white border border-zinc-200 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                
+                {/* SECTION 1: Cultural Events */}
+                <div className="p-4 border-b border-zinc-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 text-zinc-900 font-semibold">
+                      <Music size={16} />
+                      <span>Cultural Events</span>
+                    </div>
+                    <span className="text-xs font-medium px-2 py-0.5 bg-zinc-100 rounded-full">
+                      {cart.length} event{cart.length !== 1 && "s"}
+                    </span>
+                  </div>
+                  {cart.length === 0 ? (
+                    <p className="text-sm text-zinc-500 mb-3">No events in cart</p>
+                  ) : (
+                    <ul className="text-sm text-zinc-600 mb-3 space-y-1">
+                      {cart.slice(0, 2).map((item, i) => (
+                        <li key={i} className="truncate">{item.indianName}</li>
+                      ))}
+                      {cart.length > 2 && <li>+ {cart.length - 2} more</li>}
+                    </ul>
+                  )}
+                  <Link
+                    href="/cart"
+                    onClick={() => setIsCartOpen(false)}
+                    className="block w-full text-center text-sm font-medium bg-black text-white py-2 rounded-md hover:bg-zinc-800 transition-colors"
+                  >
+                    View Cart
+                  </Link>
+                </div>
+
+                {/* SECTION 2: Sports Events */}
+                <div className="p-4 border-b border-zinc-100 bg-zinc-50/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 text-zinc-900 font-semibold">
+                      <Trophy size={16} />
+                      <span>Sports Events</span>
+                    </div>
+                    <span className="text-xs font-medium px-2 py-0.5 bg-zinc-200 rounded-full">
+                      {sportsCartCount} event{sportsCartCount !== 1 && "s"}
+                    </span>
+                  </div>
+                  {sportsCartCount === 0 ? (
+                    <p className="text-sm text-zinc-500 mb-3">No sports in cart</p>
+                  ) : (
+                    <ul className="text-sm text-zinc-600 mb-3 space-y-1">
+                      {sportsCart.slice(0, 2).map((item, i) => (
+                        <li key={i} className="truncate">{item.indianName}</li>
+                      ))}
+                      {sportsCartCount > 2 && <li>+ {sportsCartCount - 2} more</li>}
+                    </ul>
+                  )}
+                  <Link
+                    href="/sports/cart"
+                    onClick={() => setIsCartOpen(false)}
+                    className="block w-full text-center text-sm font-medium bg-black text-white py-2 rounded-md hover:bg-zinc-800 transition-colors"
+                  >
+                    View Cart
+                  </Link>
+                </div>
+
+                {/* SECTION 3: Merch */}
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 text-zinc-900 font-semibold">
+                      <Shirt size={16} />
+                      <span>Merch</span>
+                    </div>
+                    <span className="text-xs font-medium px-2 py-0.5 bg-zinc-100 rounded-full">
+                      {merchCartCount} item{merchCartCount !== 1 && "s"}
+                    </span>
+                  </div>
+                  {merchCartCount === 0 ? (
+                    <p className="text-sm text-zinc-500 mb-3">No items in cart</p>
+                  ) : (
+                    <ul className="text-sm text-zinc-600 mb-3 space-y-1">
+                      {merchCart.slice(0, 2).map((item, i) => (
+                        <li key={i} className="truncate">{item.itemName}</li>
+                      ))}
+                      {merchCartCount > 2 && <li>+ {merchCartCount - 2} more</li>}
+                    </ul>
+                  )}
+                  <Link
+                    href="/merch/cart"
+                    onClick={() => setIsCartOpen(false)}
+                    className="block w-full text-center text-sm font-medium bg-black text-white py-2 rounded-md hover:bg-zinc-800 transition-colors"
+                  >
+                    View Cart
+                  </Link>
+                </div>
+
+              </div>
             )}
-          </Link>
+          </div>
+
           <button
             className="md:hidden p-2 rounded-md hover:bg-zinc-100 transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
