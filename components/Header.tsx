@@ -89,9 +89,9 @@ export function Header() {
         <div className="flex items-center gap-4">
           <div className="relative" ref={dropdownRef}>
             <button
-              onClick={() => setIsCartOpen(!isCartOpen)}
+              onClick={() => { setIsCartOpen(!isCartOpen); setIsMobileMenuOpen(false); }}
               className="relative p-2 rounded-md hover:bg-zinc-100 transition-colors"
-              aria-label="Cart"
+              aria-label="Open header menu"
               aria-expanded={isCartOpen}
             >
               <ShoppingCart size={24} />
@@ -203,7 +203,7 @@ export function Header() {
           <button
             className="md:hidden p-2 rounded-md hover:bg-zinc-100 transition-colors"
             onClick={() => setIsMobileMenuOpen(true)}
-            aria-label="Open mobile menu"
+            aria-label="Open menu"
           >
             <Menu size={24} />
           </button>
@@ -220,7 +220,9 @@ export function Header() {
       />
 
       {/* Mobile Menu Panel */}
-      <div 
+      <div
+        role="navigation"
+        aria-label="Mobile drawer"
         className={`md:hidden fixed inset-y-0 left-0 z-[110] w-4/5 max-w-sm bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
@@ -235,7 +237,7 @@ export function Header() {
             <X size={24} />
           </button>
         </div>
-        <nav className="flex flex-col p-4 space-y-2 overflow-y-auto">
+        <nav role="navigation" aria-label="Mobile menu" className="flex flex-col p-4 space-y-2 overflow-y-auto">
           {navLinks.map((link) => {
             const Icon = link.icon;
             return (
