@@ -39,15 +39,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem(CART_STORAGE_KEY);
+      const saved = localStorage.getItem(CART_STORAGE_KEY);
+      
+      // Update state asynchronously to avoid synchronous cascading renders
+      Promise.resolve().then(() => {
         if (saved) {
-          setCart(JSON.parse(saved));
+          try {
+            setCart(JSON.parse(saved));
+          } catch {
+            // Ignore parse errors
+          }
         }
-      } catch {
-        // Ignore parse errors, start with empty cart
-      }
-      setIsInitialized(true);
+        setIsInitialized(true);
+      });
     }
   }, []);
 

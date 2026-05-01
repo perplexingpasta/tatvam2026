@@ -23,11 +23,12 @@ export function Header() {
 
   const totalCartCount = cart.length + sportsCartCount + merchCartCount;
 
-  // Close menus on route change
-  useEffect(() => {
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
     setIsMobileMenuOpen(false);
     setIsCartOpen(false);
-  }, [pathname]);
+  }
 
   // Handle click outside and Escape key for cart dropdown
   useEffect(() => {

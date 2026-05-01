@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Navigation Routing', () => {
-  test('should navigate to correct base pages from header', async ({ page, isMobile }) => {
+  test('should navigate to correct base pages from header', async ({ page }) => {
     await page.goto('/');
     
     // In a real scenario we'd click the links. 

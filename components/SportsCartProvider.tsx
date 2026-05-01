@@ -23,15 +23,19 @@ export function SportsCartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem(SPORTS_CART_STORAGE_KEY);
+      const saved = localStorage.getItem(SPORTS_CART_STORAGE_KEY);
+      
+      // Update state asynchronously to avoid synchronous cascading renders
+      Promise.resolve().then(() => {
         if (saved) {
-          setSportsCart(JSON.parse(saved));
+          try {
+            setSportsCart(JSON.parse(saved));
+          } catch {
+            // Ignore parse errors
+          }
         }
-      } catch {
-        // Ignore parse errors, start with empty cart
-      }
-      setIsInitialized(true);
+        setIsInitialized(true);
+      });
     }
   }, []);
 
