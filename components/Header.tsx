@@ -6,7 +6,10 @@ import { usePathname } from "next/navigation";
 import { useCart } from "./CartProvider";
 import { useSportsCart } from "./SportsCartProvider";
 import { useMerchCart } from "./MerchCartProvider";
-import { Menu, X, ShoppingCart, Music, Trophy, Shirt } from "lucide-react";
+import { 
+  Menu, X, ShoppingCart, Music, Trophy, Shirt,
+  Home, Calendar, UserPlus, Search, ShoppingBag, Info, MessageCircle, Clock 
+} from "lucide-react";
 
 export function Header() {
   const { cart } = useCart();
@@ -52,20 +55,21 @@ export function Header() {
   }, [isCartOpen]);
 
   const navLinks = [
-    { label: "Home", path: "/" },
-    { label: "Events", path: "/events" },
-    { label: "Sports", path: "/sports" },
-    { label: "Registration", path: "/registration" },
-    { label: "Check Status", path: "/registration-status" },
-    { label: "Merch", path: "/merch" },
-    { label: "About", path: "/about" },
-    { label: "Contact", path: "/contact" },
-    { label: "Schedule", path: "/schedule" },
+    { label: "Home", path: "/", icon: Home },
+    { label: "Events", path: "/events", icon: Calendar },
+    { label: "Sports", path: "/sports", icon: Trophy },
+    { label: "Registration", path: "/registration", icon: UserPlus },
+    { label: "Check Status", path: "/registration-status", icon: Search },
+    { label: "Merch", path: "/merch", icon: ShoppingBag },
+    { label: "About", path: "/about", icon: Info },
+    { label: "Contact", path: "/contact", icon: MessageCircle },
+    { label: "Schedule", path: "/schedule", icon: Clock },
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-zinc-200">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+    <>
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-zinc-200">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex gap-6 items-center">
           <Link href="/" className="font-bold text-xl">
             {process.env.NEXT_PUBLIC_FEST_NAME || "FEST"}
@@ -198,30 +202,56 @@ export function Header() {
 
           <button
             className="md:hidden p-2 rounded-md hover:bg-zinc-100 transition-colors"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle mobile menu"
+            onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Open mobile menu"
           >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            <Menu size={24} />
           </button>
         </div>
       </div>
+      </header>
+
+      {/* Mobile Menu Overlay */}
+      <div 
+        className={`md:hidden fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${
+          isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setIsMobileMenuOpen(false)}
+      />
 
       {/* Mobile Menu Panel */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-zinc-200 bg-background absolute w-full shadow-lg">
-          <nav className="flex flex-col p-4 space-y-4">
-            {navLinks.map((link) => (
+      <div 
+        className={`md:hidden fixed inset-y-0 left-0 z-[110] w-4/5 max-w-sm bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-zinc-100">
+          <span className="font-bold text-xl">{process.env.NEXT_PUBLIC_FEST_NAME || "FEST"}</span>
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 rounded-md hover:bg-zinc-100 transition-colors"
+            aria-label="Close mobile menu"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        <nav className="flex flex-col p-4 space-y-2 overflow-y-auto">
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+            return (
               <Link
                 key={link.path}
                 href={link.path}
-                className="text-sm font-medium hover:underline underline-offset-4"
+                className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-zinc-100 text-lg font-semibold text-zinc-800 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
+                <Icon size={24} className="text-zinc-500" />
                 {link.label}
               </Link>
-            ))}
-          </nav>
-        </div>
-      )}
-    </header>
+            );
+          })}
+        </nav>
+      </div>
+    </>
   );
 }
