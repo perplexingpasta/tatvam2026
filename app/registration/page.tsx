@@ -75,6 +75,9 @@ export default function RegistrationPage() {
     { collegeIdImageOriginalUrl: null, collegeIdImageTransformedUrl: null }
   ]);
 
+  const [isUploadingCollegeId, setIsUploadingCollegeId] = useState<boolean[]>([false]);
+  const [isUploadingPayment, setIsUploadingPayment] = useState(false);
+
   const [paymentScreenshot, setPaymentScreenshot] = useState<{
     originalUrl: string | null;
     transformedUrl: string | null;
@@ -141,12 +144,16 @@ export default function RegistrationPage() {
       utrNumber: "",
     });
     setMemberUploads([{ collegeIdImageOriginalUrl: null, collegeIdImageTransformedUrl: null }]);
+    setIsUploadingCollegeId([false]);
+    setIsUploadingPayment(false);
     setPaymentScreenshot({ originalUrl: null, transformedUrl: null });
   };
 
   const handleBackToSelection = () => {
     setMode("selection");
     setMemberUploads([{ collegeIdImageOriginalUrl: null, collegeIdImageTransformedUrl: null }]);
+    setIsUploadingCollegeId([false]);
+    setIsUploadingPayment(false);
     setPaymentScreenshot({ originalUrl: null, transformedUrl: null });
   };
 
@@ -164,6 +171,7 @@ export default function RegistrationPage() {
       delegateTier: mode === "jssmc" ? "tier3" : "tier1",
     });
     setMemberUploads(prev => [...prev, { collegeIdImageOriginalUrl: null, collegeIdImageTransformedUrl: null }]);
+    setIsUploadingCollegeId(prev => [...prev, false]);
   };
 
   const handleRemoveMember = (index: number) => {
@@ -172,6 +180,11 @@ export default function RegistrationPage() {
       const newUploads = [...prev];
       newUploads.splice(index, 1);
       return newUploads;
+    });
+    setIsUploadingCollegeId(prev => {
+      const newArr = [...prev];
+      newArr.splice(index, 1);
+      return newArr;
     });
   };
 
@@ -271,8 +284,13 @@ export default function RegistrationPage() {
       .filter(i => !memberUploads[i]?.collegeIdImageOriginalUrl);
     
     if (pendingCollegeIds.length > 0) {
-      const pendingNames = pendingCollegeIds.map(i => watchMembers[i]?.name || `Member ${i + 1}`).join(", ");
-      setError(`Please wait for the following uploads to complete: College ID for ${pendingNames}`);
+      const anyUploading = isUploadingCollegeId.some(Boolean);
+      if (anyUploading) {
+        toast.warning("Please wait — College ID is still uploading");
+      } else {
+        const pendingNames = pendingCollegeIds.map(i => watchMembers[i]?.name || `Member ${i + 1}`).join(", ");
+        setError(`Please upload the College ID for: ${pendingNames}`);
+      }
       return;
     }
 
@@ -323,7 +341,11 @@ export default function RegistrationPage() {
     if (mode === "external") {
       const paymentPending = !paymentScreenshot.originalUrl;
       if (paymentPending) {
-        setError("Please wait for the payment screenshot to finish uploading");
+        if (isUploadingPayment) {
+          toast.warning("Please wait — payment screenshot is still uploading");
+        } else {
+          setError("Please upload the payment screenshot before submitting");
+        }
         return;
       }
       if (!data.utrNumber || !/^[A-Za-z0-9]{12,22}$/.test(data.utrNumber)) {
@@ -534,6 +556,13 @@ export default function RegistrationPage() {
                         label="College ID Image"
                         compressionTargetMB={0.5}
                         maxWidthOrHeight={1200}
+                        onUploadingChange={(uploading) => {
+                          setIsUploadingCollegeId(prev => {
+                            const next = [...prev];
+                            next[index] = uploading;
+                            return next;
+                          });
+                        }}
                         onUploadComplete={(urls) => {
                           setMemberUploads(prev => {
                             const newUploads = [...prev];
@@ -680,6 +709,7 @@ export default function RegistrationPage() {
                       label="Upload Payment Screenshot"
                       compressionTargetMB={0.8}
                       maxWidthOrHeight={2000}
+                      onUploadingChange={setIsUploadingPayment}
                       onUploadComplete={(urls) => {
                         setPaymentScreenshot({
                           originalUrl: urls.originalUrl,

@@ -30,6 +30,7 @@ export default function MerchCartPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingPayment, setIsUploadingPayment] = useState(false);
 
   // Success data
   const [orderId, setOrderId] = useState<string>("");
@@ -110,7 +111,11 @@ export default function MerchCartPage() {
     if (!isFormValid()) return;
     
     if (!paymentScreenshot.originalUrl) {
-      setSubmitError("Please wait for the payment screenshot to finish uploading");
+      if (isUploadingPayment) {
+        toast.warning("Please wait — payment screenshot is still uploading");
+      } else {
+        setSubmitError("Please wait for the payment screenshot to finish uploading");
+      }
       return;
     }
 
@@ -476,6 +481,7 @@ export default function MerchCartPage() {
                       label="Payment Screenshot *"
                       compressionTargetMB={0.8}
                       maxWidthOrHeight={2000}
+                      onUploadingChange={setIsUploadingPayment}
                       onUploadComplete={(urls) => {
                         setPaymentScreenshot({ originalUrl: urls.originalUrl });
                       }}

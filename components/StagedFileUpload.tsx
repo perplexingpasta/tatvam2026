@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useRef, ChangeEvent } from "react";
+import React, { useEffect, useRef, useId, ChangeEvent } from "react";
 import { useImageUpload } from "@/hooks/useImageUpload";
+import { toast } from "sonner";
 
 interface StagedFileUploadProps {
   folder: "college-ids" | "payment-proofs" | "merch-payments";
@@ -11,6 +12,7 @@ interface StagedFileUploadProps {
     transformedUrl: string;
   }) => void;
   onUploadReset: () => void;
+  onUploadingChange?: (isUploading: boolean) => void;
   disabled?: boolean;
   compressionTargetMB?: number;
   maxWidthOrHeight?: number;
@@ -21,6 +23,7 @@ export function StagedFileUpload({
   label,
   onUploadComplete,
   onUploadReset,
+  onUploadingChange,
   disabled = false,
   compressionTargetMB = 0.5,
   maxWidthOrHeight = 1200,
@@ -30,6 +33,11 @@ export function StagedFileUpload({
     compressionTargetMB,
     maxWidthOrHeight,
   });
+
+  const toastId = useId();
+
+  const uploadSubject =
+    folder === "college-ids" ? "College ID" : "Payment proof";
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasCalledComplete = useRef(false);
@@ -73,6 +81,24 @@ export function StagedFileUpload({
     // Only depend on upload state values — NOT on the callbacks
      
   }, [uploadState.status, uploadState.originalUrl, uploadState.transformedUrl]);
+
+  // Show Sonner toasts for upload lifecycle
+  useEffect(() => {
+    if (
+      uploadState.status === "compressing" ||
+      uploadState.status === "uploading"
+    ) {
+      toast.loading(`Uploading ${uploadSubject}…`, { id: toastId });
+      onUploadingChange?.(true);
+    } else if (uploadState.status === "success") {
+      toast.success(`${uploadSubject} uploaded successfully`, { id: toastId });
+      onUploadingChange?.(false);
+    } else if (uploadState.status === "error" || uploadState.status === "idle") {
+      toast.dismiss(toastId);
+      onUploadingChange?.(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploadState.status]);
 
   const handleChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;

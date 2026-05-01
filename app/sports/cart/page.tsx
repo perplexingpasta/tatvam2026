@@ -42,6 +42,7 @@ export default function SportsCartPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
+  const [isUploadingPayment, setIsUploadingPayment] = useState(false);
 
   // Initialize item states if not present
   if (cart.length > 0 && Object.keys(itemStates).length === 0) {
@@ -209,7 +210,11 @@ export default function SportsCartPage() {
       return;
     }
     if (!utrNumber || !paymentScreenshot.originalUrl) {
-      setCheckoutError("Please provide both UTR number and wait for payment screenshot to upload.");
+      if (isUploadingPayment) {
+        toast.warning("Please wait — payment screenshot is still uploading");
+      } else {
+        setCheckoutError("Please provide both UTR number and wait for payment screenshot to upload.");
+      }
       return;
     }
 
@@ -520,6 +525,7 @@ export default function SportsCartPage() {
                         label="Upload Payment Screenshot"
                         compressionTargetMB={0.8}
                         maxWidthOrHeight={2000}
+                        onUploadingChange={setIsUploadingPayment}
                         onUploadComplete={(urls) => {
                           setPaymentScreenshot({
                             originalUrl: urls.originalUrl,
@@ -539,9 +545,19 @@ export default function SportsCartPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex items-center justify-center h-12 px-8 font-medium tracking-wide text-white transition duration-200 bg-black rounded-lg hover:bg-zinc-800 disabled:opacity-70"
+                    className="inline-flex items-center justify-center gap-2 h-12 px-8 font-medium tracking-wide text-white transition duration-200 bg-black rounded-lg hover:bg-zinc-800 disabled:opacity-70"
                   >
-                    {isSubmitting ? "Processing..." : "Complete Registration"}
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                      </>
+                    ) : (
+                      "Complete Registration"
+                    )}
                   </button>
                 </div>
               </div>
