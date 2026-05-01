@@ -1,6 +1,21 @@
 import { Event } from "../types";
 
-export type RawEvent = Omit<Event, "eventId" | "description" | "shortDescription" | "imageUrls" | "venue" | "eventDate" | "eventTime" | "schedule" | "rules" | "contactName" | "contactPhone" | "isAvailable" | "tags"> & {
+export type RawEvent = Omit<
+  Event,
+  | "eventId"
+  | "description"
+  | "shortDescription"
+  | "imageUrls"
+  | "venue"
+  | "eventDate"
+  | "eventTime"
+  | "schedule"
+  | "rules"
+  | "contactName"
+  | "contactPhone"
+  | "isAvailable"
+  | "tags"
+> & {
   description?: string;
   shortDescription?: string;
   imageUrls?: string[];
@@ -36,10 +51,18 @@ export const generateTags = (event: RawEvent): string[] => {
   if (event.maxTeamSize && event.maxTeamSize >= 6) tags.add("large-team");
 
   // Add "small-team" if maxTeamSize <= 5 && type is "group"
-  if (event.maxTeamSize && event.maxTeamSize <= 5 && event.type === "group") tags.add("small-team");
+  if (event.maxTeamSize && event.maxTeamSize <= 5 && event.type === "group")
+    tags.add("small-team");
 
   // Add "flagship"
-  const flagshipSlugs = ["ahaang", "group-dance", "streetplay", "fashion-main", "codm-mobile", "bgmi-mobile"];
+  const flagshipSlugs = [
+    "ahaang",
+    "group-dance",
+    "streetplay",
+    "fashion-main",
+    "codm-mobile",
+    "bgmi-mobile",
+  ];
   if (event.slug && flagshipSlugs.includes(event.slug)) tags.add("flagship");
 
   // Add "gaming"
@@ -47,7 +70,8 @@ export const generateTags = (event: RawEvent): string[] => {
   if (event.slug && gamingSlugs.includes(event.slug)) tags.add("gaming");
 
   // Add "performing-arts"
-  if (event.category === "music" || event.category === "dance") tags.add("performing-arts");
+  if (event.category === "music" || event.category === "dance")
+    tags.add("performing-arts");
 
   // Add "visual-arts"
   if (event.category === "art") tags.add("visual-arts");
@@ -81,7 +105,6 @@ export const buildEvent = (raw: RawEvent): Event => ({
   tags: generateTags(raw),
 });
 
-
 const rawEvents: RawEvent[] = [
   // --- MUSIC ---
   {
@@ -97,27 +120,25 @@ const rawEvents: RawEvent[] = [
     isOnline: false,
   },
 
-//   {
-//   indianName: "Swar Leela",
-//   englishName: "Solo Eastern Singing",
-//   slug: "swar-leela",
-//   category: "music",
-//   type: "solo",
-//   pricingType: "per_person",
-//   fee: 75,
-//   // Add these:
-//   description: "A soulful competition for classical and semi-classical eastern vocals.",
-//   imageUrls: ["https://example.com/image1.webp"],
-//   venue: "Main Auditorium",
-//   contactName: "John Doe",
-//   contactPhone: "9876543210"
-// },
+  //   {
+  //   indianName: "Swar Leela",
+  //   englishName: "Solo Eastern Singing",
+  //   slug: "swar-leela",
+  //   category: "music",
+  //   type: "solo",
+  //   pricingType: "per_person",
+  //   fee: 75,
+  //   // Add these:
+  //   description: "A soulful competition for classical and semi-classical eastern vocals.",
+  //   imageUrls: ["https://example.com/image1.webp"],
+  //   venue: "Main Auditorium",
+  //   contactName: "John Doe",
+  //   contactPhone: "9876543210"
+  // },
 
-// to create more events, just add an object but make sure to keep the event-id field unique
-// run this after making all changes so that firestore is also updated accordingly: npx tsx scripts/seedEvents.ts
-// Always use WebP image URLs for the imageUrls parameter to ensure the fastest page load times, as we discussed earlier!
-
-
+  // to create more events, just add an object but make sure to keep the event-id field unique
+  // run this after making all changes so that firestore is also updated accordingly: npx tsx scripts/seedEvents.ts
+  // Always use WebP image URLs for the imageUrls parameter to ensure the fastest page load times, as we discussed earlier!
 
   {
     indianName: "Solo Western Singing",
