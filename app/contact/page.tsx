@@ -1,4 +1,5 @@
 import { Phone, MapPin, Calendar } from "lucide-react";
+import Link from "next/link";
 import { FAQAccordion } from "@/components/FAQAccordion";
 import { contactFAQs } from "@/lib/faqData";
 
@@ -49,68 +50,94 @@ export default function ContactPage() {
                 Key Organizers
               </h2>
               <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="bg-blue-100 p-3 rounded-full text-blue-600 mt-1">
-                    <Phone size={24} />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-blue-100 p-3 rounded-full text-blue-600 mt-1">
+                      <Phone size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Rahul Sharma
+                      </h3>
+                      <p className="text-sm font-semibold text-blue-600 mb-1">
+                        Fest Coordinator
+                      </p>
+                      <a
+                        href="tel:+919876543210"
+                        className="text-gray-600 hover:text-blue-600 transition-colors block text-sm"
+                      >
+                        +91 98765 43210
+                      </a>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">
-                      Rahul Sharma
-                    </h3>
-                    <p className="text-sm font-semibold text-blue-600 mb-1">
-                      Fest Coordinator
-                    </p>
-                    <a
-                      href="tel:+919876543210"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      +91 98765 43210
-                    </a>
-                  </div>
+                  <a
+                    href="tel:+919876543210"
+                    className="w-full sm:w-auto text-center px-4 py-2 bg-blue-50 text-blue-600 font-semibold rounded-lg hover:bg-blue-100 transition-colors whitespace-nowrap text-sm"
+                  >
+                    Call Now
+                  </a>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="bg-blue-100 p-3 rounded-full text-blue-600 mt-1">
-                    <Phone size={24} />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-blue-100 p-3 rounded-full text-blue-600 mt-1">
+                      <Phone size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Priya Patel
+                      </h3>
+                      <p className="text-sm font-semibold text-blue-600 mb-1">
+                        Registrations Head
+                      </p>
+                      <a
+                        href="tel:+918765432109"
+                        className="text-gray-600 hover:text-blue-600 transition-colors block text-sm"
+                      >
+                        +91 87654 32109
+                      </a>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">
-                      Priya Patel
-                    </h3>
-                    <p className="text-sm font-semibold text-blue-600 mb-1">
-                      Registrations Head
-                    </p>
-                    <a
-                      href="tel:+918765432109"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      +91 87654 32109
-                    </a>
-                  </div>
+                  <a
+                    href="tel:+918765432109"
+                    className="w-full sm:w-auto text-center px-4 py-2 bg-blue-50 text-blue-600 font-semibold rounded-lg hover:bg-blue-100 transition-colors whitespace-nowrap text-sm"
+                  >
+                    Call Now
+                  </a>
                 </div>
               </div>
             </div>
 
             {/* Address Element */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-              <div className="flex items-start gap-4">
-                <div className="bg-red-100 p-3 rounded-full text-red-600 mt-1 shrink-0">
-                  <MapPin size={24} />
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                <div className="flex items-start gap-4">
+                  <div className="bg-red-100 p-3 rounded-full text-red-600 mt-1 shrink-0">
+                    <MapPin size={24} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      Venue
+                    </h2>
+                    <p className="text-gray-600 leading-relaxed">
+                      JSS Medical College
+                      <br />
+                      Sri Shivarathreeshwara Nagara
+                      <br />
+                      Mysuru, Karnataka 570015
+                      <br />
+                      India
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Venue
-                  </h2>
-                  <p className="text-gray-600 leading-relaxed">
-                    JSS Medical College
-                    <br />
-                    Sri Shivarathreeshwara Nagara
-                    <br />
-                    Mysuru, Karnataka 570015
-                    <br />
-                    India
-                  </p>
-                </div>
+                <a
+                  href="https://maps.google.com/?q=jss+medical+college,+bannimantap,+mysore,+karnataka,+india"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto text-center px-4 py-2 bg-red-50 text-red-600 font-semibold rounded-lg hover:bg-red-100 transition-colors whitespace-nowrap"
+                >
+                  Get Directions
+                </a>
               </div>
             </div>
           </div>
@@ -118,7 +145,7 @@ export default function ContactPage() {
           {/* Right Column: Map & Important Dates */}
           <div className="space-y-8">
             {/* Map Element */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-62.5 lg:h-80 relative">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-[250px] lg:h-80 relative">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3897.809187513233!2d76.65651581528652!3d12.33535949127599!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3baf7061d4a6f217%3A0x6837885b525287e5!2sJSS%20Medical%20College!5e0!3m2!1sen!2sin!4v1709230000000!5m2!1sen!2sin"
                 className="absolute inset-0 w-full h-full border-0"
@@ -174,6 +201,14 @@ export default function ContactPage() {
                   </span>
                 </div>
               </div>
+              <div className="mt-6 pt-4 border-t border-gray-100">
+                <Link
+                  href="/registration"
+                  className="block w-full py-3 bg-black hover:bg-zinc-800 text-white font-bold rounded-lg transition-colors text-center shadow-sm"
+                >
+                  Register Now!
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -195,13 +230,13 @@ export default function ContactPage() {
             </p>
           </div>
           <a
-            href="https://instagram.com"
+            href="https://www.instagram.com/tatvam.2026"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 bg-white hover:bg-gray-100 text-gray-900 px-6 py-4 rounded-xl font-bold transition-transform hover:scale-105 duration-200 shadow-md"
           >
             <InstagramIcon className="text-[#E1306C]" />
-            <span>@tatvam_26</span>
+            <span>@tatvam.26</span>
           </a>
         </div>
       </div>
