@@ -6,6 +6,8 @@ import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { StagedFileUpload } from "@/components/StagedFileUpload";
+import { FAQAccordion } from "@/components/FAQAccordion";
+import { registrationFAQs } from "@/lib/faqData";
 import { toast } from "sonner";
 
 const TIERS = [
@@ -447,6 +449,7 @@ export default function RegistrationPage() {
             </div>
           </div>
         </div>
+        <FAQAccordion faqs={registrationFAQs} />
       </div>
     );
   }

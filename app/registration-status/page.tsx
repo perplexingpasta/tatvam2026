@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { FAQAccordion } from "@/components/FAQAccordion";
+import { registrationFAQs } from "@/lib/faqData";
 
 // Types matching the API response
 type EventRegistrationDetail = {
@@ -440,18 +442,19 @@ export default function RegistrationStatusPage() {
             <div className="flex justify-between items-start px-1">
               <p className="text-sm text-gray-900 italic">{inputHint}</p>
             </div>
+{error && (
+  <div className="text-red-600 bg-red-50 p-3 rounded-md text-sm font-medium border border-red-100">
+    {error}
+  </div>
+)}
+</form>
+</div>
+<FAQAccordion faqs={registrationFAQs} />
+</div>
+);
+}
 
-            {error && (
-              <div className="text-red-600 bg-red-50 p-3 rounded-md text-sm font-medium border border-red-100">
-                {error}
-              </div>
-            )}
-          </form>
-        </div>
-      </div>
-    );
-  }
-
+return (
   // STATE 2: Results Display
   const hasNoEvents =
     (!result.soloEvents || result.soloEvents.length === 0) &&
