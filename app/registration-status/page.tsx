@@ -454,7 +454,6 @@ export default function RegistrationStatusPage() {
 );
 }
 
-return (
   // STATE 2: Results Display
   const hasNoEvents =
     (!result.soloEvents || result.soloEvents.length === 0) &&
