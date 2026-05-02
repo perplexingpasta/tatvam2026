@@ -3,7 +3,11 @@ import { z } from "zod";
 
 export const delegateTierSchema = z.enum(["tier1", "tier2", "tier3"]);
 
-export const paymentStatusSchema = z.enum(["pending_verification", "verified", "rejected"]);
+export const paymentStatusSchema = z.enum([
+  "pending_verification",
+  "verified",
+  "rejected",
+]);
 
 export const sheetsSyncSchema = z.object({
   status: z.enum(["pending", "synced", "failed"]),
@@ -25,7 +29,12 @@ export const delegateSchema = z.object({
   tierPrice: z.number(),
   teamId: z.string().nullable(),
   paymentScreenshotUrl: z.string().url(),
-  utrNumber: z.string().regex(/^[A-Za-z0-9]{12,22}$/, "UTR Number must be 12-22 alphanumeric characters"),
+  utrNumber: z
+    .string()
+    .regex(
+      /^[A-Za-z0-9]{12,22}$/,
+      "UTR Number must be 12-22 alphanumeric characters",
+    ),
   paymentStatus: paymentStatusSchema,
   registeredEventIds: z.array(z.string()),
   createdAt: z.date(), // Timestamp in Firestore
@@ -62,7 +71,12 @@ export const eventRegistrationSchema = z.object({
   cartItems: z.array(cartItemSchema),
   totalAmount: z.number(),
   paymentScreenshotUrl: z.string().url(),
-  utrNumber: z.string().regex(/^[A-Za-z0-9]{12,22}$/, "UTR Number must be 12-22 alphanumeric characters"),
+  utrNumber: z
+    .string()
+    .regex(
+      /^[A-Za-z0-9]{12,22}$/,
+      "UTR Number must be 12-22 alphanumeric characters",
+    ),
   paymentStatus: paymentStatusSchema,
   submittedAt: z.date(),
   sheetsSync: sheetsSyncSchema,
@@ -86,13 +100,13 @@ export type EventTag =
   | "solo"
   | "group"
   | "online"
-  | "large-team"      // teams of 6+
-  | "small-team"      // teams of 2-5
+  | "large-team" // teams of 6+
+  | "small-team" // teams of 2-5
   | "free"
-  | "under-100"       // fee < ₹100 per person or total
-  | "under-300"       // fee < ₹300
-  | "flagship"        // major events (battle of bands, group 
-                      // dance, street play, fashion main)
+  | "under-100" // fee < ₹100 per person or total
+  | "under-300" // fee < ₹300
+  | "flagship" // major events (battle of bands, group
+  // dance, street play, fashion main)
   | "gaming"
   | "performing-arts"
   | "visual-arts"
@@ -104,32 +118,38 @@ export type EventTag =
 export const eventSchema = z.object({
   eventId: z.string(),
   eventDomain: z.enum(["cultural", "sports"]).default("cultural"),
-  indianName: z.string(),        // e.g. "Swar Leela"
-  englishName: z.string(),       // e.g. "Solo Eastern Singing"
-  slug: z.string(),              // url-safe, e.g. "swar-leela"
+  indianName: z.string(), // e.g. "Swar Leela"
+  englishName: z.string(), // e.g. "Solo Eastern Singing"
+  slug: z.string(), // url-safe, e.g. "swar-leela"
   category: z.enum([
-    "music", "dance", "assorted", "quiz", 
-    "drama", "art", "literary", "sports"
+    "music",
+    "dance",
+    "assorted",
+    "quiz",
+    "drama",
+    "art",
+    "literary",
+    "sports",
   ]),
-  description: z.string(),       // full description, can be 
-                                 // empty string for now
+  description: z.string(), // full description, can be
+  // empty string for now
   shortDescription: z.string(), // shown on card, 1-2 sentences
   type: z.enum(["solo", "group"]),
   pricingType: z.enum(["per_person", "flat_total", "free"]),
-  fee: z.number(),               // 0 if free. Per person if 
-                                 // per_person, total if flat_total
+  fee: z.number(), // 0 if free. Per person if
+  // per_person, total if flat_total
   minTeamSize: z.number().nullable(),
   maxTeamSize: z.number().nullable(),
   isOnline: z.boolean(),
-  isAvailable: z.boolean(),      // false = registration closed
+  isAvailable: z.boolean(), // false = registration closed
   tags: z.array(z.string()),
   imageUrls: z.array(z.string()), // empty array for now
   venue: z.string().nullable(),
-  eventDate: z.string().nullable(),  // ISO date string or null
-  eventTime: z.string().nullable(),  // e.g. "10:00 AM" or null
-  schedule: z.string().nullable(),   // combined display string
-                                     // e.g. "Day 1, 10:00 AM"
-  rules: z.array(z.string()),        // empty array for now
+  eventDate: z.string().nullable(), // ISO date string or null
+  eventTime: z.string().nullable(), // e.g. "10:00 AM" or null
+  schedule: z.string().nullable(), // combined display string
+  // e.g. "Day 1, 10:00 AM"
+  rules: z.array(z.string()), // empty array for now
   contactName: z.string().nullable(),
   contactPhone: z.string().nullable(),
 });
