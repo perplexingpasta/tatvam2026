@@ -6,6 +6,7 @@ import { CartProvider } from "@/components/CartProvider";
 import { MerchCartProvider } from "@/components/MerchCartProvider";
 import { SportsCartProvider } from "@/components/SportsCartProvider";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -62,6 +63,7 @@ export default function RootLayout({
             <MerchCartProvider>
               <Header />
               <main className="flex-1 flex flex-col">{children}</main>
+              <Footer />
             </MerchCartProvider>
           </SportsCartProvider>
         </CartProvider>
