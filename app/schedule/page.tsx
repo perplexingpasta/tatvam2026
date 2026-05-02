@@ -7,6 +7,8 @@ import { ScheduleEventModal } from "@/components/ScheduleEventModal";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Event } from "@/types";
+import { eventsCatalogue } from "@/lib/eventsCatalogue";
+import { sportsCatalogue } from "@/lib/sportsCatalogue";
 
 export default function SchedulePage() {
   const [activeDay, setActiveDay] = useState<string>(() => {
@@ -37,6 +39,19 @@ export default function SchedulePage() {
     if (typeof window === "undefined") return null;
     return new Date();
   });
+
+  // Create a memoized map of event types (solo/group)
+  const eventTypeMap = React.useMemo(() => {
+    const map: Record<string, "solo" | "group"> = {};
+    // Start with static catalogues for immediate color loading
+    eventsCatalogue.forEach((e) => (map[e.eventId] = e.type));
+    sportsCatalogue.forEach((e) => (map[e.eventId] = e.type));
+    // Overlay with fetched events from Firestore
+    allEvents.forEach((e) => {
+      if (e.eventId) map[e.eventId] = e.type;
+    });
+    return map;
+  }, [allEvents]);
 
   // Update current time every minute
   useEffect(() => {
@@ -160,16 +175,16 @@ export default function SchedulePage() {
       {/* Legend */}
       <div className="flex flex-wrap items-center justify-center gap-4 px-4 pb-6 text-xs font-semibold text-zinc-600">
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-green-50 border border-green-200"></div>
-          <span>Competitive Event</span>
-        </div>
-        <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded-full bg-amber-50 border border-amber-200"></div>
-          <span>Special Event</span>
+          <span>Special Events</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-zinc-50 border border-zinc-200"></div>
-          <span>General Event</span>
+          <div className="w-3 h-3 rounded-full bg-rose-50 border border-rose-200"></div>
+          <span>Solo Events</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-violet-50 border border-violet-200"></div>
+          <span>Group Events</span>
         </div>
       </div>
 
@@ -251,18 +266,35 @@ export default function SchedulePage() {
                   {/* Events column */}
                   <div className="flex-1 space-y-3 pb-2 pt-0.5 min-w-0">
                     {slot.events.map((event, eIdx) => {
-                      const bgClass =
-                        event.color === "green"
-                          ? "bg-green-50/60 hover:bg-green-50 border-green-200"
-                          : event.color === "yellow"
-                            ? "bg-amber-50/60 hover:bg-amber-50 border-amber-200"
-                            : "bg-white hover:bg-zinc-50 border-zinc-200";
-                      const borderLeftColor =
-                        event.color === "green"
-                          ? "border-l-green-400"
-                          : event.color === "yellow"
-                            ? "border-l-amber-400"
-                            : "border-l-zinc-300";
+                      // Determine event theme based on day and type
+                      let bgClass = "bg-white hover:bg-zinc-50 border-zinc-200";
+                      let borderLeftColor = "border-l-zinc-300";
+
+                      const isSpecialEvent =
+                        activeDay === "day-zero" || event.name === "ProShow";
+
+                      if (isSpecialEvent) {
+                        bgClass =
+                          "bg-amber-50/60 hover:bg-amber-50 border-amber-200";
+                        borderLeftColor = "border-l-amber-400";
+                      } else if (event.type === "general") {
+                        bgClass = "bg-white hover:bg-zinc-50 border-zinc-200";
+                        borderLeftColor = "border-l-zinc-300";
+                      } else {
+                        const eventType = event.eventId
+                          ? eventTypeMap[event.eventId]
+                          : "solo";
+                        if (eventType === "solo") {
+                          bgClass =
+                            "bg-rose-50/60 hover:bg-rose-50 border-rose-200";
+                          borderLeftColor = "border-l-rose-400";
+                        } else {
+                          bgClass =
+                            "bg-violet-50/60 hover:bg-violet-50 border-violet-200";
+                          borderLeftColor = "border-l-violet-400";
+                        }
+                      }
+
                       const isClickable = event.type !== "general";
 
                       return (
