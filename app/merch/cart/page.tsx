@@ -121,6 +121,7 @@ export default function MerchCartPage() {
 
     setIsSubmitting(true);
     setSubmitError(null);
+    const toastId = toast.loading("Placing order...");
 
     const abortController = new AbortController();
     const timeoutId = setTimeout(() => abortController.abort(), 30000);
@@ -156,7 +157,7 @@ export default function MerchCartPage() {
 
       clearMerchCart();
       setPageState(3);
-      toast.success("Order placed successfully!");
+      toast.success("Order placed successfully!", { id: toastId });
       window.scrollTo(0, 0);
     } catch (err) {
       const error = err as Error;
@@ -164,10 +165,10 @@ export default function MerchCartPage() {
         setSubmitError(
           "Upload is taking too long. Please check your connection and try again.",
         );
-        toast.error("Upload is taking too long. Please check your connection and try again.");
+        toast.error("Upload is taking too long. Please check your connection and try again.", { id: toastId });
       } else {
         setSubmitError(error.message || "An unexpected error occurred");
-        toast.error(error.message || "An unexpected error occurred");
+        toast.error(error.message || "An unexpected error occurred", { id: toastId });
       }
     } finally {
       clearTimeout(timeoutId);
@@ -207,7 +208,7 @@ export default function MerchCartPage() {
               Your Order ID
             </p>
             <p className="text-4xl font-mono font-bold text-blue-900">
-              {orderId}
+              <CopyToClipboard text={orderId} />
             </p>
           </div>
 

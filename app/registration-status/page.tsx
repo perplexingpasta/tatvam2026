@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { FAQAccordion } from "@/components/FAQAccordion";
 import { registrationFAQs } from "@/lib/faqData";
+import { CopyToClipboard } from "@/components/CopyToClipboard";
+import { toast } from "sonner";
 
 // Types matching the API response
 type EventRegistrationDetail = {
@@ -134,63 +136,7 @@ const CalendarIcon = () => (
   </svg>
 );
 
-const CopyIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-    />
-  </svg>
-);
 
-const CheckIcon = () => (
-  <svg
-    className="w-4 h-4 text-green-500"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M5 13l4 4L19 7"
-    />
-  </svg>
-);
-
-function CopyableText({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  return (
-    <span
-      className="inline-flex items-center gap-1 cursor-pointer font-mono text-sm bg-gray-100 px-2 py-1 rounded hover:bg-gray-200 transition-colors relative"
-      onClick={handleCopy}
-      title="Click to copy"
-    >
-      {text}
-      {copied ? <CheckIcon /> : <CopyIcon />}
-      {copied && (
-        <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-          Copied!
-        </span>
-      )}
-    </span>
-  );
-}
 
 function PaymentBadge({ status }: { status?: string }) {
   if (status === "verified") {
@@ -367,6 +313,7 @@ export default function RegistrationStatusPage() {
       }
     } catch (err) {
       console.error(err);
+      toast.error("Failed to connect to the server. Please try again.");
       setError(
         "Failed to connect to the server. Please check your internet connection.",
       );
@@ -486,7 +433,7 @@ export default function RegistrationStatusPage() {
                       {result.delegate.name}
                     </h2>
                     <div className="text-gray-900 flex flex-wrap items-center gap-3 mb-4">
-                      <CopyableText text={result.delegate.delegateId} />
+                      <CopyToClipboard text={result.delegate.delegateId} />
                       {result.delegate.isJSSMC && (
                         <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">
                           JSSMC Student
@@ -529,7 +476,7 @@ export default function RegistrationStatusPage() {
                   {result.delegate.teamId && (
                     <div className="text-gray-900">
                       <p className="text-sm text-gray-900 mb-1">Team ID</p>
-                      <CopyableText text={result.delegate.teamId} />
+                      <CopyToClipboard text={result.delegate.teamId} />
                     </div>
                   )}
                   <div className="sm:col-span-2 md:col-span-3 pt-4 border-t border-gray-100">
@@ -551,7 +498,7 @@ export default function RegistrationStatusPage() {
                     <h3 className="text-xl font-bold text-gray-900">
                       Your Team — {result.team.teamName}
                     </h3>
-                    <CopyableText text={result.team.teamId} />
+                    <CopyToClipboard text={result.team.teamId} />
                   </div>
                   <div className="overflow-x-auto -mx-6 sm:mx-0">
                     <div className="inline-block min-w-full align-middle">
@@ -678,7 +625,7 @@ export default function RegistrationStatusPage() {
                   {result.team.teamName}
                 </h2>
                 <div className="flex items-center gap-4 mb-5">
-                  <CopyableText text={result.team.teamId} />
+                  <CopyToClipboard text={result.team.teamId} />
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 inline-block w-full md:w-auto">
                   <p className="text-gray-600 text-sm mb-1 uppercase tracking-wider font-semibold">
@@ -729,7 +676,7 @@ export default function RegistrationStatusPage() {
                               </div>
                             </td>
                             <td className="px-6 sm:px-4 py-4">
-                              <CopyableText text={member.delegateId} />
+                              <CopyToClipboard text={member.delegateId} />
                             </td>
                             <td className="px-6 sm:px-4 py-4 text-gray-600">
                               {member.collegeName}

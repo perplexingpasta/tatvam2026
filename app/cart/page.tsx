@@ -263,18 +263,18 @@ export default function CartPage() {
 
       if (res.ok && data.success) {
         setCheckoutSuccess(true);
-        toast.success("Event registration submitted!");
+        toast.success("Event registration submitted!", { id: toastId });
         clearCart();
         setItemStates({});
       } else {
         const errorMsg = data.message || "An error occurred during checkout.";
         setCheckoutError(errorMsg);
-        toast.error(errorMsg);
+        toast.error(errorMsg, { id: toastId });
       }
     } catch {
       const errorMsg = "Failed to submit registration. Please try again.";
       setCheckoutError(errorMsg);
-      toast.error(errorMsg);
+      toast.error(errorMsg, { id: toastId });
     } finally {
       setIsSubmitting(false);
     }

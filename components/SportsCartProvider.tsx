@@ -1,17 +1,16 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { Event } from "@/types";
+import { Event } from "@/lib/eventsCatalogue";
 import { CartItem, AddToCartResult } from "./CartProvider";
-
-const SPORTS_CART_STORAGE_KEY = "sportsCart";
+import { toast } from "sonner";
 
 interface SportsCartContextType {
   sportsCart: CartItem[];
   addToSportsCart: (event: Event) => AddToCartResult;
   removeFromSportsCart: (eventId: string) => void;
+  isInSportsCart: (eventId: string) => boolean;
   clearSportsCart: () => void;
-  sportsCartTotal: number;
   sportsCartCount: number;
 }
 
@@ -24,14 +23,14 @@ export function SportsCartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem(SPORTS_CART_STORAGE_KEY);
-      
+
       // Update state asynchronously to avoid synchronous cascading renders
       Promise.resolve().then(() => {
         if (saved) {
           try {
             setSportsCart(JSON.parse(saved));
           } catch {
-            // Ignore parse errors
+            toast.error("Failed to load sports cart. Check your browser settings.");
           }
         }
         setIsInitialized(true);
@@ -41,7 +40,13 @@ export function SportsCartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem(SPORTS_CART_STORAGE_KEY, JSON.stringify(sportsCart));
+      try {
+        localStorage.setItem(SPORTS_CART_STORAGE_KEY, JSON.stringify(sportsCart));
+      } catch {
+        toast.error("Failed to save sports cart. Check your browser settings.");
+      }
+    }
+  }, [sportsCart, isInitialized]);
     }
   }, [sportsCart, isInitialized]);
 

@@ -375,7 +375,9 @@ export default function RegistrationPage() {
             {generatedTeamId && (
               <div className="mb-6 pb-6 border-b border-gray-200">
                 <span className="block text-sm text-gray-500 font-medium mb-1">Team ID</span>
-                <span className="text-2xl font-bold text-blue-700">{generatedTeamId}</span>
+                <span className="text-2xl font-bold text-blue-700">
+                  <CopyToClipboard text={generatedTeamId} />
+                </span>
               </div>
             )}
             
@@ -387,7 +389,7 @@ export default function RegistrationPage() {
                     <span className="text-sm font-medium text-gray-600">
                       {watchMembers[idx]?.name || `Member ${idx + 1}`}
                     </span>
-                    <span className="font-bold text-gray-900">{id}</span>
+                    <CopyToClipboard text={id} className="font-bold text-gray-900" />
                   </div>
                 ))}
               </div>

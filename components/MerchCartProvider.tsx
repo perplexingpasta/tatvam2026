@@ -29,6 +29,7 @@ export function MerchCartProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error("Failed to parse merch cart from localStorage", error);
+      toast.error("Failed to load cart. Check your browser settings.");
       setTimeout(() => setMerchCart([]), 0);
     }
     return () => clearTimeout(timer);
