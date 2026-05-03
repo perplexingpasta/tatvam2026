@@ -77,6 +77,7 @@ export function useImageUpload(options: UseImageUploadOptions) {
 
     let compressed: File;
     try {
+      const imageCompression = (await import('browser-image-compression')).default;
       compressed = await imageCompression(file, {
         maxSizeMB: options.compressionTargetMB ?? 0.5,
         maxWidthOrHeight: options.maxWidthOrHeight ?? 1200,

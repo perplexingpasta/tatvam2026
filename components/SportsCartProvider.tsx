@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from "react";
 import { Event } from "@/lib/eventsCatalogue";
 import { CartItem, AddToCartResult } from "./CartProvider";
 import { toast } from "sonner";
@@ -47,10 +47,8 @@ export function SportsCartProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [sportsCart, isInitialized]);
-    }
-  }, [sportsCart, isInitialized]);
 
-  const addToSportsCart = (event: Event): AddToCartResult => {
+  const addToSportsCart = useCallback((event: Event): AddToCartResult => {
     if (sportsCart.find((i) => i.eventId === event.eventId)) {
       return { added: false, reason: "already_in_cart" };
     }
@@ -77,30 +75,30 @@ export function SportsCartProvider({ children }: { children: ReactNode }) {
     });
 
     return { added: true };
-  };
+  }, [sportsCart]);
 
-  const removeFromSportsCart = (eventId: string) => {
+  const removeFromSportsCart = useCallback((eventId: string) => {
     setSportsCart((prev) => prev.filter((item) => item.eventId !== eventId));
-  };
+  }, []);
 
-  const clearSportsCart = () => {
+  const clearSportsCart = useCallback(() => {
     setSportsCart([]);
-  };
+  }, []);
 
-  const sportsCartTotal = sportsCart.reduce((total, item) => total + item.fee, 0);
-  const sportsCartCount = sportsCart.length;
+  const sportsCartTotal = useMemo(() => sportsCart.reduce((total, item) => total + item.fee, 0), [sportsCart]);
+  const sportsCartCount = useMemo(() => sportsCart.length, [sportsCart]);
+
+  const value = useMemo(() => ({
+    sportsCart, 
+    addToSportsCart, 
+    removeFromSportsCart, 
+    clearSportsCart,
+    sportsCartTotal,
+    sportsCartCount
+  }), [sportsCart, addToSportsCart, removeFromSportsCart, clearSportsCart, sportsCartTotal, sportsCartCount]);
 
   return (
-    <SportsCartContext.Provider 
-      value={{ 
-        sportsCart, 
-        addToSportsCart, 
-        removeFromSportsCart, 
-        clearSportsCart,
-        sportsCartTotal,
-        sportsCartCount
-      }}
-    >
+    <SportsCartContext.Provider value={value}>
       {children}
     </SportsCartContext.Provider>
   );

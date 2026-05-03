@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from "react";
 import { Event, EventCategory } from "@/types";
 import { toast } from "sonner";
 
@@ -117,6 +117,14 @@ export function useCart() {
   const context = useContext(CartContext);
   if (context === undefined) {
     throw new Error("useCart must be used within a CartProvider");
+  }
+  return context;
+}
+w Error("useCart must be used within a CartProvider");
+  }
+  return context;
+}
+art must be used within a CartProvider");
   }
   return context;
 }
