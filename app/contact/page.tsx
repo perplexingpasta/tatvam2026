@@ -145,7 +145,7 @@ export default function ContactPage() {
           {/* Right Column: Map & Important Dates */}
           <div className="space-y-8">
             {/* Map Element */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-[250px] lg:h-80 relative">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-62.5 lg:h-80 relative">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3897.809187513233!2d76.65651581528652!3d12.33535949127599!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3baf7061d4a6f217%3A0x6837885b525287e5!2sJSS%20Medical%20College!5e0!3m2!1sen!2sin!4v1709230000000!5m2!1sen!2sin"
                 className="absolute inset-0 w-full h-full border-0"

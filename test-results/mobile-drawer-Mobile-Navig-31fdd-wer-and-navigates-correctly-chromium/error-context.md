@@ -6,8 +6,8 @@
 
 # Test info
 
-- Name: header-drawer-conflict.spec.ts >> Header Dropdown and Mobile Drawer Interaction >> opening the header dropdown closes the mobile drawer (if open)
-- Location: tests\e2e\header-drawer-conflict.spec.ts:6:7
+- Name: mobile-drawer.spec.ts >> Mobile Navigation Drawer >> opens drawer and navigates correctly
+- Location: tests\e2e\mobile-drawer.spec.ts:6:7
 
 # Error details
 
@@ -182,25 +182,25 @@ Call log:
 ```ts
   1  | import { test, expect, devices } from '@playwright/test';
   2  | 
-  3  | test.describe('Header Dropdown and Mobile Drawer Interaction', () => {
+  3  | test.describe('Mobile Navigation Drawer', () => {
   4  |   test.use({ viewport: devices['iPhone 13'].viewport });
   5  | 
-  6  |   test('opening the header dropdown closes the mobile drawer (if open)', async ({ page }) => {
+  6  |   test('opens drawer and navigates correctly', async ({ page }) => {
   7  |     await page.goto('/');
   8  | 
-  9  |     // Open mobile drawer first (using the same toggle as in mobile-drawer test)
+  9  |     // Assume there is a button with aria-label="Open menu" that toggles the drawer
   10 |     const drawerToggle = page.getByRole('button', { name: /open menu/i });
 > 11 |     await drawerToggle.click();
      |                        ^ Error: locator.click: Test timeout of 30000ms exceeded.
-  12 |     const drawer = page.getByRole('navigation', { name: /mobile drawer/i });
-  13 |     await expect(drawer).toBeVisible();
-  14 | 
-  15 |     // Now click the header dropdown toggle (assume it has aria-label "Open header menu")
-  16 |     const headerToggle = page.getByRole('button', { name: /open header menu/i });
-  17 |     await headerToggle.click();
-  18 | 
-  19 |     // Drawer should be hidden after header dropdown opens
-  20 |     await expect(drawer).toHaveClass(/.*-translate-x-full.*/);
+  12 | 
+  13 |     // Verify drawer is visible (e.g., contains a link to "Merch")
+  14 |     const drawer = page.getByRole('navigation', { name: /mobile drawer/i });
+  15 |     await expect(drawer).toBeVisible();
+  16 | 
+  17 |     // Click the merch link inside the drawer
+  18 |     const merchLink = drawer.getByRole('link', { name: /merch/i });
+  19 |     await merchLink.click();
+  20 |     await expect(page).toHaveURL(/.*\/merch/);
   21 |   });
   22 | });
   23 | 

@@ -84,7 +84,7 @@ export function Header() {
 
   return (
     <>
-      <header className="fixed top-5 left-4 right-4 md:top-4 md:left-4 md:right-4 z-50 rounded-2xl border border-zinc-200/60 bg-white/30 backdrop-blur-lg shadow-sm transition-all duration-300">
+      <header className="fixed top-5 left-4 right-4 md:top-4 md:left-4 md:right-4 z-120 rounded-2xl border border-zinc-200/60 bg-white/30 backdrop-blur-lg shadow-sm transition-all duration-300">
         <div className="container mx-auto px-3 md:px-6 h-14 md:h-16 flex items-center justify-between">
           <div className="flex gap-4 md:gap-6 items-center">
             <Link

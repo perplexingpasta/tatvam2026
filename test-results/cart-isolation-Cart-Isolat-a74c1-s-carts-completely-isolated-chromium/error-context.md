@@ -1,0 +1,1112 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: cart-isolation.spec.ts >> Cart Isolation across Domains >> should keep merch, cultural, and sports carts completely isolated
+- Location: tests\e2e\cart-isolation.spec.ts:4:7
+
+# Error details
+
+```
+Test timeout of 30000ms exceeded.
+```
+
+```
+Error: page.goto: Test timeout of 30000ms exceeded.
+Call log:
+  - navigating to "http://localhost:3000/sports", waiting until "load"
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - link "Tatvam 2026" [ref=e5] [cursor=pointer]:
+          - /url: /
+        - navigation [ref=e6]:
+          - link "Home" [ref=e7] [cursor=pointer]:
+            - /url: /
+          - link "Events" [ref=e8] [cursor=pointer]:
+            - /url: /events
+          - link "Sports" [ref=e9] [cursor=pointer]:
+            - /url: /sports
+          - link "Registration" [ref=e10] [cursor=pointer]:
+            - /url: /registration
+          - link "Check Status" [ref=e11] [cursor=pointer]:
+            - /url: /registration-status
+          - link "Merch" [ref=e12] [cursor=pointer]:
+            - /url: /merch
+          - link "About" [ref=e13] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=e14] [cursor=pointer]:
+            - /url: /contact
+          - link "Schedule" [ref=e15] [cursor=pointer]:
+            - /url: /schedule
+      - button "Open header menu" [ref=e18]:
+        - img [ref=e19]
+  - main [ref=e24]:
+    - generic [ref=e25]:
+      - generic [ref=e26]:
+        - heading "Events" [level=1] [ref=e27]
+        - paragraph [ref=e28]: Fest Name — Tatvam 2026
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - generic:
+              - img
+            - textbox "Search by event name..." [ref=e32]
+          - generic [ref=e33]:
+            - button "All" [ref=e34]
+            - button "Solo" [ref=e35]
+            - button "Group" [ref=e36]
+            - button "Online" [ref=e37]
+            - button "Free" [ref=e38]
+            - button "Under ₹100" [ref=e39]
+            - button "Under ₹300" [ref=e40]
+            - button "Small Team" [ref=e41]
+            - button "Large Team" [ref=e42]
+            - button "Flagship" [ref=e43]
+            - button "Gaming" [ref=e44]
+            - button "Performing Arts" [ref=e45]
+            - button "Visual Arts" [ref=e46]
+            - button "Literary" [ref=e47]
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - generic [ref=e50] [cursor=pointer]:
+              - heading "🎵 Music Events 5" [level=2] [ref=e51]:
+                - generic [ref=e52]: 🎵
+                - generic [ref=e53]: Music Events
+                - generic [ref=e54]: "5"
+              - button [ref=e55]:
+                - img [ref=e56]
+            - generic [ref=e58]:
+              - generic [ref=e59] [cursor=pointer]:
+                - generic [ref=e60]:
+                  - generic [ref=e61]:
+                    - heading "Ahaang" [level=3] [ref=e62]
+                    - paragraph [ref=e63]: Battle of Bands
+                  - generic [ref=e65]: music
+                - generic [ref=e66]:
+                  - generic [ref=e67]: group
+                  - generic [ref=e68]: large team
+                  - generic [ref=e69]: flagship
+                  - generic [ref=e70]: "+2"
+                - generic [ref=e71]:
+                  - generic [ref=e72]:
+                    - generic [ref=e73]:
+                      - generic [ref=e74]: Price
+                      - generic [ref=e75]: ₹1199 total
+                    - generic [ref=e76]:
+                      - generic [ref=e77]: Team Size
+                      - generic [ref=e79]: 3–12 members
+                    - generic [ref=e80]:
+                      - generic [ref=e81]: Schedule
+                      - generic "TBA" [ref=e82]
+                    - generic [ref=e83]:
+                      - generic [ref=e84]: Venue
+                      - generic "TBA" [ref=e85]
+                  - generic [ref=e86]:
+                    - button "View Details" [ref=e87]
+                    - button "Add to Cart" [ref=e88]
+              - generic [ref=e89] [cursor=pointer]:
+                - generic [ref=e90]:
+                  - generic [ref=e91]:
+                    - heading "Jugalbandi" [level=3] [ref=e92]
+                    - paragraph [ref=e93]: Duet Vocals
+                  - generic [ref=e95]: music
+                - generic [ref=e96]:
+                  - generic [ref=e97]: group
+                  - generic [ref=e98]: under 300
+                  - generic [ref=e99]: small team
+                  - generic [ref=e100]: "+2"
+                - generic [ref=e101]:
+                  - generic [ref=e102]:
+                    - generic [ref=e103]:
+                      - generic [ref=e104]: Price
+                      - generic [ref=e105]: ₹150 total
+                    - generic [ref=e106]:
+                      - generic [ref=e107]: Team Size
+                      - generic [ref=e109]: Team of 2
+                    - generic [ref=e110]:
+                      - generic [ref=e111]: Schedule
+                      - generic "TBA" [ref=e112]
+                    - generic [ref=e113]:
+                      - generic [ref=e114]: Venue
+                      - generic "TBA" [ref=e115]
+                  - generic [ref=e116]:
+                    - button "View Details" [ref=e117]
+                    - button "Add to Cart" [ref=e118]
+              - generic [ref=e119] [cursor=pointer]:
+                - generic [ref=e120]:
+                  - heading "Solo Western Singing" [level=3] [ref=e122]
+                  - generic [ref=e124]: music
+                - generic [ref=e125]:
+                  - generic [ref=e126]: solo
+                  - generic [ref=e127]: under 100
+                  - generic [ref=e128]: under 300
+                  - generic [ref=e129]: "+2"
+                - generic [ref=e130]:
+                  - generic [ref=e131]:
+                    - generic [ref=e132]:
+                      - generic [ref=e133]: Price
+                      - generic [ref=e134]: ₹75/person
+                    - generic [ref=e135]:
+                      - generic [ref=e136]: Schedule
+                      - generic "TBA" [ref=e137]
+                    - generic [ref=e138]:
+                      - generic [ref=e139]: Venue
+                      - generic "TBA" [ref=e140]
+                  - generic [ref=e141]:
+                    - button "View Details" [ref=e142]
+                    - button "Add to Cart" [ref=e143]
+              - generic [ref=e144] [cursor=pointer]:
+                - generic [ref=e145]:
+                  - generic [ref=e146]:
+                    - heading "Swar Leela" [level=3] [ref=e147]
+                    - paragraph [ref=e148]: Solo Eastern Singing
+                  - generic [ref=e150]: music
+                - generic [ref=e151]:
+                  - generic [ref=e152]: solo
+                  - generic [ref=e153]: under 100
+                  - generic [ref=e154]: under 300
+                  - generic [ref=e155]: "+2"
+                - generic [ref=e156]:
+                  - generic [ref=e157]:
+                    - generic [ref=e158]:
+                      - generic [ref=e159]: Price
+                      - generic [ref=e160]: ₹75/person
+                    - generic [ref=e161]:
+                      - generic [ref=e162]: Schedule
+                      - generic "TBA" [ref=e163]
+                    - generic [ref=e164]:
+                      - generic [ref=e165]: Venue
+                      - generic "TBA" [ref=e166]
+                  - generic [ref=e167]:
+                    - button "View Details" [ref=e168]
+                    - button "Add to Cart" [ref=e169]
+              - generic [ref=e170] [cursor=pointer]:
+                - generic [ref=e171]:
+                  - generic [ref=e172]:
+                    - heading "Tarang" [level=3] [ref=e173]
+                    - paragraph [ref=e174]: Instrumental Solo
+                  - generic [ref=e175]:
+                    - generic [ref=e176]: music
+                    - generic [ref=e177]: Online
+                - generic [ref=e178]:
+                  - generic [ref=e179]: solo
+                  - generic [ref=e180]: online
+                  - generic [ref=e181]: free
+                  - generic [ref=e182]: "+4"
+                - generic [ref=e183]:
+                  - generic [ref=e184]:
+                    - generic [ref=e185]:
+                      - generic [ref=e186]: Price
+                      - generic [ref=e187]: Free
+                    - generic [ref=e188]:
+                      - generic [ref=e189]: Schedule
+                      - generic "TBA" [ref=e190]
+                    - generic [ref=e191]:
+                      - generic [ref=e192]: Venue
+                      - generic "TBA" [ref=e193]
+                  - generic [ref=e194]:
+                    - button "View Details" [ref=e195]
+                    - button "Add to Cart" [ref=e196]
+          - generic [ref=e197]:
+            - generic [ref=e198] [cursor=pointer]:
+              - heading "💃 Dance Events 5" [level=2] [ref=e199]:
+                - generic [ref=e200]: 💃
+                - generic [ref=e201]: Dance Events
+                - generic [ref=e202]: "5"
+              - button [ref=e203]:
+                - img [ref=e204]
+            - generic [ref=e206]:
+              - generic [ref=e207] [cursor=pointer]:
+                - generic [ref=e208]:
+                  - heading "Face Off" [level=3] [ref=e210]
+                  - generic [ref=e212]: dance
+                - generic [ref=e213]:
+                  - generic [ref=e214]: solo
+                  - generic [ref=e215]: under 100
+                  - generic [ref=e216]: under 300
+                  - generic [ref=e217]: "+2"
+                - generic [ref=e218]:
+                  - generic [ref=e219]:
+                    - generic [ref=e220]:
+                      - generic [ref=e221]: Price
+                      - generic [ref=e222]: ₹75/person
+                    - generic [ref=e223]:
+                      - generic [ref=e224]: Schedule
+                      - generic "TBA" [ref=e225]
+                    - generic [ref=e226]:
+                      - generic [ref=e227]: Venue
+                      - generic "TBA" [ref=e228]
+                  - generic [ref=e229]:
+                    - button "View Details" [ref=e230]
+                    - button "Add to Cart" [ref=e231]
+              - generic [ref=e232] [cursor=pointer]:
+                - generic [ref=e233]:
+                  - heading "Group Dance" [level=3] [ref=e235]
+                  - generic [ref=e237]: dance
+                - generic [ref=e238]:
+                  - generic [ref=e239]: group
+                  - generic [ref=e240]: large team
+                  - generic [ref=e241]: flagship
+                  - generic [ref=e242]: "+2"
+                - generic [ref=e243]:
+                  - generic [ref=e244]:
+                    - generic [ref=e245]:
+                      - generic [ref=e246]: Price
+                      - generic [ref=e247]: ₹799 total
+                    - generic [ref=e248]:
+                      - generic [ref=e249]: Team Size
+                      - generic [ref=e251]: 6–16 members
+                    - generic [ref=e252]:
+                      - generic [ref=e253]: Schedule
+                      - generic "TBA" [ref=e254]
+                    - generic [ref=e255]:
+                      - generic [ref=e256]: Venue
+                      - generic "TBA" [ref=e257]
+                  - generic [ref=e258]:
+                    - button "View Details" [ref=e259]
+                    - button "Add to Cart" [ref=e260]
+              - generic [ref=e261] [cursor=pointer]:
+                - generic [ref=e262]:
+                  - generic [ref=e263]:
+                    - heading "Natyanjali" [level=3] [ref=e264]
+                    - paragraph [ref=e265]: Solo Classical Dance
+                  - generic [ref=e267]: dance
+                - generic [ref=e268]:
+                  - generic [ref=e269]: solo
+                  - generic [ref=e270]: under 100
+                  - generic [ref=e271]: under 300
+                  - generic [ref=e272]: "+2"
+                - generic [ref=e273]:
+                  - generic [ref=e274]:
+                    - generic [ref=e275]:
+                      - generic [ref=e276]: Price
+                      - generic [ref=e277]: ₹75/person
+                    - generic [ref=e278]:
+                      - generic [ref=e279]: Schedule
+                      - generic "TBA" [ref=e280]
+                    - generic [ref=e281]:
+                      - generic [ref=e282]: Venue
+                      - generic "TBA" [ref=e283]
+                  - generic [ref=e284]:
+                    - button "View Details" [ref=e285]
+                    - button "Add to Cart" [ref=e286]
+              - generic [ref=e287] [cursor=pointer]:
+                - generic [ref=e288]:
+                  - heading "Reflections" [level=3] [ref=e290]
+                  - generic [ref=e292]: dance
+                - generic [ref=e293]:
+                  - generic [ref=e294]: group
+                  - generic [ref=e295]: under 100
+                  - generic [ref=e296]: under 300
+                  - generic [ref=e297]: "+3"
+                - generic [ref=e298]:
+                  - generic [ref=e299]:
+                    - generic [ref=e300]:
+                      - generic [ref=e301]: Price
+                      - generic [ref=e302]: ₹75/person
+                    - generic [ref=e303]:
+                      - generic [ref=e304]: Team Size
+                      - generic [ref=e306]: 2–10 members
+                    - generic [ref=e307]:
+                      - generic [ref=e308]: Schedule
+                      - generic "TBA" [ref=e309]
+                    - generic [ref=e310]:
+                      - generic [ref=e311]: Venue
+                      - generic "TBA" [ref=e312]
+                  - generic [ref=e313]:
+                    - button "View Details" [ref=e314]
+                    - button "Add to Cart" [ref=e315]
+              - generic [ref=e316] [cursor=pointer]:
+                - generic [ref=e317]:
+                  - heading "Solo Non-Classical Dance" [level=3] [ref=e319]
+                  - generic [ref=e321]: dance
+                - generic [ref=e322]:
+                  - generic [ref=e323]: solo
+                  - generic [ref=e324]: under 100
+                  - generic [ref=e325]: under 300
+                  - generic [ref=e326]: "+2"
+                - generic [ref=e327]:
+                  - generic [ref=e328]:
+                    - generic [ref=e329]:
+                      - generic [ref=e330]: Price
+                      - generic [ref=e331]: ₹75/person
+                    - generic [ref=e332]:
+                      - generic [ref=e333]: Schedule
+                      - generic "TBA" [ref=e334]
+                    - generic [ref=e335]:
+                      - generic [ref=e336]: Venue
+                      - generic "TBA" [ref=e337]
+                  - generic [ref=e338]:
+                    - button "View Details" [ref=e339]
+                    - button "Add to Cart" [ref=e340]
+          - generic [ref=e341]:
+            - generic [ref=e342] [cursor=pointer]:
+              - heading "🎭 Assorted Events 7" [level=2] [ref=e343]:
+                - generic [ref=e344]: 🎭
+                - generic [ref=e345]: Assorted Events
+                - generic [ref=e346]: "7"
+              - button [ref=e347]:
+                - img [ref=e348]
+            - generic [ref=e350]:
+              - generic [ref=e351] [cursor=pointer]:
+                - generic [ref=e352]:
+                  - generic [ref=e353]:
+                    - heading "BGMI (Mobile)" [level=3] [ref=e354]
+                    - paragraph [ref=e355]: BGMI Mobile Gaming
+                  - generic [ref=e357]: assorted
+                - generic [ref=e358]:
+                  - generic [ref=e359]: group
+                  - generic [ref=e360]: small team
+                  - generic [ref=e361]: flagship
+                  - generic [ref=e362]: "+1"
+                - generic [ref=e363]:
+                  - generic [ref=e364]:
+                    - generic [ref=e365]:
+                      - generic [ref=e366]: Price
+                      - generic [ref=e367]: ₹399 total
+                    - generic [ref=e368]:
+                      - generic [ref=e369]: Team Size
+                      - generic [ref=e371]: 4–5 members
+                    - generic [ref=e372]:
+                      - generic [ref=e373]: Schedule
+                      - generic "TBA" [ref=e374]
+                    - generic [ref=e375]:
+                      - generic [ref=e376]: Venue
+                      - generic "TBA" [ref=e377]
+                  - generic [ref=e378]:
+                    - button "View Details" [ref=e379]
+                    - button "Add to Cart" [ref=e380]
+              - generic [ref=e381] [cursor=pointer]:
+                - generic [ref=e382]:
+                  - generic [ref=e383]:
+                    - heading "CODM (Mobile)" [level=3] [ref=e384]
+                    - paragraph [ref=e385]: CODM Mobile Gaming
+                  - generic [ref=e387]: assorted
+                - generic [ref=e388]:
+                  - generic [ref=e389]: group
+                  - generic [ref=e390]: large team
+                  - generic [ref=e391]: flagship
+                  - generic [ref=e392]: "+1"
+                - generic [ref=e393]:
+                  - generic [ref=e394]:
+                    - generic [ref=e395]:
+                      - generic [ref=e396]: Price
+                      - generic [ref=e397]: ₹499 total
+                    - generic [ref=e398]:
+                      - generic [ref=e399]: Team Size
+                      - generic [ref=e401]: 5–6 members
+                    - generic [ref=e402]:
+                      - generic [ref=e403]: Schedule
+                      - generic "TBA" [ref=e404]
+                    - generic [ref=e405]:
+                      - generic [ref=e406]: Venue
+                      - generic "TBA" [ref=e407]
+                  - generic [ref=e408]:
+                    - button "View Details" [ref=e409]
+                    - button "Add to Cart" [ref=e410]
+              - generic [ref=e411] [cursor=pointer]:
+                - generic [ref=e412]:
+                  - heading "Escape Room" [level=3] [ref=e414]
+                  - generic [ref=e416]: assorted
+                - generic [ref=e417]:
+                  - generic [ref=e418]: group
+                  - generic [ref=e419]: under 100
+                  - generic [ref=e420]: under 300
+                  - generic [ref=e421]: "+1"
+                - generic [ref=e422]:
+                  - generic [ref=e423]:
+                    - generic [ref=e424]:
+                      - generic [ref=e425]: Price
+                      - generic [ref=e426]: ₹99/person
+                    - generic [ref=e427]:
+                      - generic [ref=e428]: Team Size
+                      - generic [ref=e430]: 2–6 members
+                    - generic [ref=e431]:
+                      - generic [ref=e432]: Schedule
+                      - generic "TBA" [ref=e433]
+                    - generic [ref=e434]:
+                      - generic [ref=e435]: Venue
+                      - generic "TBA" [ref=e436]
+                  - generic [ref=e437]:
+                    - button "View Details" [ref=e438]
+                    - button "Add to Cart" [ref=e439]
+              - generic [ref=e440] [cursor=pointer]:
+                - generic [ref=e441]:
+                  - generic [ref=e442]:
+                    - heading "Fashion — Main Event" [level=3] [ref=e443]
+                    - paragraph [ref=e444]: Fashion Main Event
+                  - generic [ref=e446]: assorted
+                - generic [ref=e447]:
+                  - generic [ref=e448]: group
+                  - generic [ref=e449]: large team
+                  - generic [ref=e450]: flagship
+                - generic [ref=e451]:
+                  - generic [ref=e452]:
+                    - generic [ref=e453]:
+                      - generic [ref=e454]: Price
+                      - generic [ref=e455]: ₹1299 total
+                    - generic [ref=e456]:
+                      - generic [ref=e457]: Team Size
+                      - generic [ref=e459]: 12–20 members
+                    - generic [ref=e460]:
+                      - generic [ref=e461]: Schedule
+                      - generic "TBA" [ref=e462]
+                    - generic [ref=e463]:
+                      - generic [ref=e464]: Venue
+                      - generic "TBA" [ref=e465]
+                  - generic [ref=e466]:
+                    - button "View Details" [ref=e467]
+                    - button "Add to Cart" [ref=e468]
+              - generic [ref=e469] [cursor=pointer]:
+                - generic [ref=e470]:
+                  - generic [ref=e471]:
+                    - heading "FIFA (PC)" [level=3] [ref=e472]
+                    - paragraph [ref=e473]: FIFA PC Gaming
+                  - generic [ref=e475]: assorted
+                - generic [ref=e476]:
+                  - generic [ref=e477]: solo
+                  - generic [ref=e478]: under 300
+                  - generic [ref=e479]: gaming
+                - generic [ref=e480]:
+                  - generic [ref=e481]:
+                    - generic [ref=e482]:
+                      - generic [ref=e483]: Price
+                      - generic [ref=e484]: ₹150/person
+                    - generic [ref=e485]:
+                      - generic [ref=e486]: Schedule
+                      - generic "TBA" [ref=e487]
+                    - generic [ref=e488]:
+                      - generic [ref=e489]: Venue
+                      - generic "TBA" [ref=e490]
+                  - generic [ref=e491]:
+                    - button "View Details" [ref=e492]
+                    - button "Add to Cart" [ref=e493]
+              - generic [ref=e494] [cursor=pointer]:
+                - generic [ref=e495]:
+                  - heading "Sapientia" [level=3] [ref=e497]
+                  - generic [ref=e499]: assorted
+                - generic [ref=e500]:
+                  - generic [ref=e501]: group
+                  - generic [ref=e502]: under 300
+                  - generic [ref=e503]: small team
+                - generic [ref=e504]:
+                  - generic [ref=e505]:
+                    - generic [ref=e506]:
+                      - generic [ref=e507]: Price
+                      - generic [ref=e508]: ₹150 total
+                    - generic [ref=e509]:
+                      - generic [ref=e510]: Team Size
+                      - generic [ref=e512]: Team of 2
+                    - generic [ref=e513]:
+                      - generic [ref=e514]: Schedule
+                      - generic "TBA" [ref=e515]
+                    - generic [ref=e516]:
+                      - generic [ref=e517]: Venue
+                      - generic "TBA" [ref=e518]
+                  - generic [ref=e519]:
+                    - button "View Details" [ref=e520]
+                    - button "Add to Cart" [ref=e521]
+              - generic [ref=e522] [cursor=pointer]:
+                - generic [ref=e523]:
+                  - heading "Twin Vogue" [level=3] [ref=e525]
+                  - generic [ref=e527]: assorted
+                - generic [ref=e528]:
+                  - generic [ref=e529]: group
+                  - generic [ref=e530]: under 300
+                  - generic [ref=e531]: small team
+                - generic [ref=e532]:
+                  - generic [ref=e533]:
+                    - generic [ref=e534]:
+                      - generic [ref=e535]: Price
+                      - generic [ref=e536]: ₹199 total
+                    - generic [ref=e537]:
+                      - generic [ref=e538]: Team Size
+                      - generic [ref=e540]: Team of 2
+                    - generic [ref=e541]:
+                      - generic [ref=e542]: Schedule
+                      - generic "TBA" [ref=e543]
+                    - generic [ref=e544]:
+                      - generic [ref=e545]: Venue
+                      - generic "TBA" [ref=e546]
+                  - generic [ref=e547]:
+                    - button "View Details" [ref=e548]
+                    - button "Add to Cart" [ref=e549]
+          - generic [ref=e550]:
+            - generic [ref=e551] [cursor=pointer]:
+              - heading "🧠 Quiz Events 2" [level=2] [ref=e552]:
+                - generic [ref=e553]: 🧠
+                - generic [ref=e554]: Quiz Events
+                - generic [ref=e555]: "2"
+              - button [ref=e556]:
+                - img [ref=e557]
+            - generic [ref=e559]:
+              - generic [ref=e560] [cursor=pointer]:
+                - generic [ref=e561]:
+                  - heading "General Quiz" [level=3] [ref=e563]
+                  - generic [ref=e565]: quiz
+                - generic [ref=e566]:
+                  - generic [ref=e567]: group
+                  - generic [ref=e568]: under 100
+                  - generic [ref=e569]: under 300
+                  - generic [ref=e570]: "+1"
+                - generic [ref=e571]:
+                  - generic [ref=e572]:
+                    - generic [ref=e573]:
+                      - generic [ref=e574]: Price
+                      - generic [ref=e575]: ₹75/person
+                    - generic [ref=e576]:
+                      - generic [ref=e577]: Team Size
+                      - generic [ref=e579]: 1–3 members
+                    - generic [ref=e580]:
+                      - generic [ref=e581]: Schedule
+                      - generic "TBA" [ref=e582]
+                    - generic [ref=e583]:
+                      - generic [ref=e584]: Venue
+                      - generic "TBA" [ref=e585]
+                  - generic [ref=e586]:
+                    - button "View Details" [ref=e587]
+                    - button "Add to Cart" [ref=e588]
+              - generic [ref=e589] [cursor=pointer]:
+                - generic [ref=e590]:
+                  - heading "Mela Quiz" [level=3] [ref=e592]
+                  - generic [ref=e594]: quiz
+                - generic [ref=e595]:
+                  - generic [ref=e596]: group
+                  - generic [ref=e597]: under 100
+                  - generic [ref=e598]: under 300
+                  - generic [ref=e599]: "+1"
+                - generic [ref=e600]:
+                  - generic [ref=e601]:
+                    - generic [ref=e602]:
+                      - generic [ref=e603]: Price
+                      - generic [ref=e604]: ₹75/person
+                    - generic [ref=e605]:
+                      - generic [ref=e606]: Team Size
+                      - generic [ref=e608]: 1–2 members
+                    - generic [ref=e609]:
+                      - generic [ref=e610]: Schedule
+                      - generic "TBA" [ref=e611]
+                    - generic [ref=e612]:
+                      - generic [ref=e613]: Venue
+                      - generic "TBA" [ref=e614]
+                  - generic [ref=e615]:
+                    - button "View Details" [ref=e616]
+                    - button "Add to Cart" [ref=e617]
+          - generic [ref=e618]:
+            - generic [ref=e619] [cursor=pointer]:
+              - heading "🎬 Drama Events 4" [level=2] [ref=e620]:
+                - generic [ref=e621]: 🎬
+                - generic [ref=e622]: Drama Events
+                - generic [ref=e623]: "4"
+              - button [ref=e624]:
+                - img [ref=e625]
+            - generic [ref=e627]:
+              - generic [ref=e628] [cursor=pointer]:
+                - generic [ref=e629]:
+                  - heading "Dramathon" [level=3] [ref=e631]
+                  - generic [ref=e633]: drama
+                - generic [ref=e634]:
+                  - generic [ref=e635]: group
+                  - generic [ref=e636]: under 300
+                  - generic [ref=e637]: small team
+                - generic [ref=e638]:
+                  - generic [ref=e639]:
+                    - generic [ref=e640]:
+                      - generic [ref=e641]: Price
+                      - generic [ref=e642]: ₹199 total
+                    - generic [ref=e643]:
+                      - generic [ref=e644]: Team Size
+                      - generic [ref=e646]: 2–4 members
+                    - generic [ref=e647]:
+                      - generic [ref=e648]: Schedule
+                      - generic "TBA" [ref=e649]
+                    - generic [ref=e650]:
+                      - generic [ref=e651]: Venue
+                      - generic "TBA" [ref=e652]
+                  - generic [ref=e653]:
+                    - button "View Details" [ref=e654]
+                    - button "Add to Cart" [ref=e655]
+              - generic [ref=e656] [cursor=pointer]:
+                - generic [ref=e657]:
+                  - heading "Mad Ads" [level=3] [ref=e659]
+                  - generic [ref=e660]:
+                    - generic [ref=e661]: drama
+                    - generic [ref=e662]: Online
+                - generic [ref=e663]:
+                  - generic [ref=e664]: group
+                  - generic [ref=e665]: online
+                  - generic [ref=e666]: under 300
+                  - generic [ref=e667]: "+1"
+                - generic [ref=e668]:
+                  - generic [ref=e669]:
+                    - generic [ref=e670]:
+                      - generic [ref=e671]: Price
+                      - generic [ref=e672]: ₹150 total
+                    - generic [ref=e673]:
+                      - generic [ref=e674]: Team Size
+                      - generic [ref=e676]: 3–5 members
+                    - generic [ref=e677]:
+                      - generic [ref=e678]: Schedule
+                      - generic "TBA" [ref=e679]
+                    - generic [ref=e680]:
+                      - generic [ref=e681]: Venue
+                      - generic "TBA" [ref=e682]
+                  - generic [ref=e683]:
+                    - button "View Details" [ref=e684]
+                    - button "Add to Cart" [ref=e685]
+              - generic [ref=e686] [cursor=pointer]:
+                - generic [ref=e687]:
+                  - heading "Mono Act" [level=3] [ref=e689]
+                  - generic [ref=e691]: drama
+                - generic [ref=e692]:
+                  - generic [ref=e693]: solo
+                  - generic [ref=e694]: under 100
+                  - generic [ref=e695]: under 300
+                - generic [ref=e696]:
+                  - generic [ref=e697]:
+                    - generic [ref=e698]:
+                      - generic [ref=e699]: Price
+                      - generic [ref=e700]: ₹75/person
+                    - generic [ref=e701]:
+                      - generic [ref=e702]: Schedule
+                      - generic "TBA" [ref=e703]
+                    - generic [ref=e704]:
+                      - generic [ref=e705]: Venue
+                      - generic "TBA" [ref=e706]
+                  - generic [ref=e707]:
+                    - button "View Details" [ref=e708]
+                    - button "Add to Cart" [ref=e709]
+              - generic [ref=e710] [cursor=pointer]:
+                - generic [ref=e711]:
+                  - generic [ref=e712]:
+                    - heading "Streetplay" [level=3] [ref=e713]
+                    - paragraph [ref=e714]: Street Play
+                  - generic [ref=e716]: drama
+                - generic [ref=e717]:
+                  - generic [ref=e718]: group
+                  - generic [ref=e719]: large team
+                  - generic [ref=e720]: flagship
+                - generic [ref=e721]:
+                  - generic [ref=e722]:
+                    - generic [ref=e723]:
+                      - generic [ref=e724]: Price
+                      - generic [ref=e725]: ₹799 total
+                    - generic [ref=e726]:
+                      - generic [ref=e727]: Team Size
+                      - generic [ref=e729]: 8–12 members
+                    - generic [ref=e730]:
+                      - generic [ref=e731]: Schedule
+                      - generic "TBA" [ref=e732]
+                    - generic [ref=e733]:
+                      - generic [ref=e734]: Venue
+                      - generic "TBA" [ref=e735]
+                  - generic [ref=e736]:
+                    - button "View Details" [ref=e737]
+                    - button "Add to Cart" [ref=e738]
+          - generic [ref=e739]:
+            - generic [ref=e740] [cursor=pointer]:
+              - heading "🎨 Art Events 5" [level=2] [ref=e741]:
+                - generic [ref=e742]: 🎨
+                - generic [ref=e743]: Art Events
+                - generic [ref=e744]: "5"
+              - button [ref=e745]:
+                - img [ref=e746]
+            - generic [ref=e748]:
+              - generic [ref=e749] [cursor=pointer]:
+                - generic [ref=e750]:
+                  - heading "Art Attack" [level=3] [ref=e752]
+                  - generic [ref=e754]: art
+                - generic [ref=e755]:
+                  - generic [ref=e756]: group
+                  - generic [ref=e757]: under 300
+                  - generic [ref=e758]: large team
+                  - generic [ref=e759]: "+1"
+                - generic [ref=e760]:
+                  - generic [ref=e761]:
+                    - generic [ref=e762]:
+                      - generic [ref=e763]: Price
+                      - generic [ref=e764]: ₹299 total
+                    - generic [ref=e765]:
+                      - generic [ref=e766]: Team Size
+                      - generic [ref=e768]: 3–6 members
+                    - generic [ref=e769]:
+                      - generic [ref=e770]: Schedule
+                      - generic "TBA" [ref=e771]
+                    - generic [ref=e772]:
+                      - generic [ref=e773]: Venue
+                      - generic "TBA" [ref=e774]
+                  - generic [ref=e775]:
+                    - button "View Details" [ref=e776]
+                    - button "Add to Cart" [ref=e777]
+              - generic [ref=e778] [cursor=pointer]:
+                - generic [ref=e779]:
+                  - heading "Duotone" [level=3] [ref=e781]
+                  - generic [ref=e783]: art
+                - generic [ref=e784]:
+                  - generic [ref=e785]: solo
+                  - generic [ref=e786]: under 100
+                  - generic [ref=e787]: under 300
+                  - generic [ref=e788]: "+1"
+                - generic [ref=e789]:
+                  - generic [ref=e790]:
+                    - generic [ref=e791]:
+                      - generic [ref=e792]: Price
+                      - generic [ref=e793]: ₹75/person
+                    - generic [ref=e794]:
+                      - generic [ref=e795]: Schedule
+                      - generic "TBA" [ref=e796]
+                    - generic [ref=e797]:
+                      - generic [ref=e798]: Venue
+                      - generic "TBA" [ref=e799]
+                  - generic [ref=e800]:
+                    - button "View Details" [ref=e801]
+                    - button "Add to Cart" [ref=e802]
+              - generic [ref=e803] [cursor=pointer]:
+                - generic [ref=e804]:
+                  - heading "Face Painting" [level=3] [ref=e806]
+                  - generic [ref=e808]: art
+                - generic [ref=e809]:
+                  - generic [ref=e810]: solo
+                  - generic [ref=e811]: under 100
+                  - generic [ref=e812]: under 300
+                  - generic [ref=e813]: "+1"
+                - generic [ref=e814]:
+                  - generic [ref=e815]:
+                    - generic [ref=e816]:
+                      - generic [ref=e817]: Price
+                      - generic [ref=e818]: ₹99/person
+                    - generic [ref=e819]:
+                      - generic [ref=e820]: Schedule
+                      - generic "TBA" [ref=e821]
+                    - generic [ref=e822]:
+                      - generic [ref=e823]: Venue
+                      - generic "TBA" [ref=e824]
+                  - generic [ref=e825]:
+                    - button "View Details" [ref=e826]
+                    - button "Add to Cart" [ref=e827]
+              - generic [ref=e828] [cursor=pointer]:
+                - generic [ref=e829]:
+                  - heading "Relay Painting" [level=3] [ref=e831]
+                  - generic [ref=e833]: art
+                - generic [ref=e834]:
+                  - generic [ref=e835]: group
+                  - generic [ref=e836]: under 300
+                  - generic [ref=e837]: small team
+                  - generic [ref=e838]: "+1"
+                - generic [ref=e839]:
+                  - generic [ref=e840]:
+                    - generic [ref=e841]:
+                      - generic [ref=e842]: Price
+                      - generic [ref=e843]: ₹299 total
+                    - generic [ref=e844]:
+                      - generic [ref=e845]: Team Size
+                      - generic [ref=e847]: Team of 4
+                    - generic [ref=e848]:
+                      - generic [ref=e849]: Schedule
+                      - generic "TBA" [ref=e850]
+                    - generic [ref=e851]:
+                      - generic [ref=e852]: Venue
+                      - generic "TBA" [ref=e853]
+                  - generic [ref=e854]:
+                    - button "View Details" [ref=e855]
+                    - button "Add to Cart" [ref=e856]
+              - generic [ref=e857] [cursor=pointer]:
+                - generic [ref=e858]:
+                  - heading "Tote Bag Painting" [level=3] [ref=e860]
+                  - generic [ref=e862]: art
+                - generic [ref=e863]:
+                  - generic [ref=e864]: group
+                  - generic [ref=e865]: under 300
+                  - generic [ref=e866]: small team
+                  - generic [ref=e867]: "+1"
+                - generic [ref=e868]:
+                  - generic [ref=e869]:
+                    - generic [ref=e870]:
+                      - generic [ref=e871]: Price
+                      - generic [ref=e872]: ₹150 total
+                    - generic [ref=e873]:
+                      - generic [ref=e874]: Team Size
+                      - generic [ref=e876]: Team of 2
+                    - generic [ref=e877]:
+                      - generic [ref=e878]: Schedule
+                      - generic "TBA" [ref=e879]
+                    - generic [ref=e880]:
+                      - generic [ref=e881]: Venue
+                      - generic "TBA" [ref=e882]
+                  - generic [ref=e883]:
+                    - button "View Details" [ref=e884]
+                    - button "Add to Cart" [ref=e885]
+          - generic [ref=e886]:
+            - generic [ref=e887] [cursor=pointer]:
+              - heading "📚 Literary Events 5" [level=2] [ref=e888]:
+                - generic [ref=e889]: 📚
+                - generic [ref=e890]: Literary Events
+                - generic [ref=e891]: "5"
+              - button [ref=e892]:
+                - img [ref=e893]
+            - generic [ref=e895]:
+              - generic [ref=e896] [cursor=pointer]:
+                - generic [ref=e897]:
+                  - heading "Debate" [level=3] [ref=e899]
+                  - generic [ref=e901]: literary
+                - generic [ref=e902]:
+                  - generic [ref=e903]: group
+                  - generic [ref=e904]: under 300
+                  - generic [ref=e905]: small team
+                  - generic [ref=e906]: "+1"
+                - generic [ref=e907]:
+                  - generic [ref=e908]:
+                    - generic [ref=e909]:
+                      - generic [ref=e910]: Price
+                      - generic [ref=e911]: ₹150 total
+                    - generic [ref=e912]:
+                      - generic [ref=e913]: Team Size
+                      - generic [ref=e915]: Team of 2
+                    - generic [ref=e916]:
+                      - generic [ref=e917]: Schedule
+                      - generic "TBA" [ref=e918]
+                    - generic [ref=e919]:
+                      - generic [ref=e920]: Venue
+                      - generic "TBA" [ref=e921]
+                  - generic [ref=e922]:
+                    - button "View Details" [ref=e923]
+                    - button "Add to Cart" [ref=e924]
+              - generic [ref=e925] [cursor=pointer]:
+                - generic [ref=e926]:
+                  - generic [ref=e927]:
+                    - heading "JAM" [level=3] [ref=e928]
+                    - paragraph [ref=e929]: Just A Minute
+                  - generic [ref=e931]: literary
+                - generic [ref=e932]:
+                  - generic [ref=e933]: solo
+                  - generic [ref=e934]: under 100
+                  - generic [ref=e935]: under 300
+                  - generic [ref=e936]: "+1"
+                - generic [ref=e937]:
+                  - generic [ref=e938]:
+                    - generic [ref=e939]:
+                      - generic [ref=e940]: Price
+                      - generic [ref=e941]: ₹75/person
+                    - generic [ref=e942]:
+                      - generic [ref=e943]: Schedule
+                      - generic "TBA" [ref=e944]
+                    - generic [ref=e945]:
+                      - generic [ref=e946]: Venue
+                      - generic "TBA" [ref=e947]
+                  - generic [ref=e948]:
+                    - button "View Details" [ref=e949]
+                    - button "Add to Cart" [ref=e950]
+              - generic [ref=e951] [cursor=pointer]:
+                - generic [ref=e952]:
+                  - generic [ref=e953]:
+                    - heading "Lit Marathon" [level=3] [ref=e954]
+                    - paragraph [ref=e955]: Literary Marathon
+                  - generic [ref=e957]: literary
+                - generic [ref=e958]:
+                  - generic [ref=e959]: group
+                  - generic [ref=e960]: under 300
+                  - generic [ref=e961]: small team
+                  - generic [ref=e962]: "+1"
+                - generic [ref=e963]:
+                  - generic [ref=e964]:
+                    - generic [ref=e965]:
+                      - generic [ref=e966]: Price
+                      - generic [ref=e967]: ₹299 total
+                    - generic [ref=e968]:
+                      - generic [ref=e969]: Team Size
+                      - generic [ref=e971]: Team of 4
+                    - generic [ref=e972]:
+                      - generic [ref=e973]: Schedule
+                      - generic "TBA" [ref=e974]
+                    - generic [ref=e975]:
+                      - generic [ref=e976]: Venue
+                      - generic "TBA" [ref=e977]
+                  - generic [ref=e978]:
+                    - button "View Details" [ref=e979]
+                    - button "Add to Cart" [ref=e980]
+              - generic [ref=e981] [cursor=pointer]:
+                - generic [ref=e982]:
+                  - heading "Poetry" [level=3] [ref=e984]
+                  - generic [ref=e985]:
+                    - generic [ref=e986]: literary
+                    - generic [ref=e987]: Online
+                - generic [ref=e988]:
+                  - generic [ref=e989]: solo
+                  - generic [ref=e990]: online
+                  - generic [ref=e991]: free
+                  - generic [ref=e992]: "+3"
+                - generic [ref=e993]:
+                  - generic [ref=e994]:
+                    - generic [ref=e995]:
+                      - generic [ref=e996]: Price
+                      - generic [ref=e997]: Free
+                    - generic [ref=e998]:
+                      - generic [ref=e999]: Schedule
+                      - generic "TBA" [ref=e1000]
+                    - generic [ref=e1001]:
+                      - generic [ref=e1002]: Venue
+                      - generic "TBA" [ref=e1003]
+                  - generic [ref=e1004]:
+                    - button "View Details" [ref=e1005]
+                    - button "Add to Cart" [ref=e1006]
+              - generic [ref=e1007] [cursor=pointer]:
+                - generic [ref=e1008]:
+                  - heading "Shipwreck" [level=3] [ref=e1010]
+                  - generic [ref=e1012]: literary
+                - generic [ref=e1013]:
+                  - generic [ref=e1014]: solo
+                  - generic [ref=e1015]: under 100
+                  - generic [ref=e1016]: under 300
+                  - generic [ref=e1017]: "+1"
+                - generic [ref=e1018]:
+                  - generic [ref=e1019]:
+                    - generic [ref=e1020]:
+                      - generic [ref=e1021]: Price
+                      - generic [ref=e1022]: ₹75/person
+                    - generic [ref=e1023]:
+                      - generic [ref=e1024]: Schedule
+                      - generic "TBA" [ref=e1025]
+                    - generic [ref=e1026]:
+                      - generic [ref=e1027]: Venue
+                      - generic "TBA" [ref=e1028]
+                  - generic [ref=e1029]:
+                    - button "View Details" [ref=e1030]
+                    - button "Add to Cart" [ref=e1031]
+  - contentinfo [ref=e1032]:
+    - generic [ref=e1033]:
+      - 'heading "Last date to register: 1 June 2026!" [level=2] [ref=e1035]'
+      - generic [ref=e1036]:
+        - generic [ref=e1037]:
+          - heading "Quick Links" [level=3] [ref=e1038]
+          - list [ref=e1039]:
+            - listitem [ref=e1040]:
+              - link "Registration" [ref=e1041] [cursor=pointer]:
+                - /url: /registration
+            - listitem [ref=e1042]:
+              - link "Events" [ref=e1043] [cursor=pointer]:
+                - /url: /events
+            - listitem [ref=e1044]:
+              - link "Sports" [ref=e1045] [cursor=pointer]:
+                - /url: /sports
+            - listitem [ref=e1046]:
+              - link "Schedule" [ref=e1047] [cursor=pointer]:
+                - /url: /schedule
+            - listitem [ref=e1048]:
+              - link "Contact" [ref=e1049] [cursor=pointer]:
+                - /url: /contact
+        - generic [ref=e1050]:
+          - heading "Contact Info" [level=3] [ref=e1051]
+          - generic [ref=e1052]:
+            - generic [ref=e1053]:
+              - img [ref=e1054]
+              - generic [ref=e1056]:
+                - paragraph [ref=e1057]: Rahul Sharma
+                - link "+91 98765 43210" [ref=e1058] [cursor=pointer]:
+                  - /url: tel:+919876543210
+            - generic [ref=e1059]:
+              - img [ref=e1060]
+              - generic [ref=e1062]:
+                - paragraph [ref=e1063]: Priya Patel
+                - link "+91 87654 32109" [ref=e1064] [cursor=pointer]:
+                  - /url: tel:+918765432109
+            - generic [ref=e1065]:
+              - img [ref=e1066]
+              - paragraph [ref=e1069]:
+                - text: JSS Medical College
+                - text: Sri Shivarathreeshwara Nagara
+                - text: Mysuru, Karnataka 570015
+            - generic [ref=e1070]:
+              - img [ref=e1071]
+              - paragraph [ref=e1073]:
+                - text: "Festival Dates:"
+                - text: Nov 5-8, 2026
+      - generic [ref=e1074]:
+        - img "Tatvam Logo" [ref=e1076]
+        - generic [ref=e1077]:
+          - heading "TATVAM" [level=1] [ref=e1078]
+          - paragraph [ref=e1079]: "2026"
+        - paragraph [ref=e1080]: © TATVAM 2026. All rights reserved.
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e1086] [cursor=pointer]:
+    - img [ref=e1087]
+  - alert [ref=e1090]
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect } from '@playwright/test';
+  2  | 
+  3  | test.describe('Cart Isolation across Domains', () => {
+  4  |   test('should keep merch, cultural, and sports carts completely isolated', async ({ page }) => {
+  5  |     // 1. Go to Merch page and set up the merch cart in local storage
+  6  |     // We are simulating adding an item to the cart to bypass navigating the full UI
+  7  |     // which might change in the future.
+  8  |     await page.goto('/merch');
+  9  |     await page.evaluate(() => {
+  10 |       localStorage.setItem('merchCart', JSON.stringify([
+  11 |         {
+  12 |           unitId: 'test-unit-1',
+  13 |           itemId: 'jersey',
+  14 |           itemName: 'Official Jersey',
+  15 |           price: 499,
+  16 |           attributes: { size: 'L' }
+  17 |         }
+  18 |       ]));
+  19 |     });
+  20 | 
+  21 |     // Verify it's in the UI (assuming cart count or similar is shown, 
+  22 |     // or just checking local storage persistence across navigation)
+  23 |     
+  24 |     // 2. Navigate to Cultural events
+  25 |     await page.goto('/events');
+  26 |     
+  27 |     // Inject something into eventsCart
+  28 |     await page.evaluate(() => {
+  29 |       localStorage.setItem('eventsCart', JSON.stringify([
+  30 |         {
+  31 |           eventId: 'swar-leela',
+  32 |           eventName: 'Solo Eastern Singing',
+  33 |           eventType: 'solo',
+  34 |           eventFee: 150
+  35 |         }
+  36 |       ]));
+  37 |     });
+  38 | 
+  39 |     // 3. Navigate to Sports
+> 40 |     await page.goto('/sports');
+     |                ^ Error: page.goto: Test timeout of 30000ms exceeded.
+  41 |     
+  42 |     // Verify local storage keys haven't overwritten each other
+  43 |     const carts = await page.evaluate(() => {
+  44 |       return {
+  45 |         merch: JSON.parse(localStorage.getItem('merchCart') || '[]'),
+  46 |         events: JSON.parse(localStorage.getItem('eventsCart') || '[]'),
+  47 |         sports: JSON.parse(localStorage.getItem('sportsCart') || '[]')
+  48 |       };
+  49 |     });
+  50 | 
+  51 |     // Assertions
+  52 |     expect(carts.merch).toHaveLength(1);
+  53 |     expect(carts.merch[0].itemId).toBe('jersey');
+  54 |     
+  55 |     expect(carts.events).toHaveLength(1);
+  56 |     expect(carts.events[0].eventId).toBe('swar-leela');
+  57 |     
+  58 |     expect(carts.sports).toHaveLength(0); // Sports cart should be empty as we didn't add anything
+  59 |   });
+  60 | });
+  61 | 
+```

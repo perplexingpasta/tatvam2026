@@ -17,6 +17,6 @@ test.describe('Header Dropdown and Mobile Drawer Interaction', () => {
     await headerToggle.click();
 
     // Drawer should be hidden after header dropdown opens
-    await expect(drawer).toBeHidden();
+    await expect(drawer).toHaveClass(/.*-translate-x-full.*/);
   });
 });
