@@ -220,6 +220,7 @@ export default function SportsCartPage() {
 
     setIsSubmitting(true);
     setCheckoutError(null);
+    const toastId = toast.loading("Submitting registration...");
 
     const formData = new FormData();
     formData.append("utrNumber", utrNumber);
@@ -566,8 +567,5 @@ export default function SportsCartPage() {
         </div>
       )}
     </div>
-  );
-}
-div>
   );
 }

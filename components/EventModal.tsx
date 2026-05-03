@@ -78,8 +78,7 @@ export function EventModal({ event, onClose }: EventModalProps) {
         <div className="overflow-y-auto flex-1 overscroll-contain">
           <div className="relative w-full h-48 sm:h-64 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-6 shrink-0">
             {event.imageUrls && event.imageUrls.length > 0 ? (
-               <Image src={event.imageUrls[0]} alt={event.indianName} fill className="object-cover" />
-            ) : (
+               <Image src={event.imageUrls[0]} alt={event.indianName} fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />            ) : (
                <h3 className="text-3xl sm:text-4xl font-extrabold text-white text-center drop-shadow-md z-10 break-words line-clamp-3">
                  {event.indianName}
                </h3>

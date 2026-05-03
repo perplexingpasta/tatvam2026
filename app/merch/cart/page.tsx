@@ -7,6 +7,7 @@ import { useMerchCart } from "@/components/MerchCartProvider";
 import { MerchCartUnit } from "@/types/merch";
 import { StagedFileUpload } from "@/components/StagedFileUpload";
 import { toast } from "sonner";
+import { CopyToClipboard } from "@/components/CopyToClipboard";
 
 type PageState = 1 | 2 | 3;
 

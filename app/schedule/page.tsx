@@ -3,8 +3,12 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { SCHEDULE, ScheduleEvent } from "@/lib/scheduleData";
-import { ScheduleEventModal } from "@/components/ScheduleEventModal";
+import dynamic from "next/dynamic";
 import { collection, getDocs } from "firebase/firestore";
+
+const ScheduleEventModal = dynamic(() => import("@/components/ScheduleEventModal").then(mod => mod.ScheduleEventModal), {
+  ssr: false,
+});
 import { db } from "@/lib/firebase";
 import { Event } from "@/types";
 import { eventsCatalogue } from "@/lib/eventsCatalogue";
@@ -384,6 +388,7 @@ export default function SchedulePage() {
       <div className="max-w-3xl mx-auto px-4 pb-24 flex flex-col sm:flex-row gap-4 justify-center">
         <Link
           href="/events"
+          prefetch={false}
           className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-semibold rounded-xl transition-colors"
         >
           Browse All Cultural Events{" "}
@@ -403,6 +408,7 @@ export default function SchedulePage() {
         </Link>
         <Link
           href="/sports"
+          prefetch={false}
           className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-semibold rounded-xl transition-colors"
         >
           Browse Sports Events{" "}

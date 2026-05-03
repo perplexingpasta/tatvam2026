@@ -1,9 +1,11 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from "react";
-import { Event } from "@/lib/eventsCatalogue";
+import { Event } from "@/types";
 import { CartItem, AddToCartResult } from "./CartProvider";
 import { toast } from "sonner";
+
+const SPORTS_CART_STORAGE_KEY = "sportsCart";
 
 interface SportsCartContextType {
   sportsCart: CartItem[];
@@ -85,17 +87,22 @@ export function SportsCartProvider({ children }: { children: ReactNode }) {
     setSportsCart([]);
   }, []);
 
+  const isInSportsCart = useCallback((eventId: string) => {
+    return sportsCart.some((item) => item.eventId === eventId);
+  }, [sportsCart]);
+
   const sportsCartTotal = useMemo(() => sportsCart.reduce((total, item) => total + item.fee, 0), [sportsCart]);
   const sportsCartCount = useMemo(() => sportsCart.length, [sportsCart]);
 
   const value = useMemo(() => ({
     sportsCart, 
     addToSportsCart, 
-    removeFromSportsCart, 
+    removeFromSportsCart,
+    isInSportsCart,
     clearSportsCart,
     sportsCartTotal,
     sportsCartCount
-  }), [sportsCart, addToSportsCart, removeFromSportsCart, clearSportsCart, sportsCartTotal, sportsCartCount]);
+  }), [sportsCart, addToSportsCart, removeFromSportsCart, isInSportsCart, clearSportsCart, sportsCartTotal, sportsCartCount]);
 
   return (
     <SportsCartContext.Provider value={value}>

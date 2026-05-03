@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import imageCompression from 'browser-image-compression';
 
 export type UploadStatus = 
   "idle" | "compressing" | "uploading" | "success" | "error";

@@ -11,7 +11,7 @@ export const metadata = {
   title: "Sports Events",
 };
 
-export const revalidate = 60; // Revalidate every minute if necessary
+export const revalidate = 3600; // Revalidate every hour
 
 export default async function SportsEventsPage() {
   const eventsSnapshot = await adminDb.collection("events").where("eventDomain", "==", "sports").get();

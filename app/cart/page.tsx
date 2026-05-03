@@ -220,6 +220,7 @@ export default function CartPage() {
 
     setIsSubmitting(true);
     setCheckoutError(null);
+    const toastId = toast.loading("Submitting registration...");
 
     const formData = new FormData();
     formData.append("utrNumber", utrNumber);

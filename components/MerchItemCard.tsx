@@ -79,6 +79,7 @@ export function MerchItemCard({ item }: { item: MerchItem }) {
             alt={item.name}
             fill
             className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
           <div className="flex items-center justify-center w-full h-full text-gray-400">
@@ -98,7 +99,7 @@ export function MerchItemCard({ item }: { item: MerchItem }) {
                 currentImageIndex === idx ? "border-blue-600" : "border-transparent"
               }`}
             >
-              <Image src={img} alt={`${item.name} thumbnail ${idx + 1}`} fill className="object-cover" />
+              <Image src={img} alt={`${item.name} thumbnail ${idx + 1}`} fill className="object-cover" sizes="48px" />
             </button>
           ))}
         </div>

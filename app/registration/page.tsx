@@ -9,6 +9,7 @@ import { StagedFileUpload } from "@/components/StagedFileUpload";
 import { FAQAccordion } from "@/components/FAQAccordion";
 import { registrationFAQs } from "@/lib/faqData";
 import { toast } from "sonner";
+import { CopyToClipboard } from "@/components/CopyToClipboard";
 
 const TIERS = [
   {

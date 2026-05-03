@@ -48,7 +48,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           try {
             setCart(JSON.parse(saved));
           } catch {
-            // Ignore parse errors
+            toast.error("Failed to load cart. Check your browser settings.");
           }
         }
         setIsInitialized(true);
@@ -58,11 +58,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (isInitialized && typeof window !== "undefined") {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      try {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      } catch {
+        toast.error("Failed to save cart. Check your browser settings.");
+      }
     }
   }, [cart, isInitialized]);
 
-  const addToCart = (event: Event): AddToCartResult => {
+  const addToCart = useCallback((event: Event): AddToCartResult => {
     if (cart.find((item) => item.eventId === event.eventId)) {
       return { added: false, reason: "already_in_cart" };
     }
@@ -89,25 +93,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
 
     return { added: true };
-  };
+  }, [cart]);
 
-  const removeFromCart = (eventId: string) => {
+  const removeFromCart = useCallback((eventId: string) => {
     setCart((prev) => prev.filter((item) => item.eventId !== eventId));
-  };
+  }, []);
 
-  const isInCart = (eventId: string) => {
+  const isInCart = useCallback((eventId: string) => {
     return cart.some((item) => item.eventId === eventId);
-  };
+  }, [cart]);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setCart([]);
     if (typeof window !== "undefined") {
       localStorage.removeItem(CART_STORAGE_KEY);
     }
-  };
+  }, []);
+
+  const value = useMemo(() => ({ cart, addToCart, removeFromCart, isInCart, clearCart }), [cart, addToCart, removeFromCart, isInCart, clearCart]);
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, isInCart, clearCart }}>
+    <CartContext.Provider value={value}>
       {children}
     </CartContext.Provider>
   );
@@ -117,18 +123,6 @@ export function useCart() {
   const context = useContext(CartContext);
   if (context === undefined) {
     throw new Error("useCart must be used within a CartProvider");
-  }
-  return context;
-}
-w Error("useCart must be used within a CartProvider");
-  }
-  return context;
-}
-art must be used within a CartProvider");
-  }
-  return context;
-}
-w Error("useCart must be used within a CartProvider");
   }
   return context;
 }
