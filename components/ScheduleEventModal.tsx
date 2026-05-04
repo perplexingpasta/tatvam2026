@@ -42,9 +42,11 @@ export function ScheduleEventModal({
   };
 
   const isSports = scheduleEvent.type === "sports";
-  const inCart = isSports 
-    ? sportsCart.some(i => i.eventId === scheduleEvent.eventId)
-    : scheduleEvent.eventId ? isInCart(scheduleEvent.eventId) : false;
+  const inCart = isSports
+    ? sportsCart.some((i) => i.eventId === scheduleEvent.eventId)
+    : scheduleEvent.eventId
+      ? isInCart(scheduleEvent.eventId)
+      : false;
 
   const fallbackEvent: Event = {
     eventId: scheduleEvent.eventId!,
@@ -55,7 +57,7 @@ export function ScheduleEventModal({
     category: (scheduleEvent.category as Event["category"]) || "assorted",
     description: "",
     shortDescription: "",
-    type: "solo", 
+    type: "solo",
     pricingType: "free",
     fee: 0,
     minTeamSize: null,
@@ -99,15 +101,28 @@ export function ScheduleEventModal({
       return <span className="text-green-600 font-semibold">Free Entry</span>;
     }
     if (event.pricingType === "per_person") {
-      return <span className="font-semibold">₹{event.fee} <span className="text-sm font-normal text-zinc-500">per person</span></span>;
+      return (
+        <span className="font-semibold">
+          ₹{event.fee}{" "}
+          <span className="text-sm font-normal text-zinc-500">per person</span>
+        </span>
+      );
     }
-    return <span className="font-semibold">₹{event.fee} <span className="text-sm font-normal text-zinc-500">total for the team</span></span>;
+    return (
+      <span className="font-semibold">
+        ₹{event.fee}{" "}
+        <span className="text-sm font-normal text-zinc-500">
+          total for the team
+        </span>
+      </span>
+    );
   };
 
   const renderTeamSize = () => {
     if (!event) return null;
-    if (event.type !== "group" || !event.minTeamSize || !event.maxTeamSize) return "Solo";
-    
+    if (event.type !== "group" || !event.minTeamSize || !event.maxTeamSize)
+      return "Solo";
+
     if (event.slug === "bgmi-mobile") return "4 players + 1 substitute";
     if (event.slug === "codm-mobile") return "5 players + 1 substitute";
 
@@ -118,28 +133,46 @@ export function ScheduleEventModal({
   };
 
   return (
-    <div 
+    <div
       ref={backdropRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-[8px] p-2 sm:p-4 sm:pt-4 transition-all"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-2 sm:p-4 sm:pt-4 transition-all"
     >
-      <div 
-        className="bg-white w-full sm:max-w-[600px] rounded-t-3xl sm:rounded-2xl sm:rounded-t-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 fade-in duration-200"
-      >
-        <button 
+      <div className="bg-white w-full sm:max-w-150 rounded-t-3xl sm:rounded-2xl sm:rounded-t-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 fade-in duration-200">
+        <button
           onClick={onClose}
           className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white transition-colors"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
         </button>
 
         <div className="overflow-y-auto flex-1 overscroll-contain">
-          <div className="relative w-full h-48 sm:h-64 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-6 shrink-0">
+          <div className="relative w-full h-48 sm:h-64 bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-6 shrink-0">
             {event?.imageUrls && event.imageUrls.length > 0 ? (
-               <Image src={event.imageUrls[0]} alt={scheduleEvent.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />            ) : (
-               <h3 className="text-3xl sm:text-4xl font-extrabold text-white text-center drop-shadow-md z-10 break-words line-clamp-3">
-                 {scheduleEvent.name}
-               </h3>
+              <Image
+                src={event.imageUrls[0]}
+                alt={scheduleEvent.name}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+            ) : (
+              <h3 className="text-3xl sm:text-4xl font-extrabold text-white text-center drop-shadow-md z-10 wrap-break-word line-clamp-3">
+                {scheduleEvent.name}
+              </h3>
             )}
             <div className="absolute inset-0 bg-black/20" />
           </div>
@@ -170,32 +203,46 @@ export function ScheduleEventModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 bg-zinc-50 p-5 rounded-2xl border border-zinc-100">
               <div className="space-y-4">
                 <div>
-                  <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-1">Price</span>
+                  <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-1">
+                    Price
+                  </span>
                   {isLoading ? (
                     <div className="h-5 bg-zinc-200 animate-pulse rounded w-1/2 mt-1"></div>
                   ) : (
-                    <div className="text-zinc-900">{hasError ? "TBA" : renderPrice()}</div>
+                    <div className="text-zinc-900">
+                      {hasError ? "TBA" : renderPrice()}
+                    </div>
                   )}
                 </div>
                 <div>
-                  <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-1">Team Size</span>
+                  <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-1">
+                    Team Size
+                  </span>
                   {isLoading ? (
                     <div className="h-5 bg-zinc-200 animate-pulse rounded w-1/3 mt-1"></div>
                   ) : (
-                    <div className="text-zinc-900 font-medium">{hasError ? "TBA" : renderTeamSize()}</div>
+                    <div className="text-zinc-900 font-medium">
+                      {hasError ? "TBA" : renderTeamSize()}
+                    </div>
                   )}
                 </div>
               </div>
               <div className="space-y-4">
                 <div>
-                  <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-1">Schedule</span>
+                  <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-1">
+                    Schedule
+                  </span>
                   <div className="text-zinc-900 font-medium">
                     {scheduleTime}
                   </div>
                 </div>
                 <div>
-                  <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-1">Venue</span>
-                  <div className="text-zinc-900 font-medium">{scheduleEvent.venue}</div>
+                  <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-1">
+                    Venue
+                  </span>
+                  <div className="text-zinc-900 font-medium">
+                    {scheduleEvent.venue}
+                  </div>
                 </div>
               </div>
             </div>
@@ -204,7 +251,9 @@ export function ScheduleEventModal({
               {isLoading ? (
                 <>
                   <section>
-                    <h4 className="text-lg font-bold text-zinc-900 mb-3">About this Event</h4>
+                    <h4 className="text-lg font-bold text-zinc-900 mb-3">
+                      About this Event
+                    </h4>
                     <div className="space-y-2">
                       <div className="h-4 bg-zinc-200 animate-pulse rounded w-full"></div>
                       <div className="h-4 bg-zinc-200 animate-pulse rounded w-5/6"></div>
@@ -212,7 +261,9 @@ export function ScheduleEventModal({
                     </div>
                   </section>
                   <section>
-                    <h4 className="text-lg font-bold text-zinc-900 mb-3">Rules</h4>
+                    <h4 className="text-lg font-bold text-zinc-900 mb-3">
+                      Rules
+                    </h4>
                     <div className="space-y-2">
                       <div className="h-4 bg-zinc-200 animate-pulse rounded w-full"></div>
                       <div className="h-4 bg-zinc-200 animate-pulse rounded w-3/4"></div>
@@ -222,29 +273,42 @@ export function ScheduleEventModal({
               ) : hasError ? (
                 <section>
                   <div className="p-4 bg-amber-50 text-amber-800 rounded-xl border border-amber-200">
-                    <p className="font-medium">Event details temporarily unavailable.</p>
-                    <p className="text-sm mt-1 opacity-80">You can still add this event to your cart. Check your cart to verify prices later.</p>
+                    <p className="font-medium">
+                      Event details temporarily unavailable.
+                    </p>
+                    <p className="text-sm mt-1 opacity-80">
+                      You can still add this event to your cart. Check your cart
+                      to verify prices later.
+                    </p>
                   </div>
                 </section>
               ) : (
                 <>
                   <section>
-                    <h4 className="text-lg font-bold text-zinc-900 mb-3">About this Event</h4>
+                    <h4 className="text-lg font-bold text-zinc-900 mb-3">
+                      About this Event
+                    </h4>
                     <p className="text-zinc-600 leading-relaxed whitespace-pre-wrap">
                       {event?.description || "Event details coming soon."}
                     </p>
                   </section>
-                  
+
                   <section>
-                    <h4 className="text-lg font-bold text-zinc-900 mb-3">Rules</h4>
+                    <h4 className="text-lg font-bold text-zinc-900 mb-3">
+                      Rules
+                    </h4>
                     {event?.rules && event.rules.length > 0 ? (
                       <ul className="list-disc list-inside space-y-2 text-zinc-600 pl-1 marker:text-zinc-400">
                         {event.rules.map((rule, idx) => (
-                          <li key={idx} className="pl-1 leading-relaxed">{rule}</li>
+                          <li key={idx} className="pl-1 leading-relaxed">
+                            {rule}
+                          </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-zinc-600 italic">Rules will be announced soon.</p>
+                      <p className="text-zinc-600 italic">
+                        Rules will be announced soon.
+                      </p>
                     )}
                   </section>
                 </>
@@ -261,22 +325,53 @@ export function ScheduleEventModal({
               isLoading
                 ? "bg-zinc-100 text-zinc-400 cursor-wait border border-zinc-200"
                 : !isAvailable
-                ? "bg-zinc-100 text-zinc-400 cursor-not-allowed border border-zinc-200"
-                : inCart
-                ? "bg-zinc-100 text-zinc-600 cursor-not-allowed border border-zinc-200"
-                : "bg-black text-white hover:bg-zinc-800 hover:scale-[1.01] active:scale-[0.99] shadow-md hover:shadow-lg"
+                  ? "bg-zinc-100 text-zinc-400 cursor-not-allowed border border-zinc-200"
+                  : inCart
+                    ? "bg-zinc-100 text-zinc-600 cursor-not-allowed border border-zinc-200"
+                    : "bg-black text-white hover:bg-zinc-800 hover:scale-[1.01] active:scale-[0.99] shadow-md hover:shadow-lg"
             }`}
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-zinc-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <svg
+                  className="animate-spin h-5 w-5 text-zinc-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
                 Loading Event...
               </span>
             ) : !isAvailable ? (
               "Registration Closed"
             ) : inCart ? (
               <>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
                 Already in Cart
               </>
             ) : isSports ? (

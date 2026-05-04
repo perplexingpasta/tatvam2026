@@ -6,9 +6,15 @@ import { SCHEDULE, ScheduleEvent } from "@/lib/scheduleData";
 import dynamic from "next/dynamic";
 import { collection, getDocs } from "firebase/firestore";
 
-const ScheduleEventModal = dynamic(() => import("@/components/ScheduleEventModal").then(mod => mod.ScheduleEventModal), {
-  ssr: false,
-});
+const ScheduleEventModal = dynamic(
+  () =>
+    import("@/components/ScheduleEventModal").then(
+      (mod) => mod.ScheduleEventModal,
+    ),
+  {
+    ssr: false,
+  },
+);
 import { db } from "@/lib/firebase";
 import { Event } from "@/types";
 import { eventsCatalogue } from "@/lib/eventsCatalogue";
@@ -183,7 +189,7 @@ export default function SchedulePage() {
           <span>Special Events</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-rose-50 border border-rose-200"></div>
+          <div className="w-3 h-3 rounded-full bg-blue-50 border border-blue-200"></div>
           <span>Solo Events</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -290,8 +296,8 @@ export default function SchedulePage() {
                           : "solo";
                         if (eventType === "solo") {
                           bgClass =
-                            "bg-rose-50/60 hover:bg-rose-50 border-rose-200";
-                          borderLeftColor = "border-l-rose-400";
+                            "bg-blue-50/60 hover:bg-blue-50 border-blue-200";
+                          borderLeftColor = "border-l-blue-400";
                         } else {
                           bgClass =
                             "bg-violet-50/60 hover:bg-violet-50 border-violet-200";
