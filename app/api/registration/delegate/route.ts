@@ -15,13 +15,16 @@ export async function POST(req: NextRequest) {
     const contentType = req.headers.get("content-type") || "";
     if (!contentType.includes("multipart/form-data")) {
       return NextResponse.json(
-        { success: false, message: "Unsupported Media Type: expected multipart/form-data" },
-        { status: 415 }
+        {
+          success: false,
+          message: "Unsupported Media Type: expected multipart/form-data",
+        },
+        { status: 415 },
       );
     }
 
     const formData = await req.formData();
-    
+
     const isJSSMC = formData.get("isJSSMC") === "true";
 
     interface MemberInput {
@@ -41,14 +44,17 @@ export async function POST(req: NextRequest) {
     while (formData.has(`member_${i}_name`)) {
       let collegeName = formData.get(`member_${i}_collegeName`) as string;
       let delegateTier = formData.get(`member_${i}_delegateTier`) as string;
-      
+
       if (isJSSMC) {
         collegeName = "JSS Medical College";
         delegateTier = "tier3";
       } else {
         if (collegeName.trim().toLowerCase() === "jss medical college") {
           return NextResponse.json(
-            { success: false, message: "JSSMC students must use the JSSMC registration form" },
+            {
+              success: false,
+              message: "JSSMC students must use the JSSMC registration form",
+            },
             { status: 400 },
           );
         }
@@ -61,8 +67,12 @@ export async function POST(req: NextRequest) {
         collegeName,
         collegeIdNumber: formData.get(`member_${i}_collegeIdNumber`) as string,
         delegateTier,
-        collegeIdImageUrl: formData.get(`member_${i}_collegeIdImageUrl`) as string,
-        collegeIdImageTransformedUrl: formData.get(`member_${i}_collegeIdImageTransformedUrl`) as string,
+        collegeIdImageUrl: formData.get(
+          `member_${i}_collegeIdImageUrl`,
+        ) as string,
+        collegeIdImageTransformedUrl: formData.get(
+          `member_${i}_collegeIdImageTransformedUrl`,
+        ) as string,
       });
       i++;
     }
@@ -85,8 +95,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let paymentScreenshotUrl = formData.get("paymentScreenshotUrl") as string | null || "";
-    let utrNumber = formData.get("utrNumber") as string | null || "";
+    let paymentScreenshotUrl =
+      (formData.get("paymentScreenshotUrl") as string | null) || "";
+    let utrNumber = (formData.get("utrNumber") as string | null) || "";
     let paymentStatus = "pending_verification";
 
     if (isJSSMC) {
@@ -94,19 +105,27 @@ export async function POST(req: NextRequest) {
       utrNumber = "";
       paymentScreenshotUrl = "";
     } else {
-      if (!paymentScreenshotUrl || !utrNumber || !/^[A-Za-z0-9]{12,22}$/.test(utrNumber)) {
+      if (
+        !paymentScreenshotUrl ||
+        !utrNumber ||
+        !/^[A-Za-z0-9]{12,22}$/.test(utrNumber)
+      ) {
         return NextResponse.json(
-          { success: false, message: "A valid UTR number (12-22 alphanumeric characters) and payment screenshot are required" },
+          {
+            success: false,
+            message:
+              "A valid UTR number (12-22 alphanumeric characters) and payment screenshot are required",
+          },
           { status: 400 },
         );
       }
-      
+
       try {
         z.string().url().parse(paymentScreenshotUrl);
       } catch {
         return NextResponse.json(
           { success: false, message: "Invalid payment screenshot URL" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -139,7 +158,7 @@ export async function POST(req: NextRequest) {
     // 3. Re-validate uniqueness in Firestore Transaction
     let attempt = 0;
     let transactionSuccess = false;
-    
+
     while (attempt < 3) {
       try {
         await adminDb.runTransaction(async (transaction) => {
@@ -186,23 +205,32 @@ export async function POST(req: NextRequest) {
         attempt++;
         if (attempt >= 3) {
           return NextResponse.json(
-            { success: false, message: "Registration failed due to concurrent request. Please try again." },
+            {
+              success: false,
+              message:
+                "Registration failed due to concurrent request. Please try again.",
+            },
             { status: 409 },
           );
         }
-        await new Promise(resolve => setTimeout(resolve, 100 * attempt));
+        await new Promise((resolve) => setTimeout(resolve, 100 * attempt));
       }
     }
 
     if (!transactionSuccess) {
       return NextResponse.json(
-        { success: false, message: "Registration failed due to concurrent request. Please try again." },
+        {
+          success: false,
+          message:
+            "Registration failed due to concurrent request. Please try again.",
+        },
         { status: 409 },
       );
     }
 
     // 4. Generate IDs and Prepare Data
-    const generateId = () => Math.random().toString(36).substring(2, 7).toUpperCase();
+    const generateId = () =>
+      Math.random().toString(36).substring(2, 7).toUpperCase();
     const teamId = teamName
       ? `${teamName.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`
       : null;
@@ -282,34 +310,54 @@ export async function POST(req: NextRequest) {
     await batch.commit();
 
     // Fire and forget - never await this
-    attemptSyncWithFallback("delegate", { delegates: delegatesData, teamId, teamName }, teamId || delegateIds[0]);
+    attemptSyncWithFallback(
+      "delegate",
+      { delegates: delegatesData, teamId, teamName },
+      teamId || delegateIds[0],
+    );
 
     // 6. Send Emails
     const festName = process.env.NEXT_PUBLIC_FEST_NAME || "Our Fest";
     const emailPromises = members.map((member, j) => {
       const delId = delegateIds[j];
-      console.log(`Attempting to send email to ${member.email} from ${process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev"}...`);
-      return resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
-        to: member.email,
-        subject: `Your Delegate ID for ${festName}`,
-        html: generateRegistrationEmailHtml({
-          name: member.name,
-          festName,
-          delegateId: delId,
-          tier: member.delegateTier,
-          teamId,
-          isJSSMC: isJSSMC,
-        }),
-      }).then(resendResponse => {
-        if (resendResponse.error) {
-          console.error(`Resend API returned an error for ${member.email}:`, resendResponse.error);
-        } else {
-          console.log(`Successfully sent email to ${member.email}. Resend API Response ID:`, resendResponse.data?.id);
-        }
-      }).catch(error => {
-        console.error("Exception thrown while sending email to", member.email, ":", error);
-      });
+      console.log(
+        `Attempting to send email to ${member.email} from ${process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev"}...`,
+      );
+      return resend.emails
+        .send({
+          from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
+          to: member.email,
+          subject: `Your Delegate ID for ${festName}`,
+          html: generateRegistrationEmailHtml({
+            name: member.name,
+            festName,
+            delegateId: delId,
+            tier: member.delegateTier,
+            teamId,
+            isJSSMC: isJSSMC,
+          }),
+        })
+        .then((resendResponse) => {
+          if (resendResponse.error) {
+            console.error(
+              `Resend API returned an error for ${member.email}:`,
+              resendResponse.error,
+            );
+          } else {
+            console.log(
+              `Successfully sent email to ${member.email}. Resend API Response ID:`,
+              resendResponse.data?.id,
+            );
+          }
+        })
+        .catch((error) => {
+          console.error(
+            "Exception thrown while sending email to",
+            member.email,
+            ":",
+            error,
+          );
+        });
     });
 
     await Promise.allSettled(emailPromises);
@@ -325,8 +373,5 @@ export async function POST(req: NextRequest) {
     const msg =
       error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ success: false, message: msg }, { status: 500 });
-  }
-}
- 500 });
   }
 }
