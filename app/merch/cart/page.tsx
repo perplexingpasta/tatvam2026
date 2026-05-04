@@ -125,7 +125,7 @@ export default function MerchCartPage() {
     const toastId = toast.loading("Placing order...");
 
     const abortController = new AbortController();
-    const timeoutId = setTimeout(() => abortController.abort(), 30000);
+    const timeoutId = setTimeout(() => abortController.abort(), 60000);
 
     try {
       const formData = new FormData();

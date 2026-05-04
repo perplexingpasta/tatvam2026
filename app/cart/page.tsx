@@ -241,7 +241,7 @@ export default function CartPage() {
     formData.append("cartItems", JSON.stringify(cartItemsPayload));
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     try {
       let res;

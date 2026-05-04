@@ -98,30 +98,37 @@ export async function POST(req: NextRequest) {
           delegateRefsToUpdate.length = 0;
           emailDataMap.clear();
 
-          for (const item of cartItems) {
-            for (const delegateId of item.participantDelegateIds) {
-              const delegateRef = adminDb.collection("delegates").doc(delegateId);
-              const delegateDoc = await transaction.get(delegateRef);
+          const delegateFetches = cartItems.flatMap(item => 
+            item.participantDelegateIds.map(delegateId => ({
+              item,
+              delegateId,
+              delegateRef: adminDb.collection("delegates").doc(delegateId)
+            }))
+          );
 
-              if (!delegateDoc.exists) {
-                throw new Error(`Conflict: Delegate ${delegateId} not found`);
-              }
+          const delegateDocs = await Promise.all(
+            delegateFetches.map(fetch => transaction.get(fetch.delegateRef))
+          );
 
-              const data = delegateDoc.data();
-              const registeredEventIds = data?.registeredEventIds || [];
-
-              if (registeredEventIds.includes(item.eventId)) {
-                throw new Error(`Conflict: Delegate ${delegateId} is already registered for ${item.eventName}`);
-              }
-
-              delegateRefsToUpdate.push({ ref: delegateRef, eventId: item.eventId });
-              
-              // Store email/name for email notification
-              if (!emailDataMap.has(delegateId)) {
-                 emailDataMap.set(delegateId, { name: data?.name || "", email: data?.email || "" });
-              }
+          delegateFetches.forEach((fetch, index) => {
+            const delegateDoc = delegateDocs[index];
+            if (!delegateDoc.exists) {
+              throw new Error(`Conflict: Delegate ${fetch.delegateId} not found`);
             }
-          }
+
+            const data = delegateDoc.data();
+            const registeredEventIds = data?.registeredEventIds || [];
+
+            if (registeredEventIds.includes(fetch.item.eventId)) {
+              throw new Error(`Conflict: Delegate ${fetch.delegateId} is already registered for ${fetch.item.eventName}`);
+            }
+
+            delegateRefsToUpdate.push({ ref: fetch.delegateRef, eventId: fetch.item.eventId });
+            
+            if (!emailDataMap.has(fetch.delegateId)) {
+               emailDataMap.set(fetch.delegateId, { name: data?.name || "", email: data?.email || "" });
+            }
+          });
         });
         break; // success, exit loop
       } catch (error: unknown) {

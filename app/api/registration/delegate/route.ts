@@ -286,35 +286,33 @@ export async function POST(req: NextRequest) {
 
     // 6. Send Emails
     const festName = process.env.NEXT_PUBLIC_FEST_NAME || "Our Fest";
-    for (let j = 0; j < members.length; j++) {
-      const member = members[j];
+    const emailPromises = members.map((member, j) => {
       const delId = delegateIds[j];
-      try {
-        console.log(`Attempting to send email to ${member.email} from ${process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev"}...`);
-        const resendResponse = await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
-          to: member.email,
-          subject: `Your Delegate ID for ${festName}`,
-          html: generateRegistrationEmailHtml({
-            name: member.name,
-            festName,
-            delegateId: delId,
-            tier: member.delegateTier,
-            teamId,
-            isJSSMC: isJSSMC,
-          }),
-        });
-
+      console.log(`Attempting to send email to ${member.email} from ${process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev"}...`);
+      return resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
+        to: member.email,
+        subject: `Your Delegate ID for ${festName}`,
+        html: generateRegistrationEmailHtml({
+          name: member.name,
+          festName,
+          delegateId: delId,
+          tier: member.delegateTier,
+          teamId,
+          isJSSMC: isJSSMC,
+        }),
+      }).then(resendResponse => {
         if (resendResponse.error) {
           console.error(`Resend API returned an error for ${member.email}:`, resendResponse.error);
         } else {
           console.log(`Successfully sent email to ${member.email}. Resend API Response ID:`, resendResponse.data?.id);
         }
-      } catch (error) {
+      }).catch(error => {
         console.error("Exception thrown while sending email to", member.email, ":", error);
-        // Do not fail the whole request if email fails, as DB is already written
-      }
-    }
+      });
+    });
+
+    await Promise.allSettled(emailPromises);
 
     return NextResponse.json({
       success: true,
@@ -327,5 +325,8 @@ export async function POST(req: NextRequest) {
     const msg =
       error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ success: false, message: msg }, { status: 500 });
+  }
+}
+ 500 });
   }
 }

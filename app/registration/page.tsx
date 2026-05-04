@@ -228,7 +228,7 @@ export default function RegistrationPage() {
       });
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       let res;
       try {
