@@ -51,9 +51,11 @@ All must be set in `.env.local` for development and in Vercel for production.
 - `RESEND_API_KEY`
 - `RESEND_FROM_EMAIL` — the sender address, e.g. `noreply@yourdomain.com`
 
-### Google Sheets — Registration System
+### Google Sheets (Shared Auth)
 - `GOOGLE_SERVICE_ACCOUNT_EMAIL`
 - `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`
+
+### Google Sheets — Registration System
 - `GOOGLE_SHEETS_SPREADSHEET_ID` — used in `lib/sheetsSync.ts`
 
 ### Google Sheets — Merch Store
@@ -115,7 +117,7 @@ All must be set in `.env.local` for development and in Vercel for production.
 ### 3. `eventRegistrations/{registrationId}`
 
 - `registrationId`: string — auto-generated Firestore doc ID
-- `domain`: `"cultural"` | `"sports"` (optional, defaults to cultural for older entries)
+- `domain`: `"cultural"` | `"sports"` (explicit in sports cart, defaults to cultural for older entries)
 - `participantDelegateIds`: string[] — flat array of all delegate IDs across all cart items (deduplicated)
 - `cartItems`: array of objects:
   - `eventId`: string
@@ -137,13 +139,14 @@ All must be set in `.env.local` for development and in Vercel for production.
 
 ### 4. `events/{eventId}`
 
-Read-only at runtime. Seeded via `scripts/seedEvents.ts` from `lib/eventsCatalogue.ts`. The `eventId` equals the event's `slug`.
+Read-only at runtime. Seeded via `scripts/seedEvents.ts` from `lib/eventsCatalogue.ts` and `lib/sportsCatalogue.ts`. The `eventId` equals the event's `slug`.
 
 - `eventId`: string — same as `slug`
 - `indianName`: string — e.g. `"Swar Leela"`
 - `englishName`: string — e.g. `"Solo Eastern Singing"`
 - `slug`: string — URL-safe, e.g. `"swar-leela"`
-- `category`: `"music"` | `"dance"` | `"assorted"` | `"quiz"` | `"drama"` | `"art"` | `"literary"`
+- `category`: `"music"` | `"dance"` | `"assorted"` | `"quiz"` | `"drama"` | `"art"` | `"literary"` | `"sports"`
+- `eventDomain`: `"cultural"` | `"sports"`
 - `description`: string — full description (may be empty)
 - `shortDescription`: string — 1–2 sentences for card display
 - `type`: `"solo"` | `"group"`
@@ -163,11 +166,11 @@ Read-only at runtime. Seeded via `scripts/seedEvents.ts` from `lib/eventsCatalog
 - `contactName`: string | null
 - `contactPhone`: string | null
 
-**To add/edit/delete events:** Edit `lib/eventsCatalogue.ts`, then run:
+**To add/edit/delete events:** Edit `lib/eventsCatalogue.ts` or `lib/sportsCatalogue.ts`, then run:
 ```
 npx tsx scripts/seedEvents.ts
 ```
-This wipes and re-seeds the entire `events` collection.
+This wipes and re-seeds the entire `events` collection combining both catalogues.
 
 ### 5. `sheetsRetryQueue/{docId}`
 
@@ -277,7 +280,7 @@ Submits an event registration cart.
 
 ### `POST /api/registration/sports`
 
-Submits a sports registration cart. Identical contract and behaviour to `/api/registration/events`, but writes to the `SportsRegistrations` tab in Google Sheets.
+Submits a sports registration cart. Identical contract and behaviour to `/api/registration/events`, but writes to the `SportsRegistrations` tab in Google Sheets and explicitly sets `domain: "sports"` on the document.
 
 ---
 
@@ -375,13 +378,21 @@ Submits a merchandise order.
 
 ---
 
+### `POST /api/merch/sheets/retry`
+
+Triggers processing of the `merchSheetsRetryQueue` collection for failed syncs. Note that this requires a composite index on Firestore (`status` ASC, `nextRetryAt` ASC).
+
+**Response (success):** `{ success: true, syncedCount: number, message: string }`
+
+---
+
 ### `GET /api/cron/sheets-retry`
 
 Triggered by Vercel cron. Secured by `CRON_SECRET` bearer token.
 
 **Auth:** `Authorization: Bearer ${CRON_SECRET}`
 
-**Behaviour:** Calls `POST /api/sheets/retry` internally via `NEXT_PUBLIC_SITE_URL`.
+**Behaviour:** Calls `POST /api/sheets/retry` internally via `NEXT_PUBLIC_SITE_URL`. Note: The cron currently only triggers cultural/sports retries, and the merch retry endpoint `/api/merch/sheets/retry` is currently unscheduled in `vercel.json`.
 
 ---
 
@@ -409,7 +420,7 @@ All image uploads follow this pattern:
 
 ### Registration System (`lib/sheetsSync.ts`)
 
-**Sync types:** `"delegate"` | `"eventRegistration"` | `"sportsRegistration"`
+**Sync types:** `"delegate"` | `"eventRegistration"` | `"sportsRegistration"` (Deprecated legacy type: `"team"`)
 
 **Flow:** `attemptSyncWithFallback()` is called fire-and-forget after writing to Firestore. It calls `syncToSheets()`. On failure, a doc is added to `sheetsRetryQueue` and the source doc's `sheetsSync.status` is set to `"failed"`.
 
@@ -500,7 +511,7 @@ To add/edit merch items: edit `lib/merchCatalogue.ts` only. No seeding script ne
 
 ## Events Catalogue
 
-Defined in `lib/eventsCatalogue.ts` as a `rawEvents` array. The `buildEvent()` function fills in defaults and generates tags. The exported `eventsCatalogue` array is what gets seeded to Firestore.
+Defined in `lib/eventsCatalogue.ts` as a `rawEvents` array and `lib/sportsCatalogue.ts`. The exported `eventsCatalogue` array alongside `sportsCatalogue` are seeded to Firestore.
 
 **Tag auto-generation rules** (see `generateTags()` in `lib/eventsCatalogue.ts`):
 - Always adds `"solo"` or `"group"` based on type
@@ -517,9 +528,9 @@ Defined in `lib/eventsCatalogue.ts` as a `rawEvents` array. The `buildEvent()` f
 - `"literary"` for category: `literary`
 - `"music"` / `"dance"` for respective categories
 
-**Current count:** 33 events across 7 categories.
+**Current count:** 33 cultural events across 7 categories + several sports events.
 
-**To update events:** Edit `lib/eventsCatalogue.ts`, then run `npx tsx scripts/seedEvents.ts`.
+**To update events:** Edit `lib/eventsCatalogue.ts` or `lib/sportsCatalogue.ts`, then run `npx tsx scripts/seedEvents.ts`.
 
 > **WARNING:** Changing a `slug` (= `eventId`) for an existing event after delegates have registered will orphan those `registeredEventIds` entries. Only change slugs before any registrations are live.
 
@@ -531,6 +542,7 @@ Defined in `lib/eventsCatalogue.ts` as a `rawEvents` array. The `buildEvent()` f
 - **`hooks/useImageUpload.ts`** — Handles client-side compression (WebP), upload to `/api/upload/image`, and state management.
 - **`components/CartProvider.tsx`** — React context for the cultural event registration cart. Persisted to `localStorage` under `"eventsCart"`.
 - **`lib/eventPricing.ts`** — Utility functions: `formatEventPrice()`, `getCartFee()`, `formatTeamSize()`.
+- **Static Data** — `lib/faqData.ts` (FAQs for registration/contact), `lib/scheduleData.ts` (fest schedule), `lib/sportsCatalogue.ts` (sports events).
 
 ---
 
